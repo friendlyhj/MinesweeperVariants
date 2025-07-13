@@ -6,7 +6,7 @@
 # @FileName: 2A.py
 """
 [2A]面积: 线索表示四方向相邻雷区域的面积之和
-(注:速率底下 且未经严谨验证 可能存在多解)
+(注:如果出现大数字则速率极度底下)
 """
 from abs.Rrule import AbstractClueRule, AbstractClueValue
 from abs.board import AbstractBoard, AbstractPosition
@@ -126,7 +126,7 @@ class Value2A(AbstractClueValue):
                 model.AddBoolAnd(vars_f).OnlyEnforceIf(tmp)
             tmp_list.append(tmp)
         model.AddBoolOr(tmp_list)
-        print(self.pos, self, len(tmp_list))
+        # print(self.pos, self, len(tmp_list))
 
         # import sys
         # sys.exit(0)

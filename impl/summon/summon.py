@@ -350,11 +350,12 @@ class Summon:
 
                 if solver_by_csp(self.mines_rules, self.clue_rule, self.mines_clue_rule,
                                  board.clone(), drop_r=self.drop_r) == 1:
+                    progress_info["step"] = False
                     continue
                 board.set_value(pos, clue)
-                progress_info["step"] = False
 
         progress_info["running"] = False
+        progress_info["step"] = False
         thread.join()
         print()  # 清空残留
         return board
