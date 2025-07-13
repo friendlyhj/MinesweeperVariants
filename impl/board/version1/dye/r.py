@@ -1,0 +1,22 @@
+#!/usr/bin/env python3
+# -*- coding:utf-8 -*-
+# 
+# @Time    : 2025/06/10 10:54
+# @Author  : xxx
+# @FileName: r.py
+
+from utils.tool import get_random
+
+from . import AbstractDye
+
+
+class DyeR(AbstractDye):
+    name = "r"
+
+    def dye(self, board, board_key: str):
+        random = get_random()
+        pos = board.boundary(key=board_key)
+        for _pos in board.get_row_pos(pos):
+            for __pos in board.get_col_pos(_pos):
+                board.set_dyed(__pos, random.random() >= 0.5)
+
