@@ -17,34 +17,35 @@ from utils.tool import get_random
 
 class Rule4V(AbstractClueRule):
     name = "4V"
-    size = 1
 
     def __init__(self, board: "AbstractBoard" = None, data=None) -> None:
         super().__init__(board, data)
         size = (board.boundary().x + 1, board.boundary().y + 1)
-        for i in range(self.size):
-            key = self.name + f"_{i}"
-            board.generate_board(key, size)
-            board.set_config(key, "interactive", True)
-            board.set_config(key, "row_col", True)
-            board.set_config(key, "VALUE", VALUE_QUESS)
-            board.set_config(key, "MINES", MINES_TAG)
+        board.generate_board(self.name, size)
+        board.set_config(self.name, "interactive", True)
+        board.set_config(self.name, "row_col", True)
+        board.set_config(self.name, "VALUE", VALUE_QUESS)
+        board.set_config(self.name, "MINES", MINES_TAG)
 
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':
         random = get_random()
 
-        for key in [MASTER_BOARD] + [self.name + f"_{i}" for i in range(self.size)]:
-            for pos, _ in board("N", key=key):
-                neighbors_list = []
-                for _key in [MASTER_BOARD] + [self.name + f"_{i}" for i in range(Rule4V.size)]:
-                    _pos = pos.clone()
-                    _pos.board_key = _key
-                    neighbors_list.append(_pos.neighbors(0, 2))
-                count = random.choice([board.batch(positions, mode="type").count("F")
-                                       for positions in neighbors_list])
-                value = Value4V(pos=pos, code=bytes([count]))
-                value.value = count
-                board.set_value(pos, value)
+        for pos, _ in board():
+            neighbors_list = []
+            for _key in [MASTER_BOARD, self.name]:
+                _pos = pos.clone()
+                _pos.board_key = _key
+                neighbors_list.append(_pos.neighbors(0, 2))
+            values = [board.batch(positions, mode="type").count("F") for positions in neighbors_list]
+            r_value = 0 if random.random() > 0.7 else 1
+            _pos.board_key = MASTER_BOARD
+            if board.get_type(_pos) != "F":
+                obj = Value4V(pos=_pos, code=bytes([values[r_value]]))
+                board.set_value(_pos, obj)
+            _pos.board_key = self.name
+            if board.get_type(_pos) != "F":
+                obj = Value4V(pos=_pos, code=bytes([values[1 - r_value]]))
+                board.set_value(_pos, obj)
 
         return board
 
@@ -65,7 +66,7 @@ class Rule4V(AbstractClueRule):
 class Value4V(AbstractClueValue):
     def __init__(self, pos: 'AbstractPosition', code: bytes = b''):
         self.neighbors_list = []
-        for key in [MASTER_BOARD] + [Rule4V.name + f"_{i}" for i in range(Rule4V.size)]:
+        for key in [MASTER_BOARD, Rule4V.name]:
             _pos = pos.clone()
             _pos.board_key = key
             self.neighbors_list.append(_pos.neighbors(0, 2))

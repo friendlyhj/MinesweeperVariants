@@ -15,4 +15,4 @@ dye: ""                 # 默认无染色
 used_r: false           # 默认不启用R推理
 
 output_path: ".\\output" # 保存到哪个文件夹内 默认为工作目录下的output内
-timeout: 0      # 求解器进行多少时间后算为超时 单位秒 0为无限制
+timeout: 1200      # 求解器进行多少时间后算为超时 单位秒 0为无限制
