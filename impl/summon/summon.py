@@ -263,9 +263,24 @@ class Summon:
 
         def progress_thread():
             def format_time(seconds):
-                if seconds < 3600:
-                    return time.strftime("%M:%S", time.gmtime(seconds))
-                return time.strftime("%H:%M:%S", time.gmtime(seconds))
+                seconds = int(round(seconds))  # 四舍五入取整
+                days, seconds = divmod(seconds, 86400)  # 1天=86400秒
+                hours, seconds = divmod(seconds, 3600)  # 1小时=3600秒
+                minutes, seconds = divmod(seconds, 60)  # 1分钟=60秒
+
+                parts = []
+                if days > 0:
+                    parts.append(f"{days}d")
+                if hours > 0 or days > 0:  # 如果有天，即使小时=0也要显示
+                    parts.append(f"{hours:02d}")
+                if minutes > 0 or hours > 0 or days > 0:  # 如果有更高单位，分钟必须显示
+                    parts.append(f"{minutes:02d}")
+                if seconds > 60:
+                    parts.append(f"{seconds:02d}")  # 秒始终显示
+                else:
+                    parts.append(f"{seconds}s")
+
+                return ":".join(parts)
 
             while progress_info["running"]:
 
