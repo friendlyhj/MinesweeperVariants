@@ -12,7 +12,7 @@ from abs.board import AbstractBoard
 from utils.solver import get_model
 
 
-class Rulex1M(AbstractMinesRule):
+class Rulen1M(AbstractMinesRule):
     name = "*1M"
 
     @classmethod

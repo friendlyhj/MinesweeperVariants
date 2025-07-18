@@ -44,21 +44,15 @@ class Rule3DV(Abstract3DClueRule):
 
 
 class ValueV(AbstractClueValue):
-    rule = None
-
     def __init__(self, pos: AbstractPosition, count: int = 0, code: bytes = None):
         super().__init__(pos, code)
+        self.neighbor = None
         if code is not None:
             # 从字节码解码
             self.count = code[0]
         else:
             # 直接初始化
             self.count = count
-        self.neighbor = []
-        for _pos in [self.pos, self.rule.pos_up(self.pos), self.rule.pos_down(self.pos)]:
-            if _pos is None:
-                continue
-            self.neighbor.extend(_pos.neighbors(0, 2))
 
     def __repr__(self):
         return f"{self.count}"
@@ -71,10 +65,20 @@ class ValueV(AbstractClueValue):
         return bytes([self.count])
 
     def invalid(self, board: 'AbstractBoard') -> bool:
+        self.neighbor = []
+        for _pos in [self.pos, Rule3DV.up(board, self.pos), Rule3DV.down(board, self.pos)]:
+            if _pos is None:
+                continue
+            self.neighbor.extend(_pos.neighbors(0, 2))
         return board.batch(self.neighbor, mode="type").count("N") == 0
 
     def deduce_cells(self, board: 'AbstractBoard') -> bool:
         type_dict = {"N": [], "F": []}
+        self.neighbor = []
+        for _pos in [self.pos, Rule3DV.up(board, self.pos), Rule3DV.down(board, self.pos)]:
+            if _pos is None:
+                continue
+            self.neighbor.extend(_pos.neighbors(0, 2))
         for pos in self.neighbor:
             t = board.get_type(pos)
             if t in ("", "C"):
