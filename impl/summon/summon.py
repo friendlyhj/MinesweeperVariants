@@ -275,7 +275,7 @@ class Summon:
                     parts.append(f"{hours:02d}")
                 if minutes > 0 or hours > 0 or days > 0:  # 如果有更高单位，分钟必须显示
                     parts.append(f"{minutes:02d}")
-                if seconds > 60:
+                if (days + hours + minutes) > 0:
                     parts.append(f"{seconds:02d}")  # 秒始终显示
                 else:
                     parts.append(f"{seconds}s")
@@ -350,6 +350,7 @@ class Summon:
             for idx, (pos, pos_type, key) in enumerate(c_poses + [(None, "", "")]):
                 progress_info["idx"] = idx
                 progress_info["phase"] = phase
+                progress_info["step"] = False
 
                 if pos is None:
                     break
@@ -365,7 +366,6 @@ class Summon:
 
                 if solver_by_csp(self.mines_rules, self.clue_rule, self.mines_clue_rule,
                                  board.clone(), drop_r=self.drop_r) == 1:
-                    progress_info["step"] = False
                     continue
                 board.set_value(pos, clue)
 
