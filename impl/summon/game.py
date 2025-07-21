@@ -8,7 +8,6 @@
 from typing import Union, Callable
 import itertools as it
 
-
 from abs.Lrule import Rule0R
 from abs.Rrule import AbstractClueValue
 from abs.board import AbstractBoard
@@ -217,7 +216,7 @@ class GameSession:
         # 获取之前推导过的
         deduced_values: dict["AbstractPosition", object] = self.deduced_values
         # 与题板进行检查 并去除已经放置的
-        if type(self.mode) == str:
+        if type(self.mode) is str:
             raise ValueError("未进行多题板遍历")
         for key in self.board.get_board_keys():
             for position, _ in self.board("CF", key=key):
@@ -236,7 +235,7 @@ class GameSession:
                     true_tag = self.board.get_config(position.board_key, "VALUE")
                     self.board.set_value(position, true_tag)
                 elif answer_type == "N":
-                    self.logger.error("\n"+self.answer_board.show_board())
+                    self.logger.error("\n" + self.answer_board.show_board())
                     raise ValueError("None type shouldn't on answer board")
 
                 if self.solve_current_board(self.board, drop_rules=False) == 0:
@@ -288,11 +287,11 @@ class GameSession:
         # 加入所有线索点操作
         for pos, obj in self.board("CF"):
             if obj in (
-                VALUE_TAG, MINES_TAG,
-                self.board.get_config(
-                    pos.board_key, "VALUE"),
-                self.board.get_config(
-                    pos.board_key, "MINES")
+                    VALUE_TAG, MINES_TAG,
+                    self.board.get_config(
+                        pos.board_key, "VALUE"),
+                    self.board.get_config(
+                        pos.board_key, "MINES")
             ):
                 continue
             if obj.invalid(self.board):
@@ -308,6 +307,7 @@ class GameSession:
         # 加入所有左线规则子约束的开关操作
         for rule in self.summon.mines_rules.rules:
             if self.drop_r and isinstance(rule, Rule0R):
+                build_subrule_toggle_operator((rule, 0))[0]()
                 continue
             for idx in range(len(rule.subrules)):
                 constraint_toggle_list.append(build_subrule_toggle_operator((rule, idx)))
@@ -424,7 +424,7 @@ class GameSession:
 
             n_length = len([None for key in self.board.get_board_keys() for _ in self.board('N', key=key)])
             print(f"{n_num - n_length}/{n_num}", end="\r")
-            self.logger.debug("\n"+self.board.show_board())
+            self.logger.debug("\n" + self.board.show_board())
             self.logger.debug(clue_freq)
             grouped_hints = self.hint()
             if not grouped_hints:
@@ -458,4 +458,3 @@ class GameSession:
         self.board = _board
         self.deduced_values = {}
         return clue_freq
-
