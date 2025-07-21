@@ -396,6 +396,10 @@ class GameSession:
             if not found:
                 grouped_deductions.append((origin_list, [pos]))
 
+        for rule in self.summon.mines_rules.rules:
+            if self.drop_r and isinstance(rule, Rule0R):
+                build_subrule_toggle_operator((rule, 0))[1]()
+
         return grouped_deductions
 
     def check_difficulty(self, q=1000, br=False):
