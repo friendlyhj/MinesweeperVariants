@@ -48,7 +48,6 @@ def main(
         print(f"尝试第{attempt_index}次...", end="\r")
         get_random(seed, new=True)
         a_time = time.time()
-        s = Summon(size=size, total=total, rules=rules, board=board_class, dye=dye)
         _board = s.summon_board()
         if _board is None:
             continue
