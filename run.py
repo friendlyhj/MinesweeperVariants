@@ -71,7 +71,7 @@ def print_with_indent(text, indent="\t"):
         wrapped = textwrap.fill(line, width=effective_width,
                                 initial_indent=indent,
                                 subsequent_indent=indent)
-        print(wrapped)
+        print(wrapped, flush=True)
     print()
 
 
@@ -80,17 +80,17 @@ if args.command == "list":
     rule_list = rule.get_all_rules()
 
     if rule_list["L"]:
-        print("\n\n左线规则:")
+        print("\n\n左线规则:", flush=True)
     for doc in rule_list["L"]:
         print_with_indent(doc)
 
     if rule_list["M"]:
-        print("\n\n中线规则:")
+        print("\n\n中线规则:", flush=True)
     for doc in rule_list["M"]:
         print_with_indent(doc)
 
     if rule_list["R"]:
-        print("\n\n右线规则:")
+        print("\n\n右线规则:", flush=True)
     for doc in rule_list["R"]:
         print_with_indent(doc)
 
@@ -110,6 +110,13 @@ else:
 
 if args.seed != defaults.get("seed"):
     args.attempts = 1
+
+for rule_name in args.rules:
+    if "$" in rule_name:
+        args.rules[args.rules.index(rule_name)] = rule_name.replace("$", "^")
+
+with open("./output/temp.txt", "w") as f:
+    f.write(str(args.rules))
 
 if args.test:
     test(

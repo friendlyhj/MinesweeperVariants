@@ -46,7 +46,7 @@ class Value1X(AbstractClueValue):
 
     @classmethod
     def type(cls) -> bytes:
-        return b'1X'
+        return b"1X'"
 
     def code(self) -> bytes:
         return bytes([self.count])

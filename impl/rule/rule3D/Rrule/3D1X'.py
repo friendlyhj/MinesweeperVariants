@@ -5,7 +5,7 @@
 # @Author  : Wu_RH
 # @FileName: 3D1X.py
 """
-[1X'] 三维十字'(Cross)：线索表示半径为 1 的十字范围内的雷数(上下左右前后)
+[3D1X'] 三维十字'(Cross)：线索表示半径为 1 的十字范围内的雷数(上下左右前后)
 """
 from abs.board import AbstractPosition, AbstractBoard
 from utils.solver import get_model

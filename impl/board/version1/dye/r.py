@@ -13,9 +13,9 @@ from . import AbstractDye
 class DyeR(AbstractDye):
     name = "r"
 
-    def dye(self, board, board_key: str):
+    def dye(self, board):
         random = get_random()
-        pos = board.boundary(key=board_key)
+        pos = board.boundary()
         for _pos in board.get_row_pos(pos):
             for __pos in board.get_col_pos(_pos):
                 board.set_dyed(__pos, random.random() >= 0.5)

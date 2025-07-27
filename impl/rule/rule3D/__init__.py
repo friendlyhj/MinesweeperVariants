@@ -17,60 +17,22 @@ from utils.impl_obj import VALUE_QUESS, MINES_TAG
 
 class Abstract3DRule:
     name = ""
-    __board_key: list
 
     def __init__(self, board: AbstractBoard, data: str = None):
         if data == "":
             return
         size = (board.boundary().x + 1, board.boundary().y + 1)
-        self.__board_key = []
-        if MASTER_BOARD not in self.__board_key:
-            self.__board_key.append(MASTER_BOARD)
-        for i in range(min(size) - 1):
+        for i in range((min(size) - 1) if data is None else int(data) - 1):
             key = f"{i + 2}"
-            if key in self.__board_key:
-                continue
             board.generate_board(key, size)
             board.set_config(key, "interactive", True)
             board.set_config(key, "row_col", True)
             board.set_config(key, "VALUE", VALUE_QUESS)
             board.set_config(key, "MINES", MINES_TAG)
-            self.__board_key.append(key)
 
     @staticmethod
     def pos_index(board: AbstractBoard, pos):
         return board.get_interactive_keys().index(pos.board_key)
-
-    def get_pos_index(self, pos):
-        return self.get_key_index(pos.board_key)
-
-    def get_key_index(self, key):
-        if key in self.__board_key:
-            return self.__board_key.index(key)
-        return -1
-
-    def get_key(self):
-        return self.__board_key
-
-    def pos_up(self, pos: AbstractPosition, n=1):
-        if len(self.__board_key) == 0:
-            return None
-        pos = pos.clone()
-        index = self.get_key_index(pos.board_key) + n
-        if -1 < index < len(self.get_key()):
-            pos.board_key = self.get_key()[index]
-            return pos
-        return None
-
-    def pos_down(self, pos: AbstractPosition, n=1):
-        if len(self.__board_key) == 0:
-            return None
-        pos = pos.clone()
-        index = self.get_key_index(pos.board_key) - n
-        if -1 < index < len(self.get_key()):
-            pos.board_key = self.get_key()[index]
-            return pos
-        return None
 
     @classmethod
     def down(cls, board: AbstractBoard, pos: AbstractPosition, n=1):

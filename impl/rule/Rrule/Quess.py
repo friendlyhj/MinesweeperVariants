@@ -4,6 +4,9 @@
 # @Time    : 2025/06/29 05:15
 # @Author  : Wu_RH
 # @FileName: Quess.py
+"""
+[?]标准线索: 线索表示该格是一个非雷
+"""
 
 from abs.Rrule import AbstractClueRule, ValueQuess
 from abs.board import AbstractBoard

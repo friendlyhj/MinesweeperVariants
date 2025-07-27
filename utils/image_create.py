@@ -177,7 +177,7 @@ def draw_board(
         bottom_text: str = "",
         cell_size: int = 100,
         output="output"
-) -> None:
+) -> bytes:
     """
     绘制多个题板图像，支持横向拼接。
     :param board: AbstractBoard 实例，支持 get_board_keys。
@@ -435,3 +435,7 @@ def draw_board(
     filepath = os.path.join(CONFIG["output_path"], f"{output}.png")
     image.save(filepath)
     get_logger().info(f"Image saved to: {filepath}")
+
+    with open(filepath, "rb") as f:  # 'rb' 表示二进制读取
+        image_bytes = f.read()  # 直接获取字节数据
+    return image_bytes

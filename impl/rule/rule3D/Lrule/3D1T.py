@@ -31,10 +31,10 @@ class Rule1T(Abstract3DMinesRule):
                 [pos, pos.down(), pos.down().down()],
                 [pos, pos.left().down(), pos.left().down().left().down()],
                 [pos, pos.left().up(), pos.left().up().left().up()],
-                [pos, self.pos_up(pos), self.pos_up(pos, 2)],
-                [pos, self.pos_up(pos.left()), self.pos_up(pos.left(2), 2)],
-                [pos, self.pos_up(pos.up()), self.pos_up(pos.up(2), 2)],
-                [pos, self.pos_up(pos.up().left()), self.pos_up(pos.up(2).left(2), 2)],
+                [pos, self.up(board, pos), self.up(board, pos, 2)],
+                [pos, self.up(board, pos.left()), self.up(board, pos.left(2), 2)],
+                [pos, self.up(board, pos.up()), self.up(board, pos.up(2), 2)],
+                [pos, self.up(board, pos.up().left()), self.up(board, pos.up(2).left(2), 2)],
             ]:
                 if None in positions:
                     continue

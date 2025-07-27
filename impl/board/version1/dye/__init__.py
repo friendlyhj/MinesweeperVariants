@@ -10,7 +10,7 @@ class AbstractDye(ABC):
     name = None
 
     @abstractmethod
-    def dye(self, board: "AbstractBoard", board_key: str):
+    def dye(self, board: "AbstractBoard"):
         """染色函数"""
 
 

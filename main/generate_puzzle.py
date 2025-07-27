@@ -131,10 +131,15 @@ def main(
         f.write(f"{n_num}-{get_seed()}\" ")
         f.write("-o demo\n")
 
-    draw_board(board=get_board(board_class)(code=board_code), cell_size=100, output="demo",
-               bottom_text=rule_text + f"-R{'*' if drop_r else total}/{n_num}-{get_seed()}\n")
+    image_bytes = draw_board(board=get_board(board_class)(code=board_code), cell_size=100, output="demo",
+                             bottom_text=rule_text + f"-R{'*' if drop_r else total}/{n_num}-{get_seed()}\n")
     draw_board(board=get_board(board_class)(code=answer_code), output="answer", cell_size=100,
                bottom_text=rule_text + f"-R{total}/{n_num}-{get_seed()}\n")
+
+    filepath = os.path.join(CONFIG["output_path"], "demo.png")
+    with open(filepath, "wb") as f:
+        f.write(image_bytes)
+        
     logger.info("\n\n" + "=" * 20 + "\n")
     logger.info("\n生成时间" + logger.get_time() + "\n")
     logger.info(f'单线索覆盖率: {"%.2f" % (100 * clue_coverage)}%\n')

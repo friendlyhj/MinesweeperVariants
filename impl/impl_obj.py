@@ -38,14 +38,23 @@ def recursive_import(module):
                 full_path = Path(dirpath) / f
                 rel = full_path.relative_to(base_path).with_suffix('')
                 mod_name = base_name + '.' + '.'.join(rel.parts)
+
+                # 如果模块已经加载，跳过
                 if mod_name in sys.modules:
                     continue
-                spec = importlib.util.spec_from_file_location(str(mod_name), str(full_path))
-                if not spec or not spec.loader:
-                    continue
-                mod = importlib.util.module_from_spec(spec)
-                sys.modules[mod_name] = mod
-                spec.loader.exec_module(mod)
+
+                # 尝试动态导入模块
+                try:
+                    spec = importlib.util.spec_from_file_location(str(mod_name), str(full_path))
+                    if not spec or not spec.loader:
+                        continue  # 跳过无效的 spec
+
+                    mod = importlib.util.module_from_spec(spec)
+                    sys.modules[mod_name] = mod  # 先注册到 sys.modules，避免循环导入问题
+                    spec.loader.exec_module(mod)  # 执行模块代码
+                except Exception as e:
+                    print(f"Failed to import {mod_name}: {e}")  # 打印错误信息（可选）
+                    continue  # 跳过失败的模块
 
 
 def set_total(total: int):

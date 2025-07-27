@@ -30,7 +30,7 @@ class Rule3DV(Abstract3DClueRule):
         logger = get_logger()
         for pos, _ in board("N"):
             positions = []
-            for _pos in [pos, self.pos_up(pos), self.pos_down(pos)]:
+            for _pos in [pos, self.up(board, pos), self.down(board, pos)]:
                 if _pos is None:
                     continue
                 positions.extend(_pos.neighbors(0, 2))
@@ -101,6 +101,12 @@ class ValueV(AbstractClueValue):
     def create_constraints(self, board: 'AbstractBoard'):
         """创建CP-SAT约束: 周围雷数等于count"""
         model = get_model()
+
+        self.neighbor = []
+        for _pos in [self.pos, Rule3DV.up(board, self.pos), Rule3DV.down(board, self.pos)]:
+            if _pos is None:
+                continue
+            self.neighbor.extend(_pos.neighbors(0, 2))
 
         # 收集周围格子的布尔变量
         neighbor_vars = []

@@ -111,12 +111,15 @@ def get_solver(b: bool):
     return solver
 
 
-def solver_by_csp(mines_rules: MinesRules,
-                  clue_rule: AbstractClueRule,
-                  mines_clue_rule: AbstractMinesClueRule,
-                  board: AbstractBoard,
-                  drop_r=False,
-                  bool_mode=False) -> int:
+def solver_by_csp(
+        mines_rules: MinesRules,
+        clue_rule: AbstractClueRule,
+        mines_clue_rule: AbstractMinesClueRule,
+        board: AbstractBoard,
+        drop_r=False,
+        bool_mode=False,
+        answer_board=None
+) -> int:
     """
     返回int 0表示无解 1表示唯一解 2表示多解
     """
@@ -155,6 +158,25 @@ def solver_by_csp(mines_rules: MinesRules,
 
     logger.trace("求解器输入:\n" + board.show_board())
     solver = get_solver(False)
+
+    if answer_board is not None and not should_check:
+        current_solution = []
+        logger.trace("设置预设不同值")
+        for key in board.get_board_keys():
+            for pos, _ in board("N", key=key):
+                value = 1 if answer_board.get_type(pos) == "F" else 0
+                val = board.get_variable(pos)
+                tmp = model.NewBoolVar(f"answer_tmp{pos}")
+                current_solution.append(tmp)
+                logger.trace(f"[{pos}]{val} != {value} ({answer_board.get_type(pos)})")
+                model.Add(val != value).OnlyEnforceIf(tmp)
+        model.AddBoolOr(current_solution)  # 新增排除当前解约束（至少有一个变量取反）
+
+        status2 = solver.Solve(model)
+        if status2 == cp_model.FEASIBLE or status2 == cp_model.OPTIMAL:
+            logger.trace(f"求解器多解")
+            return 2
+        return 1
 
     if should_check:
         collector = SolutionCollector(board, mines_rules)

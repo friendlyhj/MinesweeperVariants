@@ -282,7 +282,7 @@ class Board(AbstractBoard):
             self.__type_board[pos.x][pos.y] = self.type_value(value)
 
     def dyed(self, name: str):
-        get_dye(name)().dye(self, MASTER_BOARD)
+        get_dye(name)().dye(self)
 
     def get_dyed(self, pos: 'AbstractPosition') -> bool | None:
         if 0 <= pos.x < self.size and 0 <= pos.y < self.size:

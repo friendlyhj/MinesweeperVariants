@@ -110,7 +110,7 @@ class Logger:
         if self.print_level > log_lv:
             return
         s = f"<{self.get_time()}>" + f"[{log_type}]:" + f'{msg}{end}'
-        print(s, end="")
+        print(s, end="", flush=True)
         self.file.write(s)
         self.file.flush()
 

@@ -9,7 +9,6 @@
 """
 from abs.Rrule import AbstractClueRule, AbstractClueValue
 from abs.board import AbstractBoard, AbstractPosition
-from utils.impl_obj import MINES_TAG, VALUE_QUESS
 from utils.solver import get_model
 from utils.tool import get_logger
 
@@ -117,25 +116,6 @@ class Value3B(AbstractClueValue):
 
     def check(self, board: 'AbstractBoard') -> bool:
         pass
-
-    def deduce_cells(self, board: 'AbstractBoard') -> bool:
-        col = board.get_col_pos(self.pos)
-        row = board.get_row_pos(self.pos)
-        flag = False
-        for index in range(len(self.bools)):
-            types = board.batch([col[index], row[index]], mode="type")
-            if types.count("N") != 1:
-                continue
-            flag = True
-            if types[0] == "C":
-                board.set_value(row[index], MINES_TAG if self.bools[index] else VALUE_QUESS)
-            elif types[0] == "F":
-                board.set_value(row[index], VALUE_QUESS if self.bools[index] else MINES_TAG)
-            if types[0] == "C":
-                board.set_value(col[index], MINES_TAG if self.bools[index] else VALUE_QUESS)
-            elif types[0] == "F":
-                board.set_value(col[index], VALUE_QUESS if self.bools[index] else MINES_TAG)
-        return flag
 
     @classmethod
     def method_choose(cls) -> int:

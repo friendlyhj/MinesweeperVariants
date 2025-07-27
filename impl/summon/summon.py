@@ -53,6 +53,7 @@ class Summon:
         :param vice_board: 启用删除副板
         """
         # summon初始化
+        self.answer_board = None
         self.drop_r = drop_r
         self.logger = get_logger()
         self.answer_board_str = ""
@@ -117,7 +118,7 @@ class Summon:
         elif len(mines_clue_rules) > 1:
             # 我什么时候写的F#?
             # 我不道啊
-            self.mines_clue_rule = get_rule("F#")(board=self.board, data=clue_rules)
+            self.mines_clue_rule = get_rule("F#")(board=self.board, data=mines_clue_rules)
             rules.append("F#")
         else:
             self.mines_clue_rule = mines_clue_rules[0]
@@ -203,20 +204,26 @@ class Summon:
             symbol = not symbol
 
     def create_puzzle(self):
+        flag = False
         for attempt_index in range(10):
             self.board.clear_board()
             if self.summon_board() is not None:
+                flag = True
                 break
             self.logger.info("题板生成失败")
+        if not flag:
+            return
         if "N" in self.board:
             _board = self.board.clone()
             for rule in self.mines_rules.rules:
                 rule.init_board(_board)
             self.answer_board_str = "\n" + _board.show_board()
             self.answer_board_code = _board.encode()
+            self.answer_board = _board.clone()
         else:
             self.answer_board_str = "\n" + self.board.show_board()
             self.answer_board_code = self.board.encode()
+            self.answer_board = self.board.clone()
         board_bytes = self.board.encode()
         for rule in self.mines_rules.rules + [self.clue_rule, self.mines_clue_rule]:
             rule.init_clear(self.board)
@@ -317,7 +324,7 @@ class Summon:
                         f"  用时:{format_time(elapsed)}"
                         f"<{format_time(predicted_total)}"
                         f" ~ {format_time(predicted_total - elapsed)}   ",
-                        end="\r"
+                        end="\r", flush=True
                     )
                     time.sleep(0.2)
 
@@ -364,15 +371,17 @@ class Summon:
                 clue = board.get_value(pos)
                 board.set_value(pos, object_put)
 
-                if solver_by_csp(self.mines_rules, self.clue_rule, self.mines_clue_rule,
-                                 board.clone(), drop_r=self.drop_r) == 1:
+                if solver_by_csp(
+                        self.mines_rules, self.clue_rule, self.mines_clue_rule,
+                        board.clone(), drop_r=self.drop_r, answer_board=self.answer_board
+                ) == 1:
                     continue
                 board.set_value(pos, clue)
 
         progress_info["running"] = False
         progress_info["step"] = False
         thread.join()
-        print()  # 清空残留
+        print(board.show_board())  # 清空残留
         return board
 
     def clue_coverage(self, board: 'AbstractBoard'):

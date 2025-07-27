@@ -49,9 +49,9 @@ class Rule3D1Tp(Abstract3DMinesRule):
                 p1 = pos.shift(dx, dy)  # 水平移动
                 if p1 is not None:
                     if dz == 1:
-                        p1 = self.pos_up(p1, 1)  # 向上移动
+                        p1 = self.up(board, p1, 1)  # 向上移动
                     elif dz == -1:
-                        p1 = self.pos_down(p1, 1)  # 向下移动
+                        p1 = self.down(board, p1, 1)  # 向下移动
                 positions.append(p1)
 
                 # 计算偏移位置2：继续同方向移动
@@ -60,9 +60,9 @@ class Rule3D1Tp(Abstract3DMinesRule):
                     p2 = p1.shift(dx, dy)  # 水平移动
                     if p2 is not None:
                         if dz == 1:
-                            p2 = self.pos_up(p2, 1)  # 向上移动
+                            p2 = self.up(board, p2, 1)  # 向上移动
                         elif dz == -1:
-                            p2 = self.pos_down(p2, 1)  # 向下移动
+                            p2 = self.down(board, p2, 1)  # 向下移动
                 positions.append(p2)
 
                 # 检查所有位置是否有效

@@ -12,8 +12,8 @@ from abs.board import AbstractBoard
 class DyeA(AbstractDye):
     name = "a"
 
-    def dye(self, board: "AbstractBoard", board_key: str):
-        pos = board.boundary(key=board_key)
+    def dye(self, board: "AbstractBoard"):
+        pos = board.boundary()
         for _pos in board.get_row_pos(pos):
             for __pos in board.get_col_pos(_pos):
                 board.set_dyed(__pos, True)
