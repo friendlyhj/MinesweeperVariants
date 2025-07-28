@@ -83,31 +83,28 @@ if __name__ == "__main__":
         if rule_list["L"]:
             print("\n\n左线规则:", flush=True)
         for doc in rule_list["L"]:
-            print_with_indent(doc)
+            if args.shell:
+                print(doc, end="\n\n", flush=True)
+            else:
+                print_with_indent(doc)
 
-    if rule_list["L"]:
-        print("\n\n左线规则:", flush=True)
-    for doc in rule_list["L"]:
-        if args.shell:
-            print(doc, end="\n\n", flush=True)
-        else:
-            print_with_indent(doc)
+        if rule_list["M"]:
+            print("\n\n中线规则:", flush=True)
+        for doc in rule_list["M"]:
+            if args.shell:
+                print(doc, end="\n\n", flush=True)
+            else:
+                print_with_indent(doc)
 
-    if rule_list["M"]:
-        print("\n\n中线规则:", flush=True)
-    for doc in rule_list["M"]:
-        if args.shell:
-            print(doc, end="\n\n", flush=True)
-        else:
-            print_with_indent(doc)
+        if rule_list["R"]:
+            print("\n\n右线规则:", flush=True)
+        for doc in rule_list["R"]:
+            if args.shell:
+                print(doc, end="\n\n", flush=True)
+            else:
+                print_with_indent(doc)
 
-    if rule_list["R"]:
-        print("\n\n右线规则:", flush=True)
-    for doc in rule_list["R"]:
-        if args.shell:
-            print(doc, end="\n\n", flush=True)
-        else:
-            print_with_indent(doc)
+        sys.exit(0)
 
     if args.size is None:
         parser.print_help()
