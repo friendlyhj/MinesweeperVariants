@@ -22,6 +22,8 @@ def extract_module_docstring(filepath):
         return None
 
     module_doc = ast.get_docstring(tree)
+    if module_doc is None:
+        return None
 
     for node in ast.walk(tree):
         if not isinstance(node, ast.ClassDef):
@@ -36,8 +38,13 @@ def extract_module_docstring(filepath):
             else:
                 bases_info.append(str(base))
 
-        if not any("Abstract" in b for b in bases_info):
-            continue
+        x = 0
+        if any("AbstractMinesRule" in b for b in bases_info):
+            x |= 1
+        if any("AbstractMinesClueRule" in b for b in bases_info):
+            x |= 2
+        if any("AbstractClueRule" in b for b in bases_info):
+            x |= 4
 
         for stmt in node.body:
             if isinstance(stmt, ast.Assign):
@@ -48,7 +55,7 @@ def extract_module_docstring(filepath):
                     ):
                         name_val = stmt.value.s.strip()
                         if name_val:
-                            return module_doc
+                            return module_doc, x
     return None
 
 
@@ -58,22 +65,24 @@ def scan_module_docstrings(directory):
         for name in files:
             if name.endswith('.py'):
                 path = os.path.join(root, name)
-                doc = extract_module_docstring(path)
-                parent_dir_name = os.path.basename(os.path.dirname(path))  # 上级目录名
-                results.append((parent_dir_name, doc))
+                pck = extract_module_docstring(path)
+                if pck is None:
+                    continue
+                doc, x = pck
+                results.append((doc, x))
     return results
 
 
 def get_all_rules():
     results = {"R": [], "M": [], "L": []}
     dir_path = os.path.dirname(os.path.abspath(__file__))
-    for path, doc in scan_module_docstrings(dir_path):  # 替换路径
-        if doc is None:
+    for doc, x in scan_module_docstrings(dir_path):  # 替换路径
+        if x == 0:
             continue
-        if path == "Rrule":
-            results["R"].append(f'{doc}')
-        if path == "Mrule":
-            results["M"].append(f'{doc}')
-        if path == "Lrule":
+        if x == 1:
             results["L"].append(f'{doc}')
+        if x == 2:
+            results["M"].append(f'{doc}')
+        if x == 4:
+            results["R"].append(f'{doc}')
     return results

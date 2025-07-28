@@ -7,18 +7,18 @@
 """
 [F#]雷标签: 雷线索会有不同的规则, 每个雷线索的规则会单独标出
 """
-from typing import List
 
-from abs.Rrule import AbstractClueRule
+from abs.Mrule import AbstractMinesClueRule
 from abs.board import AbstractBoard
 from utils.tool import get_random
 
 
-class RuleSharp(AbstractClueRule):
+class RuleSharp(AbstractMinesClueRule):
+
     name = "F#"
     subrules = []
 
-    def __init__(self, board: AbstractBoard, data: list[AbstractClueRule]):
+    def __init__(self, board: AbstractBoard, data: list[AbstractMinesClueRule]):
         super().__init__(board, None)
         self.rules = data
         for key in board.get_interactive_keys():
@@ -38,7 +38,7 @@ class RuleSharp(AbstractClueRule):
                 board.set_value(pos, get_random().choice(values))
         return board
 
-    def clue_class(self):
+    def mines_class(self):
         return None
 
     def create_constraints(self, board: 'AbstractBoard') -> bool:
