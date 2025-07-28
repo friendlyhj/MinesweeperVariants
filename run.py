@@ -29,7 +29,7 @@ parser = argparse.ArgumentParser(description="")
 
 subparsers = parser.add_subparsers(dest='command', required=False)
 
-subparsers.add_parser('list', help='列出所有规则的文档说明')
+parser_list = subparsers.add_parser('list', help='列出所有规则的文档说明')
 
 parser.add_argument("-s", "--size", nargs="+",
                     help="纸笔的题板边长")
@@ -57,6 +57,7 @@ parser.add_argument("--log-lv", default=defaults.get("log_lv"),
                     help="日志等级，如 DEBUG、INFO、WARNING")
 parser.add_argument("--board-class", default=defaults.get("board_class"),
                     help="题板的类名/题板的名称 通常使用默认值即可")
+parser_list.add_argument("--shell", action="store_true", default=False)
 args = parser.parse_args()
 
 # ==== 调用生成 ====
@@ -82,17 +83,26 @@ if args.command == "list":
     if rule_list["L"]:
         print("\n\n左线规则:", flush=True)
     for doc in rule_list["L"]:
-        print_with_indent(doc)
+        if args.shell:
+            print(doc, end="\n\n", flush=True)
+        else:
+            print_with_indent(doc)
 
     if rule_list["M"]:
         print("\n\n中线规则:", flush=True)
     for doc in rule_list["M"]:
-        print_with_indent(doc)
+        if args.shell:
+            print(doc, end="\n\n", flush=True)
+        else:
+            print_with_indent(doc)
 
     if rule_list["R"]:
         print("\n\n右线规则:", flush=True)
     for doc in rule_list["R"]:
-        print_with_indent(doc)
+        if args.shell:
+            print(doc, end="\n\n", flush=True)
+        else:
+            print_with_indent(doc)
 
     sys.exit(0)
 

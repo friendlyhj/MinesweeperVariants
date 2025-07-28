@@ -16,6 +16,10 @@ from utils.impl_obj import VALUE_QUESS
 class RuleQuess(AbstractClueRule):
     name = "?"
 
+    def __init__(self, board: "AbstractBoard" = None, data=None) -> None:
+        super().__init__(board, data)
+        self.clear = data is not None
+
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':
         for pos, _ in board("N"):
             board.set_value(pos, VALUE_QUESS)
@@ -23,5 +27,14 @@ class RuleQuess(AbstractClueRule):
 
     def clue_class(self):
         return ValueQuess
+
+    def init_clear(self, board: 'AbstractBoard'):
+        if self.clear:
+            for pos, obj in board("C"):
+                if obj is not VALUE_QUESS:
+                    continue
+                board.set_value(pos, None)
+
+
 
 

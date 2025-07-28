@@ -14,8 +14,9 @@ from abs.board import AbstractBoard, AbstractPosition, MASTER_BOARD
 from utils.impl_obj import VALUE_QUESS, MINES_TAG, VALUE_CIRCLE, VALUE_CROSS
 from utils.solver import get_model
 from utils.tool import get_random, get_logger
+from . import BOARD_NAME_4V
 
-NAME = "4V"
+NAME = BOARD_NAME_4V
 ALPHABET = "ABCDEFGHIJ"
 
 

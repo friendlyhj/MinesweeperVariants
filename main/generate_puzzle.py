@@ -59,21 +59,17 @@ def main(
             continue
         except GenerateError:
             continue
-        clue_coverage, __board = s.clue_coverage(board=_board)
-        logger.info("\n" + __board.show_board())
         b_time = time.time()
         if _board is None:
             continue
         n_num = len([None for _ in _board("N")])
         logger.info(f"<{attempt_index}>生成用时:{b_time - a_time}s")
-        logger.info(f'单线索覆盖率: {"%.2f" % (100 * clue_coverage)}%')
         logger.info(f"总雷数: {total}/{n_num}")
         logger.info("\n" + _board.show_board())
-        if len([None for _ in _board("NF")]) == total and clue_coverage < 1:
+        if len([None for _ in _board("NF")]) == total:
             logger.warn("题板生成失败 线索填充无法覆盖全盘")
             continue
         info_list.append([
-            clue_coverage,
             b_time - a_time,
             n_num,
             "\n" + _board.show_board(),
@@ -82,13 +78,14 @@ def main(
             s.answer_board_code,
             _board
         ])
-        if clue_coverage <= 0.05:
-            break
+
+        break
+
     if not info_list:
         raise ValueError("未在有效次数内得出结果")
 
     info_list.sort(key=lambda x: x[0])
-    clue_coverage, time_used, n_num, board_str, board_code, answer, answer_code, _board = info_list[0]
+    time_used, n_num, board_str, board_code, answer, answer_code, _board = info_list[0]
 
     rule_text = ""
     for rule in rules:
@@ -142,7 +139,6 @@ def main(
         
     logger.info("\n\n" + "=" * 20 + "\n")
     logger.info("\n生成时间" + logger.get_time() + "\n")
-    logger.info(f'单线索覆盖率: {"%.2f" % (100 * clue_coverage)}%\n')
     logger.info(f"生成用时:{time_used}s\n")
     logger.info(f"总雷数: {total}/{n_num}\n")
     logger.info(board_str + "\n")

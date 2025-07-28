@@ -162,7 +162,7 @@ def solver_by_csp(
     if answer_board is not None and not should_check:
         current_solution = []
         logger.trace("设置预设不同值")
-        for key in board.get_board_keys():
+        for key in board.get_interactive_keys():
             for pos, _ in board("N", key=key):
                 value = 1 if answer_board.get_type(pos) == "F" else 0
                 val = board.get_variable(pos)
@@ -236,7 +236,7 @@ def solver_by_csp(
             return 2
     else:
         current_solution = []
-        for key in board.get_board_keys():
+        for key in board.get_interactive_keys():
             for pos, _ in board("N", key=key):
                 var = board.get_variable(pos)
                 val = solver.Value(var)
