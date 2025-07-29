@@ -76,110 +76,103 @@ def print_with_indent(text, indent="\t"):
     print()
 
 
-if __name__ == "__main__":
-    if args.command == "list":
-        from impl import rule
-        rule_list = rule.get_all_rules()
+if args.command == "list":
+    from impl import rule
+    rule_list = rule.get_all_rules()
 
-        if args.shell:
-            import random
-            encode = "utf-8"
-            split_symbol = ''.join([chr(random.randint(33, 126)) for _ in range(50)])
-            result = split_symbol.encode(encode)
-            result += split_symbol.join(rule_list["L"]).encode(encode)
-            result += (split_symbol * 2).encode(encode)
-            result += split_symbol.join(rule_list["M"]).encode(encode)
-            result += (split_symbol * 2).encode(encode)
-            result += split_symbol.join(rule_list["R"]).encode(encode)
-            result += (split_symbol * 2).encode(encode)
-            print("hex_start:" + result.hex() + ":hex_end", end="", flush=True)
-            print(len(result))
-            print(len(result))
-            print(len(result))
-            # print(result.decode(encode))
-            sys.stdout.buffer.flush()
-            sys.exit(0)
+    if args.shell:
+        import random
+        encode = "utf-8"
+        split_symbol = ''.join([chr(random.randint(33, 126)) for _ in range(50)])
+        result = split_symbol.encode(encode)
+        result += split_symbol.join(rule_list["L"]).encode(encode)
+        result += (split_symbol * 2).encode(encode)
+        result += split_symbol.join(rule_list["M"]).encode(encode)
+        result += (split_symbol * 2).encode(encode)
+        result += split_symbol.join(rule_list["R"]).encode(encode)
+        result += (split_symbol * 2).encode(encode)
+        print("hex_start:" + result.hex() + ":hex_end", end="", flush=True)
+        print(len(result))
+        print(len(result))
+        print(len(result))
+        # print(result.decode(encode))
+        sys.stdout.buffer.flush()
+        sys.exit(0)
 
-        if rule_list["L"]:
-            print("\n\n左线规则:", flush=True)
-        for doc in rule_list["L"]:
-            print_with_indent(doc)
+    if rule_list["L"]:
+        print("\n\n左线规则:", flush=True)
+    for doc in rule_list["L"]:
+        print_with_indent(doc)
 
-            if rule_list["M"]:
-                print("\n\n中线规则:", flush=True)
-            for doc in rule_list["M"]:
-                if args.shell:
-                    print(doc, end="\n\n", flush=True)
-                else:
-                    print_with_indent(doc)
+    if rule_list["M"]:
+        print("\n\n中线规则:", flush=True)
+    for doc in rule_list["M"]:
+        print_with_indent(doc)
 
-            if rule_list["R"]:
-                print("\n\n右线规则:", flush=True)
-            for doc in rule_list["R"]:
-                if args.shell:
-                    print(doc, end="\n\n", flush=True)
-                else:
-                    print_with_indent(doc)
+    if rule_list["R"]:
+        print("\n\n右线规则:", flush=True)
+    for doc in rule_list["R"]:
+        print_with_indent(doc)
 
-            sys.exit(0)
+    sys.exit(0)
 
-    if args.size is None:
+if args.size is None:
+    parser.print_help()
+    sys.exit(0)
+else:
+    if len(args.size) == 0:
         parser.print_help()
         sys.exit(0)
+    elif len(args.size) == 1:
+        size = (int(args.size[0]), int(args.size[0]))
     else:
-        if len(args.size) == 0:
-            parser.print_help()
-            sys.exit(0)
-        elif len(args.size) == 1:
-            size = (int(args.size[0]), int(args.size[0]))
-        else:
-            size = (int(args.size[0]), int(args.size[1]))
+        size = (int(args.size[0]), int(args.size[1]))
 
-    if args.seed != defaults.get("seed"):
-        args.attempts = 1
+if args.seed != defaults.get("seed"):
+    args.attempts = 1
 
-    for rule_name in args.rules:
-        if "$" in rule_name:
-            args.rules[args.rules.index(rule_name)] = rule_name.replace("$", "^")
+for rule_name in args.rules:
+    if "$" in rule_name:
+        args.rules[args.rules.index(rule_name)] = rule_name.replace("$", "^")
 
-    with open("./output/temp.txt", "w") as f:
-        f.write(str(args.rules))
+with open("./output/temp.txt", "w") as f:
+    f.write(str(args.rules))
 
-    if args.test:
-        test(
-            log_lv=args.log_lv,
-            seed=args.seed,
-            size=size,
-            total=args.total,
-            rules=[i.upper() for i in args.rules],
-            dye=args.dye.lower(),
-            board_class=args.board_class,
-        )
-    elif args.query == defaults.get("query"):
-        puzzle(
-            log_lv=args.log_lv,
-            seed=args.seed,
-            attempts=args.attempts,
-            size=size,
-            total=args.total,
-            rules=[i.upper() for i in args.rules],
-            dye=args.dye.lower(),
-            drop_r=(not args.used_r),
-            board_class=args.board_class,
-            vice_board=args.vice_board
-        )
-    else:
-        puzzle_query(
-            log_lv=args.log_lv,
-            seed=args.seed,
-            size=size,
-            total=args.total,
-            rules=[i.upper() for i in args.rules],
-            query=args.query,
-            attempts=args.attempts,
-            dye=args.dye.lower(),
-            drop_r=(not args.used_r),
-            early_stop=args.early_stop,
-            board_class=args.board_class,
-            vice_board=args.vice_board
-        )
+if args.test:
+    test(
+        log_lv=args.log_lv,
+        seed=args.seed,
+        size=size,
+        total=args.total,
+        rules=[i.upper() for i in args.rules],
+        dye=args.dye.lower(),
+        board_class=args.board_class,
+    )
+elif args.query == defaults.get("query"):
+    puzzle(
+        log_lv=args.log_lv,
+        seed=args.seed,
+        attempts=args.attempts,
+        size=size,
+        total=args.total,
+        rules=[i.upper() for i in args.rules],
+        dye=args.dye.lower(),
+        drop_r=(not args.used_r),
+        board_class=args.board_class,
+        vice_board=args.vice_board
+    )
+else:
+    puzzle_query(
+        log_lv=args.log_lv,
+        seed=args.seed,
+        size=size,
+        total=args.total,
+        rules=[i.upper() for i in args.rules],
+        query=args.query,
+        attempts=args.attempts,
+        dye=args.dye.lower(),
+        drop_r=(not args.used_r),
+        early_stop=args.early_stop,
+        board_class=args.board_class,
+        vice_board=args.vice_board
+    )

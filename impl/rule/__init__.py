@@ -39,12 +39,15 @@ def extract_module_docstring(filepath):
                 bases_info.append(str(base))
 
         x = 0
-        if any("AbstractMinesRule" in b for b in bases_info):
+        if any("MinesRule" in b for b in bases_info):
             x |= 1
-        if any("AbstractMinesClueRule" in b for b in bases_info):
+        if any("MinesClueRule" in b for b in bases_info):
             x |= 2
-        if any("AbstractClueRule" in b for b in bases_info):
+        if any("ClueRule" in b for b in bases_info):
             x |= 4
+
+        if x == 6:
+            x = 2
 
         for stmt in node.body:
             if isinstance(stmt, ast.Assign):

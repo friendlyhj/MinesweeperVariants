@@ -85,7 +85,8 @@ class Rule3DW(Abstract3DMinesRule):
         # 建议合适的雷数
         size = next(iter(info["size"].values()))
         total_cells = size[0] * size[1]
-        info["hard_fns"].append(lambda model, total: model.Add(total == int(total_cells)))
+        info["hard_fns"].append(lambda model, total: model.Add(total <= int(total_cells)))
+        info["soft_fn"](total_cells, 3)
 
     def create_constraints(self, board: 'AbstractBoard'):
         model = get_model()
