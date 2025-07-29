@@ -345,7 +345,7 @@ class Renderer:
                 break
 
         if best_font is None:
-            best_font = ImageFont.truetype(self.font_path, int(min(box_h, 1000)))
+            best_font = ImageFont.truetype(self.font_path, int(max(min(box_h, 1000), 1)))
 
         # 计算文本位置
         bbox = draw.textbbox((0, 0), text, font=best_font)
