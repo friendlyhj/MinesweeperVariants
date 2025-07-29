@@ -8,9 +8,11 @@ from abs.Rrule import AbstractClueValue, AbstractClueRule
 from abs.board import AbstractPosition, AbstractBoard
 from utils.image_create import get_text, get_image, get_row, get_col, get_dummy
 from utils.solver import get_model
+from utils.tool import get_random
 
-type P = Literal[0, 1, 2] | Literal['00']
-type Root = tuple[int, int]
+P = Literal[0, 1, 2] | Literal['00']
+Root = tuple[int, int]
+
 
 def simplify_sqrt(n):
     c = 1
@@ -50,6 +52,7 @@ def norm(dx, dy, p: P) -> Root:
     else:
         raise ValueError(f"Unsupported norm type: {p}")
 
+
 def format(n: Root, p: P):
     """
     格式化输出范数的字符串表示
@@ -62,10 +65,33 @@ def format(n: Root, p: P):
     else:
         raise ValueError(f"Unsupported root type: {n[1]}")
 
+
 class BaseRule3N(AbstractClueRule):
     name = "3N"
     p: P = -1
+
+    def __init__(self, board: AbstractBoard, data: list[AbstractClueRule] = None):
+        super().__init__(None, None)
+        for key in board.get_interactive_keys():
+            board.set_config(key, "by_mini", True)
+
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':
+        boards = []
+        for rule in [Rule3N0(board), Rule3N1(board),
+                     Rule3N2(board), Rule3NInf(board)]:
+            boards.append(rule._fill(board.clone()))
+        for key in board.get_board_keys():
+            for pos, _ in board("N", key=key):
+                values = [_board.get_value(pos)
+                          for _board in boards
+                          if _board.get_type(pos) != "N"]
+                if not values:
+                    continue
+                board.set_value(pos, get_random().choice(values))
+        return board
+
+    #
+    def _fill(self, board: 'AbstractBoard') -> 'AbstractBoard':
         if len([_ for _ in board("F")]) < 1:
             return board
 
@@ -80,7 +106,7 @@ class BaseRule3N(AbstractClueRule):
                 mine_norm = norm(dx, dy, p)
 
                 if min_norm is None or (mine_norm[0] < min_norm[0] or
-                                       (mine_norm[0] == min_norm[0] and mine_norm[1] < min_norm[1])):
+                                        (mine_norm[0] == min_norm[0] and mine_norm[1] < min_norm[1])):
                     min_norm = mine_norm
 
             if min_norm is not None:
@@ -92,14 +118,15 @@ class BaseRule3N(AbstractClueRule):
                 obj = self.clue_class()(pos, bytes([min_norm[0], min_norm[1], p_val]))
                 board.set_value(pos, obj)
 
-        print(board.show_board())
         return board
 
     def clue_class(self):
         return getattr(self, 'clue', BaseValue3N)
 
+
 class BaseValue3N(AbstractClueValue):
     name = "3N"
+
     def __init__(self, pos: 'AbstractPosition', code: bytes = b''):
         self.pos = pos
         if len(code) >= 3:
@@ -147,7 +174,6 @@ class BaseValue3N(AbstractClueValue):
         else:
             raise ValueError("Unsupported root type")
 
-
     @classmethod
     def method_choose(cls) -> int:
         return 1
@@ -193,7 +219,7 @@ class BaseValue3N(AbstractClueValue):
 
                             # 如果有更近的雷，则当前雷不能是最近的
                             if (other_norm[0] < pos_norm[0] or
-                                (other_norm[0] == pos_norm[0] and other_norm[1] < pos_norm[1])):
+                                    (other_norm[0] == pos_norm[0] and other_norm[1] < pos_norm[1])):
                                 model.Add(other_var == 0).OnlyEnforceIf(is_closest)
 
                     constraint_vars.append(is_closest)
@@ -202,9 +228,11 @@ class BaseValue3N(AbstractClueValue):
         if constraint_vars:
             model.AddBoolOr(constraint_vars)
 
+
 class Value3N0(BaseValue3N):
     name = "3N0"
     p = 0
+
 
 class Rule3N0(BaseRule3N):
     name = "3N0"
@@ -216,6 +244,7 @@ class Value3N1(BaseValue3N):
     name = "3N1"
     p = 1
 
+
 class Rule3N1(BaseRule3N):
     name = "3N1"
     p = 1
@@ -226,14 +255,17 @@ class Value3N2(BaseValue3N):
     name = "3N2"
     p = 2
 
+
 class Rule3N2(BaseRule3N):
     name = "3N2"
     p = 2
     clue = Value3N2
 
+
 class Value3NInf(BaseValue3N):
     name = "3N00"
     p = '00'
+
 
 class Rule3NInf(BaseRule3N):
     name = "3N00"

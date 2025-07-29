@@ -61,29 +61,35 @@ class Abstract3DRule:
     @staticmethod
     def pos_neighbors(board, pos: AbstractPosition, *args: int) -> List[AbstractPosition]:
         """
-        按照欧几里得距离从小到大逐步扩散，n为扩散次数（层数）
+        按照欧几里得距离从小到大逐层扩散，筛选范围由距离平方控制（不包含当前位置）。
 
-        调用方式:
-            neighbors(end_layer): 从第1层到end_layer（包含）
-            neighbors(start_layer, end_layer): 从start_layer到end_layer（包含）
+        调用方式（类似 range）：
+            neighbors(end_layer)
+                返回所有欧几里得距离 ≤ √end_layer 的位置（从第 1 层开始）。
+            neighbors(start_layer, end_layer)
+                返回所有欧几里得距离 ∈ [√start_layer, √end_layer] 的位置。
 
         :param board: 题板对象
         :param pos: 起始位置
-        :param args: 一个或两个整数（扩散层数参数）
-        :return: 按距离顺序排列的位置列表
+        :param args: 一个或两个整数
+            - 若提供一个参数 end_layer，视为从 √1 到 √end_layer。
+            - 若提供两个参数 start_layer 和 end_layer，视为从 √start_layer 到 √end_layer。
+            - 参数非法（数量不为 1 或 2，或值非法）时返回空列表。
+
+        :return: 位置列表，按距离从近到远排序。
         """
         # 解析参数
         if len(args) == 1:
-            start_layer = 1
-            end_layer = args[0]
+            start_sq = 1
+            end_sq = args[0]
         elif len(args) == 2:
-            start_layer = args[0]
-            end_layer = args[1]
+            start_sq = args[0]
+            end_sq = args[1]
         else:
             return []
 
         # 检查参数有效性
-        if end_layer < start_layer:
+        if end_sq < start_sq:
             return []
 
         # 定义移动函数（单位向量移动）
@@ -124,14 +130,6 @@ class Abstract3DRule:
         x0, y0, z0 = pos.x, pos.y, Abstract3DRule.pos_index(board, pos)
         result = []
 
-        # 处理0层（起点自身）
-        if start_layer <= 0:
-            result.append(pos)
-
-        # 如果只需要0层则直接返回
-        if end_layer == 0:
-            return result
-
         # 生成26个三维方向向量（排除(0,0,0)）
         directions = []
         for dx in (-1, 0, 1):
@@ -159,42 +157,37 @@ class Abstract3DRule:
             visited.add(n_coord)
 
             # 计算欧几里得距离平方
-            dist_sq = (neighbor.x - x0) ** 2 + (neighbor.y - y0) ** 2 + (Abstract3DRule.pos_index(board, neighbor) - z0) ** 2
-            heapq.heappush(heap, (dist_sq, neighbor.x, neighbor.y, Abstract3DRule.pos_index(board, neighbor), neighbor))
+            dist_sq = (neighbor.x - x0) ** 2 + (neighbor.y - y0) ** 2 + (
+                        Abstract3DRule.pos_index(board, neighbor) - z0) ** 2
+            heapq.heappush(heap, (dist_sq, neighbor))
 
-        # 分层处理扩散位置
-        current_layer = 1
-        while heap and current_layer <= end_layer:
-            current_dist_sq = heap[0][0]
-            current_level_positions = []  # 当前层的位置
+        # 处理堆中的位置
+        while heap:
+            dist_sq, p = heapq.heappop(heap)
 
-            # 处理所有相同距离的位置
-            while heap and heap[0][0] == current_dist_sq:
-                dist_sq, x, y, z, p = heapq.heappop(heap)
-                # 如果当前层在查询范围内，则记录位置
-                if current_layer >= start_layer:
-                    current_level_positions.append(p)
+            # 超出范围时停止
+            if dist_sq > end_sq:
+                break
 
-                # 扩展新位置
-                for dx, dy, dz in directions:
-                    neighbor = move_by_vector(p, dx, dy, dz)
-                    if neighbor is None:
-                        continue
-                    n_coord = (neighbor.x, neighbor.y, Abstract3DRule.pos_index(board, neighbor))
+            # 在范围内则加入结果
+            if dist_sq >= start_sq:
+                result.append(p)
 
-                    if n_coord in visited:
-                        continue
-                    visited.add(n_coord)
+            # 扩展新位置
+            for dx, dy, dz in directions:
+                neighbor = move_by_vector(p, dx, dy, dz)
+                if neighbor is None:
+                    continue
+                n_coord = (neighbor.x, neighbor.y, Abstract3DRule.pos_index(board, neighbor))
 
-                    # 计算新位置到起点的距离平方
-                    new_dist_sq = (neighbor.x - x0) ** 2 + (neighbor.y - y0) ** 2 + (Abstract3DRule.pos_index(board, neighbor) - z0) ** 2
-                    heapq.heappush(heap, (new_dist_sq, neighbor.x, neighbor.y, Abstract3DRule.pos_index(board, neighbor), neighbor))
+                if n_coord in visited:
+                    continue
+                visited.add(n_coord)
 
-            # 如果当前层在查询范围内，则加入结果
-            if current_layer >= start_layer:
-                result.extend(current_level_positions)
-
-            current_layer += 1
+                # 计算新位置到起点的距离平方
+                new_dist_sq = (neighbor.x - x0) ** 2 + (neighbor.y - y0) ** 2 + (
+                            Abstract3DRule.pos_index(board, neighbor) - z0) ** 2
+                heapq.heappush(heap, (new_dist_sq, neighbor))
 
         return result
 

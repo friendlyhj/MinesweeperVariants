@@ -95,7 +95,6 @@ class Rule2P(AbstractClueRule):
             else:
                 obj = Value2P(pos, bytes([a_lay * b_lay]))
             board.set_value(pos, obj)
-        print(board.show_board())
         return board
 
     def clue_class(self):

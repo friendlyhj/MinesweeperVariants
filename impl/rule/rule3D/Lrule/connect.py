@@ -10,6 +10,7 @@ from ortools.sat.python import cp_model
 from ortools.sat.python.cp_model import IntVar
 
 from abs.board import AbstractBoard
+from .. import Abstract3DRule
 
 
 def connect(
@@ -17,7 +18,7 @@ def connect(
         board: AbstractBoard,
         ub=False,  # 可达处的上限
         connect_value=1,  # 1=雷连通，0=非雷连通
-        nei_value: Union[int, tuple, Callable] = 2,  # 1=四连通，2=八连通
+        nei_value: Union[int, Callable, tuple] = 2,  # 1=四连通，2=八连通
         root_vars: List[IntVar] = None  # 允许提供根节点变量
 ):
     # 获取题板上所有位置及其对应的布尔变量
@@ -58,11 +59,11 @@ def connect(
                 if callable(nei_value):
                     is_neighbor = pos_j in nei_value(pos_i)
                 elif type(nei_value) is int:  # 四连通
-                    is_neighbor = pos_j in pos_i.neighbors(nei_value)
+                    is_neighbor = pos_j in Abstract3DRule.pos_neighbors(board, pos_i, nei_value)
                 elif type(nei_value) is tuple:  # 四连通
-                    is_neighbor = pos_j in pos_i.neighbors(nei_value[0], nei_value[1])
+                    is_neighbor = pos_j in Abstract3DRule.pos_neighbors(board, pos_i, nei_value[0], nei_value[1])
                 else:  # 八连通
-                    raise ValueError("")
+                    raise ValueError("邻接不符合规范")
                 if is_neighbor:
                     adj[i].append(j)
 
