@@ -3,9 +3,9 @@
 # 
 # @Time    : 2025/06/16 09:20
 # @Author  : xxx
-# @FileName: 2X.py
+# @FileName: 3S.py
 """
-[2X] 线索代表相邻的8个格子中，染色和非染色格里的雷数(顺序不确定)
+[3S] 贝壳：线索代表相邻的8个格子中，中间偏上5格范围和中间偏下5格范围里的雷数(顺序不确定)
 """
 from typing import List, Dict
 
@@ -21,33 +21,43 @@ def put(pos: 'AbstractPosition', board: 'AbstractBoard'):
     clue = board.get_value(pos)
 
 
-class Rule2X(AbstractClueRule):
-    name = "2X"
+class Rule3S(AbstractClueRule):
+    name = "3S"
 
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':
         logger = get_logger()
         r = get_random()
         for pos, _ in board("N"):
-            value1 = len([_pos for _pos in pos.neighbors(2) if board.get_type(_pos) == "F" and board.get_dyed(_pos)])
-            value2 = len(
-                [_pos for _pos in pos.neighbors(2) if board.get_type(_pos) == "F" and not board.get_dyed(_pos)])
-            if r.randint(0, 1): value1, value2 = value2, value1
-            board.set_value(pos, Value2X(pos, count=value1 * 10 + value2))
-            logger.debug(f"Set {pos} to 2X[{value1 * 10 + value2}]")
+            value1 = 0
+            value2 = 0
+            #方向判断
+            if board.get_type(pos.left(1)) == "F": value1 += 1; value2 += 1
+            if board.get_type(pos.right(1)) == "F": value1 += 1; value2 += 1
+            if board.get_type(pos.up(1)) ==  "F": value1 += 1
+            if board.get_type(pos.up(1).left(1)) ==  "F": value1 += 1
+            if board.get_type(pos.up(1).right(1)) ==  "F": value1 += 1
+            if board.get_type(pos.down(1)) ==  "F": value2 += 1
+            if board.get_type(pos.down(1).left(1)) ==  "F": value2 += 1
+            if board.get_type(pos.down(1).right(1)) ==  "F": value2 += 1
+            #
+            if value1 > value2: value1, value2 = value2, value1
+            board.set_value(pos, Value3S(pos, count=value1 * 10 + value2))
+            logger.debug(f"Set {pos} to 3S[{value1 * 10 + value2}]")
         return board
 
     def clue_class(self):
-        return Value2X
+        return Value3S
 
 
-class Value2X(AbstractClueValue):
+class Value3S(AbstractClueValue):
     def __init__(self, pos: 'AbstractPosition', count: int = 0, code: bytes = None):
         super().__init__(pos, code)
         if code is not None:
             self.count = code[0]
         else:
             self.count = count
-        self.neighbor = self.pos.neighbors(2)
+        self.neighbor = ([pos.left(1),pos.right(1),pos.up(1),pos.up(1).left(1),pos.up(1).right(1)],
+                         [pos.left(1),pos.right(1),pos.down(1),pos.down(1).left(1),pos.down(1).right(1)])
 
     def __repr__(self) -> str:
         return f"{self.count // 10} {self.count % 10}"
@@ -64,35 +74,37 @@ class Value2X(AbstractClueValue):
 
     @classmethod
     def type(cls) -> bytes:
-        return Rule2X.name.encode("ascii")
+        return Rule3S.name.encode("ascii")
 
     def code(self) -> bytes:
         return bytes([self.count])
 
     def create_constraints(self, board: 'AbstractBoard'):
-        """创建CP-SAT约束: 周围染色格雷数等于两个染色格的数量"""
+        """创建CP-SAT约束: 符合Shell"""
         model = get_model()
 
         # 收集周围格子的布尔变量
         neighbor_vars1 = []
         neighbor_vars2 = []
-        for neighbor in self.neighbor:  # 8方向相邻格子
+        for neighbor in self.neighbor[0]:  # 8方向相邻格子
             if board.in_bounds(neighbor):
-                if board.get_dyed(neighbor):
-                    var = board.get_variable(neighbor)
-                    neighbor_vars1.append(var)
-                else:
-                    var = board.get_variable(neighbor)
-                    neighbor_vars2.append(var)
+                var = board.get_variable(neighbor)
+                neighbor_vars1.append(var)
+        for neighbor in self.neighbor[1]:  # 8方向相邻格子
+            if board.in_bounds(neighbor):
+                var = board.get_variable(neighbor)
+                neighbor_vars2.append(var)
 
         if neighbor_vars1 or neighbor_vars2:
             # 定义变量
             t = model.NewBoolVar('t')
-            # 设置A B C D的值
             model.Add(sum(neighbor_vars1) == self.count // 10).OnlyEnforceIf(t)
             model.Add(sum(neighbor_vars2) == self.count % 10).OnlyEnforceIf(t)
             model.Add(sum(neighbor_vars1) == self.count % 10).OnlyEnforceIf(t.Not())
             model.Add(sum(neighbor_vars2) == self.count // 10).OnlyEnforceIf(t.Not())
+
+    def deduce_cells(self, board: 'AbstractBoard') -> bool:
+        return False
 
     def check(self, board: 'AbstractBoard') -> bool:
         return False

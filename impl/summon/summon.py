@@ -75,9 +75,6 @@ class Summon:
             parts = rule_id.split(CONFIG["delimiter"], 1)
             rule_id = parts[0]
             data = parts[1] if len(parts) == 2 else None
-            if "#" in rule_id:
-                self.logger.error("请勿键入#标签 输入多个右线规则即可")
-                sys.exit(1)
             rule = get_rule(rule_id)(board=self.board, data=data)
             if rule is None:
                 self.logger.error("键入了一个未知的规则")
