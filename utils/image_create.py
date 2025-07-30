@@ -70,7 +70,7 @@ def get_image(
         dominant = None
     else:
         dominant = "height" if dominant_by_height else "width"
-    path = f"data/{image_path}.png"
+    path = f"assets/{image_path}.png"
     if not os.path.exists(path):
         return None
     img = Image.open(path).convert("RGBA")
