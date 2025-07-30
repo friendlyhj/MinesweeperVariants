@@ -29,7 +29,7 @@ pos_label:
   size: 0.25
 
 font:
-  path: "data/CopperplateCC-Heavy.ttf"
+  path: "assets/CopperplateCC-Heavy.ttf"
 
 margin:
   top_left_right_ratio: 0.7
