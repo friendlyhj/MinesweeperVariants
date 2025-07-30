@@ -5,7 +5,7 @@
 # @Author  : Wu_RH
 # @FileName: 3T.py
 """
-[*1T]无三联:任意三个雷不能等距排布
+[3T]无三连:任意三个雷不能等距排布
 """
 
 from abs.Lrule import AbstractMinesRule
@@ -14,9 +14,9 @@ from utils.solver import get_model
 
 
 class Rule1T(AbstractMinesRule):
-    name = "*1T"
+    name = "3T"
     subrules = [
-        [True, "[*1T]雷等距无三连"]
+        [True, "[3T]雷等距无三连"]
     ]
 
     def create_constraints(self, board: 'AbstractBoard'):

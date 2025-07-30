@@ -67,35 +67,6 @@ class SolutionCollector(cp_model.CpSolverSolutionCallback):
                 self.StopSearch()  # 立即停止搜索
 
 
-class SolutionCollectorWithMap(cp_model.CpSolverSolutionCallback):
-    def __init__(self, board: "AbstractBoard", mines_rules: "MinesRules"):
-        super().__init__()
-        self.board = board
-        self.mines_rules = mines_rules
-        self.solution_found = False
-        self.solution_map = {}
-
-    def check_solution(self, board):
-        for rule in self.mines_rules.rules:
-            if rule.method_choose() & 1:
-                continue
-            if rule.check(board):
-                continue
-            return False
-        return True
-
-    def on_solution_callback(self):
-        temp_board = self.board.clone()
-        for pos, var in temp_board(mode="variable"):
-            val = self.Value(var)
-            temp_board.set_value(pos, MINES_TAG if val else VALUE_QUESS)
-
-        if self.check_solution(temp_board):
-            self.board = temp_board
-            self.solution_found = True
-            self.StopSearch()
-
-
 def get_solver(b: bool):
     solver = cp_model.CpSolver()
     solver.parameters.random_seed = 0
@@ -113,8 +84,8 @@ def get_solver(b: bool):
 
 def solver_by_csp(
         mines_rules: MinesRules,
-        clue_rule: AbstractClueRule,
-        mines_clue_rule: AbstractMinesClueRule,
+        clue_rule: Union[AbstractClueRule, None],
+        mines_clue_rule: Union[AbstractMinesClueRule, None],
         board: AbstractBoard,
         drop_r=False,
         bool_mode=False,
@@ -132,9 +103,11 @@ def solver_by_csp(
     should_check = False
 
     # 1.获取所有的右线线索约束
-    should_check = (not clue_rule.create_constraints(board)) or should_check
+    if clue_rule:
+        should_check = (not clue_rule.create_constraints(board)) or should_check
 
-    should_check = (not mines_clue_rule.create_constraints(board)) or should_check
+    if mines_clue_rule:
+        should_check = (not mines_clue_rule.create_constraints(board)) or should_check
 
     # 2.获取所有左线约束
     for rule in mines_rules.rules:
@@ -252,65 +225,3 @@ def solver_by_csp(
             logger.trace(f"求解器多解")
             return 2
     return 1
-
-
-def summon_board(mines_rules: MinesRules, board: 'AbstractBoard') -> Union['AbstractBoard', None]:
-    """
-    :param mines_rules: 左线规则组
-    :param board: 初始棋盘对象
-    :return: 返回初始化完毕的题板
-    """
-    random = get_random()
-    logger = get_logger()
-    should_check = False
-    total = get_total()
-    # 构造解算器并附加
-    solver = get_solver(True)
-
-    for _ in range(1):
-        model = reset_model()
-        board.clear_variable()
-
-        # 为所有支持 create_constraints 的规则添加约束
-        for rule in mines_rules.rules:
-            if rule.method_choose() & 1:  # 使用约束的规则
-                rule.create_constraints(board)
-            else:
-                should_check = True
-
-        for _ in range(int(total / math.pow(len(mines_rules.rules), 2))):
-            pos, var = random.choice(
-                [t for key in [key for key in board.get_board_keys() if board.get_config(key, "interactive")]
-                 for t in board("N", mode="variable", key=key)])
-            board.set_value(pos, MINES_TAG)
-
-        if len(mines_rules.rules) == 1:
-            return board
-
-        # 3.获取所有变量并赋值已解完的部分
-        for key in board.get_board_keys():
-            for _, var in board("C", mode="variable", key=key):
-                model.Add(var == 0)
-                logger.trace(f"var: {var} == 0")
-            for _, var in board("F", mode="variable", key=key):
-                model.Add(var == 1)
-                logger.trace(f"var: {var} == 1")
-
-        solver.parameters.search_branching = cp_model.RANDOMIZED_SEARCH
-        solver.parameters.search_branching = cp_model.PORTFOLIO_SEARCH
-        if should_check:
-            solution_collector = SolutionCollectorWithMap(board, mines_rules)
-            solver.SearchForAllSolutions(model, solution_collector)
-            if solution_collector.solution_found:
-                return solution_collector.board
-            logger.trace("求解器无解")
-        else:
-            status = solver.Solve(model)
-            if status in (cp_model.FEASIBLE, cp_model.OPTIMAL):
-                for pos, var in board(mode="variable"):
-                    val = solver.Value(var)
-                    board.set_value(pos, MINES_TAG if val else VALUE_QUESS)
-                logger.trace(board.show_board())
-                return board
-            logger.trace("求解器无解")
-        board.clear_board()

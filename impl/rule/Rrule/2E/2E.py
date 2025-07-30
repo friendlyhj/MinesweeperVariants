@@ -109,4 +109,3 @@ class Value2E(AbstractClueValue):
         for index in range(len(line)):
             model.Add(sum(neighbors) == index).OnlyEnforceIf(line[index])
             model.Add(sum(neighbors) != index).OnlyEnforceIf(line[index].Not())
-

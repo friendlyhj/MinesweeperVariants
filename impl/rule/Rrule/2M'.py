@@ -78,18 +78,6 @@ class Value1M(AbstractClueValue):
         if vals:
             model.Add(sum(vals) == self.value)
 
-    def check(self, board: 'AbstractBoard') -> bool:
-        min_value = 0
-        max_value = 0
-        dyes = board.batch(self.neighbors, "dye")
-        for pos, dye in zip(self.neighbors, dyes):
-            if board.get_type(pos) == "F":
-                min_value += 2 if dye else 1
-                max_value += 2 if dye else 1
-            elif board.get_type(pos) == "N":
-                max_value += 2 if dye else 1
-        return min_value < self.value < max_value
-
     @classmethod
     def method_choose(cls) -> int:
-        return 3
+        return 1
