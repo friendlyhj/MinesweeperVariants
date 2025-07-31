@@ -139,6 +139,25 @@ class Value2P(AbstractClueValue):
                 spacing=-0.2
             )]
 
+    def high_light(self, board: 'AbstractBoard') -> list['AbstractPosition']:
+        n = 1
+        v = 0
+        positions = []
+        while True:
+            neibors = self.pos.neighbors(n, n)
+            neibors = [pos for pos in neibors if board.in_bounds(pos)]
+            if len(neibors) == 0:
+                return []
+            neibors_t = board.batch(neibors, mode="type")
+            v += neibors_t.count("F") + neibors_t.count("N")
+            for pos, t in zip(neibors, neibors_t):
+                if t not in ["F", "N"]:
+                    continue
+                positions.append(pos)
+            if v > 2:
+                break
+        return positions
+
     @classmethod
     def method_choose(cls) -> int:
         return 1

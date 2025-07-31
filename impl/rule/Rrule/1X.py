@@ -44,6 +44,9 @@ class Value1X(AbstractClueValue):
     def __repr__(self):
         return f"{self.count}"
 
+    def high_light(self, board: 'AbstractBoard') -> list['AbstractPosition']:
+        return self.neighbor
+
     @classmethod
     def type(cls) -> bytes:
         return b'1X'

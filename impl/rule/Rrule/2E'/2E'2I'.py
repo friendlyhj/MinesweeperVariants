@@ -16,6 +16,7 @@ from utils.solver import get_model
 from utils.tool import get_logger, get_random
 
 ALPHABET = "ABCDEFGH"
+NAME_2I = "2I"
 
 
 class Rule2Ep2I(AbstractClueRule):
@@ -23,7 +24,7 @@ class Rule2Ep2I(AbstractClueRule):
 
     def __init__(self, board: "AbstractBoard" = None, data=None) -> None:
         super().__init__()
-        board.generate_board(self.name, (3, 3))
+        board.generate_board(NAME_2I, (3, 3))
         board.set_config(MASTER_BOARD, "pos_label", True)
 
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':
@@ -34,18 +35,18 @@ class Rule2Ep2I(AbstractClueRule):
                 result.append(_pos.deviation(dpos))
             return result
 
-        pos = board.get_pos(1, 1, self.name)
+        pos = board.get_pos(1, 1, NAME_2I)
         logger = get_logger()
         random = get_random()
         board[pos] = Value2Ep2I_Quess(pos)
 
-        pos_list = [pos for pos, _ in board("N", key=self.name)]
+        pos_list = [pos for pos, _ in board("N", key=NAME_2I)]
         pos_list = random.sample(pos_list, int(random.random() * 6 + 2))
         offsets = []
         for pos in pos_list:
             board[pos] = VALUE_CIRCLE
             offsets.append(pos.up().left())
-        for pos, _ in board("N", key=self.name):
+        for pos, _ in board("N", key=NAME_2I):
             board[pos] = VALUE_CROSS
 
         letter_map = {i: [] for i in range(8)}
@@ -71,7 +72,7 @@ class Rule2Ep2I(AbstractClueRule):
         return board
 
     def init_clear(self, board: 'AbstractBoard'):
-        for pos, obj in board(mode="object", key=self.name):
+        for pos, obj in board(mode="object", key=NAME_2I):
             if isinstance(obj, Value2Ep2I_Quess):
                 continue
             board[pos] = None
@@ -87,6 +88,14 @@ class Value2Ep2I(AbstractClueValue):
 
     def __repr__(self) -> str:
         return f"{ALPHABET[self.value]}"
+
+    def high_light(self, board: 'AbstractBoard') -> list['AbstractPosition']:
+        positions = []
+        for pos, _ in board("NF", key=NAME_2I):
+            _pos = self.pos.deviation(pos.shift(-1, -1))
+            if board.in_bounds(_pos):
+                positions.append(pos)
+        return positions
 
     @classmethod
     def method_choose(cls) -> int:
@@ -113,7 +122,7 @@ class Value2Ep2I(AbstractClueValue):
 
         # 初始化对照表
         neighbors = []
-        for pos2, obj in board(key=Rule2Ep2I.name):
+        for pos2, obj in board(key=NAME_2I):
             if isinstance(obj, Value2Ep2I_Quess):
                 continue
             # 题板上的位置和共享的偏移位置

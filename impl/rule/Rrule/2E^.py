@@ -102,6 +102,9 @@ class Value2Eq(AbstractClueValue):
     def __repr__(self) -> str:
         return "ABCDEFGHI"[self.value]
 
+    def high_light(self, board: 'AbstractBoard') -> list['AbstractPosition']:
+        return self.neighbors
+
     @classmethod
     def type(cls) -> bytes:
         return Rule2Eq.name.encode("ascii")

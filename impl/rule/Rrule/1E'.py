@@ -48,6 +48,21 @@ class Value1E(AbstractClueValue):
     def __repr__(self):
         return str(self.value)
 
+    def high_light(self, board: 'AbstractBoard') -> List['AbstractPosition']:
+        positions = []
+        pos = self.pos.clone()
+        for fn in [pos.up, pos.down]:
+            n = 1
+            while board.get_type(fn(n)) not in "F":
+                n += 1
+                positions.append(fn(n))
+        for fn in [pos.left, pos.right]:
+            n = 1
+            while board.get_type(fn(n)) not in "F":
+                n += 1
+                positions.append(fn(n))
+        return positions
+
     def compose(self, board) -> List[Dict]:
         if self.value == 0:
             return super().compose(board)

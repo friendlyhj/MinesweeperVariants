@@ -7,6 +7,7 @@
 """
 [1K]骑士:每个位置代表其马步位置格子的总雷数
 """
+from typing import List
 
 from abs.Rrule import AbstractClueRule, AbstractClueValue
 from abs.board import AbstractBoard, AbstractPosition
@@ -44,6 +45,9 @@ class Value1K(AbstractClueValue):
 
     def __repr__(self):
         return f"{self.count}"
+
+    def high_light(self, board: 'AbstractBoard') -> List['AbstractPosition']:
+        return self.neighbor
 
     @classmethod
     def type(cls) -> bytes:

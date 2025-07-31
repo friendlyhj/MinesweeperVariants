@@ -102,6 +102,9 @@ class Value1Q1L(AbstractClueValue):
     def __repr__(self):
         return f"{self.value}"
 
+    def high_light(self, board: 'AbstractBoard') -> list['AbstractPosition']:
+        return self.neighbor
+
     @classmethod
     def type(cls) -> bytes:
         return Rule1Q1L.name.encode("ascii")

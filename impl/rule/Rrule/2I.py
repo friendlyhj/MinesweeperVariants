@@ -14,13 +14,15 @@ from utils.impl_obj import VALUE_CROSS, VALUE_CIRCLE
 from utils.solver import get_model
 from utils.tool import get_random, get_logger
 
+NAME_2I = "2I"
+
 
 class Rule2I(AbstractClueRule):
     name = "2I"
 
     def __init__(self, board: "AbstractBoard" = None, data=None) -> None:
         super().__init__(board, data)
-        board.generate_board(self.name, (3, 3))
+        board.generate_board(NAME_2I, (3, 3))
 
     def clue_class(self):
         return Value2I
@@ -38,14 +40,14 @@ class Rule2I(AbstractClueRule):
         pos = board.get_pos(1, 1, self.name)
         board[pos] = Value2I_7(pos)
 
-        pos_list = [pos for pos, _ in board("N", key=self.name)]
+        pos_list = [pos for pos, _ in board("N", key=NAME_2I)]
         pos_list = random.sample(pos_list, 7)
         offsets = []
         for pos in pos_list:
             board[pos] = VALUE_CIRCLE
             offsets.append(pos.up().left())
             logger.debug(f"[2I] put O at {pos}")
-        for pos, _ in board("N", key=self.name):
+        for pos, _ in board("N", key=NAME_2I):
             board[pos] = VALUE_CROSS
             logger.debug(f"[2I] put X at {pos}")
 
@@ -59,7 +61,7 @@ class Rule2I(AbstractClueRule):
         return board
 
     def init_clear(self, board: 'AbstractBoard'):
-        for pos, obj in board(mode="object", key=self.name):
+        for pos, obj in board(mode="object", key=NAME_2I):
             if isinstance(obj, Value2I_7):
                 continue
             board[pos] = None
@@ -72,6 +74,14 @@ class Value2I(AbstractClueValue):
 
     def __repr__(self):
         return f"{self.value}"
+
+    def high_light(self, board: 'AbstractBoard') -> list['AbstractPosition']:
+        positions = []
+        for pos, _ in board("NF", key=NAME_2I):
+            _pos = self.pos.deviation(pos.shift(-1, -1))
+            if board.in_bounds(_pos):
+                positions.append(pos)
+        return positions
 
     @classmethod
     def method_choose(cls) -> int:
@@ -90,7 +100,7 @@ class Value2I(AbstractClueValue):
 
         # 初始化对照表
         neighbors = []
-        for pos2, obj in board(key=Rule2I.name):
+        for pos2, obj in board(key=NAME_2I):
             if isinstance(obj, Value2I_7):
                 continue
             # 题板上的位置和共享的偏移位置

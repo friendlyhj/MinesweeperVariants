@@ -97,6 +97,9 @@ class Value4V(AbstractClueValue):
     def __repr__(self) -> str:
         return f"{self.value}"
 
+    def high_light(self, board: 'AbstractBoard') -> list['AbstractPosition']:
+        return self.neighbors_list[0] + self.neighbors_list[1]
+
     def create_constraints(self, board: 'AbstractBoard'):
         model = get_model()
 

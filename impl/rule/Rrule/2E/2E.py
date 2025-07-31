@@ -7,6 +7,7 @@
 """
 [2E]加密: 线索被字母所取代，每个字母对应一个线索，且每个线索对应一个字母
 """
+from typing import List
 
 from abs.board import AbstractBoard, AbstractPosition
 from abs.Rrule import AbstractClueRule, AbstractClueValue
@@ -85,6 +86,9 @@ class Value2E(AbstractClueValue):
 
     def __repr__(self) -> str:
         return "ABCDEFGHI"[self.value]
+
+    def high_light(self, board: 'AbstractBoard') -> List['AbstractPosition']:
+        return self.neighbors
 
     @classmethod
     def type(cls) -> bytes:

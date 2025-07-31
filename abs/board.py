@@ -11,6 +11,8 @@ from dataclasses import dataclass
 
 from ortools.sat.python.cp_model import IntVar
 
+from impl.board.dye import get_dye
+
 if TYPE_CHECKING:
     from .Rrule import AbstractClueValue
     from .Mrule import AbstractMinesValue
@@ -187,7 +189,7 @@ class AbstractBoard(ABC):
         """
 
     def __repr__(self):
-        ...
+        return self.show_board()
 
     @abstractmethod
     def __call__(
@@ -211,6 +213,28 @@ class AbstractBoard(ABC):
 
     def __contains__(self, item):
         return self.has(target=item, key=None)
+
+    def __eq__(self, other: 'AbstractBoard'):
+        if not isinstance(other, AbstractBoard):
+            return False
+        if self.get_board_keys() != other.get_board_keys():
+            return False
+        if self.get_interactive_keys() != other.get_interactive_keys():
+            return False
+        for pos, obj1 in self():
+            obj2 = other[pos]
+            if obj1 is None and obj2 is None:
+                continue
+            if obj1 is None or obj2 is None:
+                return False
+            if obj1.code() != obj2.code():
+                return False
+            if obj1.type() != obj2.type():
+                return False
+        return True
+
+    def dyed(self, name: str):
+        get_dye(name)().dye(self)
 
     def has(self, target: str, key: str = None):
         """

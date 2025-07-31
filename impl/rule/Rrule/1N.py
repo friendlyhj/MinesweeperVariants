@@ -37,6 +37,9 @@ class Value1N(AbstractClueValue):
     def __repr__(self) -> str:
         return str(self.value)
 
+    def high_light(self, board: 'AbstractBoard') -> list['AbstractPosition']:
+        return self.nei
+
     @classmethod
     def method_choose(cls) -> int:
         return 1

@@ -12,7 +12,6 @@ from ortools.sat.python.cp_model import IntVar
 
 from utils.impl_obj import VALUE_QUESS, MINES_TAG
 from utils.tool import get_logger
-from .dye import get_dye
 from utils.solver import get_model
 from abs.board import AbstractBoard, AbstractPosition
 from abs.board import MASTER_BOARD
@@ -280,9 +279,6 @@ class Board(AbstractBoard):
         if 0 <= pos.x < self.size and 0 <= pos.y < self.size:
             self.__board[pos.x][pos.y] = value
             self.__type_board[pos.x][pos.y] = self.type_value(value)
-
-    def dyed(self, name: str):
-        get_dye(name)().dye(self)
 
     def get_dyed(self, pos: 'AbstractPosition') -> bool | None:
         if 0 <= pos.x < self.size and 0 <= pos.y < self.size:

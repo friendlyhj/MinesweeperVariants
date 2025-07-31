@@ -3,7 +3,7 @@
 # @Time    : 2025/06/07 13:45
 # @Author  : Wu_RH
 # @FileName: impl_obj.py
-
+import base64
 import os
 import sys
 import importlib.util
@@ -21,7 +21,7 @@ from impl.board import version1, version2
 from impl import rule
 
 TOTAL = -1
-board = [version2, version1]
+hypothesis_board = [version2, version1]
 
 
 class ModelGenerateError(Exception):
@@ -117,5 +117,19 @@ def get_value(pos, code):
     return None
 
 
-for pkg in [rule] + board:
+def encode_board(code: bytes) -> str:
+    code = code[:]
+    padding = len(code) % 4
+    if padding:
+        code += b'\xff' * (4 - padding)
+    return base64.urlsafe_b64encode(code).decode("ascii")
+
+
+def decode_board(base64data: str, name: str = None):
+    board_bytes = base64.urlsafe_b64decode(base64data.encode("ascii"))
+    board_bytes = board_bytes.rstrip(b"\xff")
+    return get_board(name)(code=board_bytes)
+
+
+for pkg in [rule] + hypothesis_board:
     recursive_import(pkg)

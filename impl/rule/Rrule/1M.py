@@ -54,6 +54,9 @@ class Value1M(AbstractClueValue):
     def __repr__(self) -> str:
         return f"{self.value}"
 
+    def high_light(self, board: 'AbstractBoard') -> list['AbstractPosition']:
+        return self.neighbors
+
     @classmethod
     def type(cls) -> bytes:
         return Rule1M.name.encode("ascii")

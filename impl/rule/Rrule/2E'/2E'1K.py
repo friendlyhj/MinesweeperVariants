@@ -61,6 +61,9 @@ class Value1K2Ep(AbstractClueValue):
     def __repr__(self) -> str:
         return f"{ALPHABET[self.value]}"
 
+    def high_light(self, board: 'AbstractBoard') -> list['AbstractPosition']:
+        return self.neighbors
+
     @classmethod
     def type(cls) -> bytes:
         return Rule1K2Ep.name.encode("ascii")

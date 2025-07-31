@@ -52,6 +52,9 @@ class Value2X(AbstractClueValue):
     def __repr__(self) -> str:
         return f"{self.count // 10} {self.count % 10}"
 
+    def high_light(self, board: 'AbstractBoard') -> list['AbstractPosition']:
+        return self.neighbor
+
     def compose(self, board) -> List[Dict]:
         value = [self.count // 10, self.count % 10]
         value.sort()

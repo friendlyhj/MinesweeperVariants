@@ -5,13 +5,12 @@
 # @Author  : Wu_RH
 # @FileName: img.py
 # @Version : 1.0.0
-
 import sys
 import yaml
 import argparse
 from pathlib import Path
 
-from impl.impl_obj import get_board
+from impl.impl_obj import get_board, decode_board
 from utils.image_create import draw_board
 
 # ==== 获取默认值 ====
@@ -46,12 +45,14 @@ if args.code is None:
     sys.exit(0)
 
 try:
-    code = bytes.fromhex(args.code)
+    board = decode_board(args.code)
 except:
-    code = bytes(args.code, "utf-8").decode("unicode_escape").encode("latin1")
+    code = bytes.fromhex(args.code)
+    board = get_board(args.board_class)(code=code)
+
 
 draw_board(
-    board=get_board(args.board_class)(code=code),
+    board=board,
     bottom_text=args.rule_text,
     output=args.output,
     background_white=args.white_base,

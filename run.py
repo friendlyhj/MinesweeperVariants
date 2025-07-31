@@ -85,33 +85,30 @@ if args.command == "list":
         encode = "utf-8"
         split_symbol = ''.join([chr(random.randint(33, 126)) for _ in range(50)])
         result = split_symbol.encode(encode)
-        result += split_symbol.join(rule_list["L"]).encode(encode)
+        result += split_symbol.join(rule_list["L"].values()).encode(encode)
         result += (split_symbol * 2).encode(encode)
-        result += split_symbol.join(rule_list["M"]).encode(encode)
+        result += split_symbol.join(rule_list["M"].values()).encode(encode)
         result += (split_symbol * 2).encode(encode)
-        result += split_symbol.join(rule_list["R"]).encode(encode)
+        result += split_symbol.join(rule_list["R"].values()).encode(encode)
         result += (split_symbol * 2).encode(encode)
         print("hex_start:" + result.hex() + ":hex_end", end="", flush=True)
-        print(len(result))
-        print(len(result))
-        print(len(result))
         # print(result.decode(encode))
         sys.stdout.buffer.flush()
         sys.exit(0)
 
     if rule_list["L"]:
         print("\n\n左线规则:", flush=True)
-    for doc in rule_list["L"]:
+    for doc in rule_list["L"].values():
         print_with_indent(doc)
 
     if rule_list["M"]:
         print("\n\n中线规则:", flush=True)
-    for doc in rule_list["M"]:
+    for doc in rule_list["M"].values():
         print_with_indent(doc)
 
     if rule_list["R"]:
         print("\n\n右线规则:", flush=True)
-    for doc in rule_list["R"]:
+    for doc in rule_list["R"].values():
         print_with_indent(doc)
 
     sys.exit(0)

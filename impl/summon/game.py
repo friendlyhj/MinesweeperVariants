@@ -4,7 +4,7 @@
 # @Time    : 2025/07/03 00:27
 # @Author  : Wu_RH
 # @FileName: game.py
-
+import threading
 from typing import Union, Callable
 import itertools as it
 
@@ -21,6 +21,11 @@ NORMAL = 0  # 普通模式
 EXPERT = 1  # 专家模式
 ULTIMATE = 2  # 终极模式
 PUZZLE = 3  # 纸笔模式(用于调试)
+
+ULTIMATE_A = 1
+ULTIMATE_F = 2
+ULTIMATE_S = 4
+ULTIMATE_R = 8
 
 
 class ValueAsterisk(AbstractClueValue):
@@ -46,23 +51,96 @@ VALUE_TAG = ValueAsterisk(POSITION_TAG)
 
 
 class GameSession:
-    def __init__(self, summon: Summon, mode=NORMAL, drop_r=False):
+    def __init__(self, summon: Summon = None,
+                 mode=NORMAL, drop_r=False,
+                 ultimate_mode=ULTIMATE_A | ULTIMATE_F | ULTIMATE_S,
+                 ):
         self.logger = get_logger()
         self.summon = summon
-        self.mode = mode
         self.drop_r = drop_r
+        if mode == ULTIMATE:
+            if ultimate_mode & ULTIMATE_R:
+                self.drop_r = False
+            else:
+                self.drop_r = True
 
-        if mode == PUZZLE:
-            self.answer_board = None
-            self.board = None
-        else:
-            self.logger.debug("开始初始化题板")
-            self.answer_board = self.summon.summon_board()
-            self.board = self.create_board()
-            self.logger.debug("初始化完毕")
+        self.answer_board = None
+        self.board = None
+
+        self.mode = mode
+        self.ultimate_mode = ultimate_mode
 
         self.deduced_values = {}
-        self._origin_map = {}
+        self.last_deduced_board = None
+        self.last_hint = [None, []]
+
+        self._hint_lock = threading.Lock()
+        self._hint_thread = None
+
+        self._deduce_lock = threading.Lock()
+        self._deduce_thread = None
+
+    def hint(self, wait: bool = True) -> list[tuple[list, list[AbstractPosition]]] | None:
+        """
+        简化版提示获取
+        - wait=True: 启动计算并硬等到结果
+        - wait=False: 如果计算未运行就启动并立即返回
+        """
+        with self._hint_lock:
+            # 如果线程正在运行
+            if self._hint_thread and self._hint_thread.is_alive():
+                if wait:
+                    self._hint_thread.join()  # 硬等
+                    return self.last_hint[1]
+                return None  # 不等待直接返回
+
+            # 没有运行则启动新线程
+            def hint_task():
+                try:
+                    self._hint()  # 直接计算
+                except Exception as e:
+                    print(f"提示计算崩溃: {e}")
+                    raise  # 重新抛出异常
+
+            self._hint_thread = threading.Thread(target=hint_task, daemon=True)
+            self._hint_thread.start()
+
+            if wait:
+                self._hint_thread.join()  # 启动后立即硬等
+                return self.last_hint[1]
+
+            return None  # 不等待直接返回
+
+    def deduced(self, wait: bool = True):
+        """
+        简化版推导获取
+        - wait=True: 启动计算并硬等到结果
+        - wait=False: 如果计算未运行就启动并立即返回
+        """
+        with self._deduce_lock:
+            # 如果线程正在运行
+            if self._deduce_thread and self._deduce_thread.is_alive():
+                if wait:
+                    self._deduce_thread.join()  # 硬等
+                    return self.deduced_values
+                return None  # 不等待直接返回
+
+            # 没有运行则启动新线程
+            def deduce_task():
+                try:
+                    self._deduced()  # 直接计算
+                except Exception as e:
+                    print(f"推导计算崩溃: {e}")
+                    raise  # 重新抛出异常
+
+            self._deduce_thread = threading.Thread(target=deduce_task, daemon=True)
+            self._deduce_thread.start()
+
+            if wait:
+                self._deduce_thread.join()  # 启动后立即硬等
+                return self.deduced_values
+
+            return None  # 不等待直接返回
 
     def solve_current_board(self, board_state, drop_rules: bool) -> int:
         # CSP 解算器包装函数
@@ -89,17 +167,37 @@ class GameSession:
         board = self.answer_board.clone()
         for pos, _ in board("F"):
             board.set_value(pos, None)
-        clues = [i for i in board("C")]
-        for pos, clue in get_random().sample(clues, len(clues)):
-            board.set_value(pos, MINES_TAG)
-            if solver_by_csp(
+        clues = [i for i in board("CF")]
+        print(board.show_board(), clues)
+        get_random().shuffle(clues)
+        r_flag = True
+        while clues:
+            if r_flag and self.drop_r:
+                r_flag = solver_by_csp(
                     self.summon.mines_rules,
                     self.summon.clue_rule,
                     self.summon.mines_clue_rule,
-                    board.clone(), drop_r=True) == 0:
-                board.set_value(pos, None)
-                continue
-            board.set_value(pos, clue)
+                    board.clone(),
+                    answer_board=self.answer_board,
+                    drop_r=not r_flag
+                ) == 1
+            while True:
+                if not clues:
+                    break
+                pos, clue = clues.pop()
+                if board.get_type(pos) == "C":
+                    board.set_value(pos, MINES_TAG)
+                elif board.get_type(pos) == "F":
+                    board.set_value(pos, VALUE_TAG)
+                if solver_by_csp(
+                        self.summon.mines_rules,
+                        self.summon.clue_rule,
+                        self.summon.mines_clue_rule,
+                        board.clone(), drop_r=not r_flag) == 0:
+                    board.set_value(pos, None)
+                    break
+                board.set_value(pos, clue)
+        self.board = board
         return board
 
     def apply(self, pos: AbstractPosition, action: int) -> Union["AbstractBoard", None]:
@@ -171,48 +269,216 @@ class GameSession:
             # 你答案题板为啥有None?
             self.logger.warn("答案题板携带None")
 
-    def click(self, positions: list["AbstractPosition"]) -> Union["AbstractBoard", None]:
+    def chord_clue(self, clue_pos: AbstractPosition) -> list[AbstractPosition]:
+        # 看最后一次提示有没有包含该格的单线索
+        VALUE = self.board.get_config(clue_pos.board_key, "VALUE")
+        MINES = self.board.get_config(clue_pos.board_key, "MINES")
+        if self.board[clue_pos] in [VALUE, MINES, VALUE_TAG, None]:
+            return []
+        for pos, positions in self.last_hint[1]:
+            if pos != [clue_pos]:
+                continue
+            if any(self.board.get_type(_pos) != "N" for _pos in positions):
+                break
+            return positions
+
+        self.logger.debug(f"chord pos: {clue_pos}, {self.board[clue_pos]}")
+
+        # 失效所有与其无关的约束
+        board: AbstractBoard = self.board.clone()
+        for pos, obj in board():
+            if pos == clue_pos:
+                continue
+            if obj is None:
+                continue
+            if board.get_type(pos) == "F":
+                board[pos] = MINES_TAG
+            elif board.get_type(pos) == "C":
+                board[pos] = VALUE_TAG
+
+        # 失效右线
+        if self.board.get_type(clue_pos) != "C":
+            for idx in range(len(self.summon.clue_rule.subrules)):
+                self.summon.clue_rule.subrules[idx][0] = False
+
+        # 失效中线
+        if self.board.get_type(clue_pos) != "F":
+            for idx in range(len(self.summon.clue_rule.subrules)):
+                self.summon.clue_rule.subrules[idx][0] = False
+
+        # 失效左线
+        for rule in self.summon.mines_rules.rules:
+            for idx in range(len(rule.subrules)):
+                rule.subrules[idx][0] = False
+
+        chord_positions = []
+        for pos, value in self.deduced().items():
+            obj = board[pos]
+            board[pos] = value
+            if not self.solve_current_board(board, drop_rules=self.drop_r):
+                chord_positions.append(pos)
+            board[pos] = obj
+
+        # 失效右线
+        if self.board.get_type(clue_pos) != "C":
+            for idx in range(len(self.summon.clue_rule.subrules)):
+                self.summon.clue_rule.subrules[idx][0] = True
+
+        # 失效中线
+        if self.board.get_type(clue_pos) != "F":
+            for idx in range(len(self.summon.clue_rule.subrules)):
+                self.summon.clue_rule.subrules[idx][0] = True
+
+        # 失效左线
+        for rule in self.summon.mines_rules.rules:
+            for idx in range(len(rule.subrules)):
+                rule.subrules[idx][0] = True
+
+        return chord_positions
+
+    def click(self, pos: "AbstractPosition") -> Union["AbstractBoard", None]:
         """
         翻开/点击 某个空白格
-        :param positions: 翻开的位置列表
+        :param pos: 翻开的位置
         """
-        for pos in positions:
-            if self.apply(pos, 0) is None:
+        global NORMAL, EXPERT, ULTIMATE, PUZZLE
+        if self.board.get_type(pos) != "N":
+            # 点击了线索
+            chord_positions = self.chord_clue(pos)
+            if self.mode in [NORMAL, EXPERT]:
+                # 普通和专家直接设置值
+                for _pos in chord_positions:
+                    self.board[_pos] = self.answer_board[_pos]
+            elif self.mode in [ULTIMATE, PUZZLE]:
+                # 如果是纸笔和专家就放标志
+                for _pos in chord_positions:
+                    if self.answer_board.get_type(_pos) == "F":
+                        self.board[_pos] = MINES_TAG
+                    elif self.answer_board.get_type(_pos) == "C":
+                        self.board[_pos] = VALUE_TAG
+        elif self.mode == NORMAL:
+            # 普通模式
+            if self.answer_board.get_type(pos) == "F":
                 return None
+            self.board[pos] = self.answer_board[pos]
+        elif self.mode in [EXPERT, ULTIMATE, PUZZLE]:
+            # 专家模式
+            if pos not in self.deduced_values.keys():
+                self.deduced()
+            if pos not in self.deduced_values.keys():
+                return None
+            if self.board.type_value(self.deduced_values[pos]) == "C":
+                return None
+            if self.mode in [ULTIMATE, PUZZLE]:
+                self.board[pos] = VALUE_TAG
+            else:
+                self.board[pos] = self.answer_board[pos]
+        else:
+            return None
+        for pos, _ in self.board("CF"):
+            if pos in self.deduced_values.keys():
+                del self.deduced_values[pos]
+        if (
+            self.mode in [ULTIMATE, PUZZLE] and
+            self.ultimate_mode & ULTIMATE_A
+        ):
+            self.step()
         return self.board
 
-    def mark(self, positions: list["AbstractPosition"]) -> Union["AbstractBoard", None]:
+    def mark(self, pos: AbstractPosition) -> Union["AbstractBoard", None]:
         """
         右键标雷
         """
-        for pos in positions:
-            if self.apply(pos, 1) is None:
+        global NORMAL, EXPERT, ULTIMATE, PUZZLE
+        if self.board.get_type(pos) != "N":
+            # 右键了线索
+            chord_positions = self.chord_clue(pos)
+            if self.mode in [NORMAL, EXPERT]:
+                # 普通和专家直接设置值
+                for _pos in chord_positions:
+                    self.board[_pos] = self.answer_board[_pos]
+            elif self.mode in [ULTIMATE, PUZZLE]:
+                # 如果是纸笔和专家就放标志
+                for _pos in chord_positions:
+                    if self.answer_board.get_type(_pos) == "F":
+                        self.board[_pos] = MINES_TAG
+                    elif self.answer_board.get_type(_pos) == "C":
+                        self.board[_pos] = VALUE_TAG
+        elif self.mode == NORMAL:
+            # 普通模式
+            if self.answer_board.get_type(pos) == "C":
                 return None
+            self.board[pos] = self.answer_board[pos]
+        elif self.mode in [EXPERT, ULTIMATE, PUZZLE]:
+            # 专家模式
+            if pos not in self.deduced_values.keys():
+                self.deduced()
+            if pos not in self.deduced_values.keys():
+                return None
+            if self.board.type_value(self.deduced_values[pos]) == "F":
+                return None
+            if self.mode in [ULTIMATE, PUZZLE]:
+                self.board[pos] = VALUE_TAG
+            else:
+                self.board[pos] = self.answer_board[pos]
+        else:
+            return None
+        for pos, _ in self.board("CF"):
+            if pos in self.deduced_values.keys():
+                del self.deduced_values[pos]
+        if (
+            self.mode in [ULTIMATE, PUZZLE] and
+            self.ultimate_mode & ULTIMATE_A
+        ):
+            self.step()
         return self.board
 
     def step(self):
-        """
-        游戏步进:
-        遍历完全部的可推
-        """
+        # 没有可推格了
+        flag = True
+        for pos in self.deduced_values.keys():
+            if self.answer_board.get_type(pos) == "C":
+                flag = False
+        if self.ultimate_mode & ULTIMATE_F:
+            for pos in self.deduced_values.keys():
+                if self.answer_board.get_type(pos) == "F":
+                    flag = False
+        if self.ultimate_mode & ULTIMATE_S:
+            for pos in self.deduced_values.keys():
+                self.board: AbstractBoard
+                if pos in self.board.get_board_keys():
+                    flag = False
+        else:
+            for pos in self.deduced_values.keys():
+                self.board: AbstractBoard
+                if pos in self.board.get_interactive_keys():
+                    flag = False
+        if flag:
+            for pos, obj in self.board():
+                if obj not in [VALUE_TAG, MINES_TAG]:
+                    continue
+                self.board[pos] = self.answer_board[pos]
 
-    def deduced(self):
+    def _deduced(self):
         """
         收集所有必然能推出的位置及其不可能的值
         """
         if self.mode == PUZZLE:
             # 如果是纸笔模式直接把答案反一下给他
+            positions = [position for key in self.board.get_board_keys() for position, _ in self.board("N", key=key)]
             deduced_values = {}
-            for key in self.board.get_board_keys():
-                for pos, _ in self.board("N", key=key):
-                    if self.answer_board.get_type(pos) == "C":
-                        deduced_values[pos] = self.board.get_config(
-                            pos.board_key, "MINES")
-                    elif self.answer_board.get_type(pos) == "F":
-                        deduced_values[pos] = self.board.get_config(
-                            pos.board_key, "VALUE")
+            for pos in positions:
+                if self.answer_board.get_type(pos) == "C":
+                    deduced_values[pos] = self.board.get_config(
+                        pos.board_key, "MINES")
+                elif self.answer_board.get_type(pos) == "F":
+                    deduced_values[pos] = self.board.get_config(
+                        pos.board_key, "VALUE")
             self.deduced_values = deduced_values
             return deduced_values
+        if self.last_deduced_board == self.board:
+            return self.deduced_values
+        self.last_deduced_board = self.board.clone()
         # 获取之前推导过的
         deduced_values: dict["AbstractPosition", object] = self.deduced_values
         # 与题板进行检查 并去除已经放置的
@@ -223,45 +489,62 @@ class GameSession:
                 if position in deduced_values:
                     del deduced_values[position]
 
-        for key in self.board.get_board_keys():
-            for position, _ in self.board("N", key=key):
-                if position in deduced_values:
-                    continue
-                answer_type = self.answer_board.get_type(position)
-                if answer_type == "C":
-                    false_tag = self.board.get_config(position.board_key, "MINES")
-                    self.board.set_value(position, false_tag)
-                elif answer_type == "F":
-                    true_tag = self.board.get_config(position.board_key, "VALUE")
-                    self.board.set_value(position, true_tag)
-                elif answer_type == "N":
-                    self.logger.error("\n" + self.answer_board.show_board())
-                    raise ValueError("None type shouldn't on answer board")
+        positions = [position for key in self.board.get_board_keys() for position, _ in self.board("N", key=key)]
+        for position in positions:
+            if position in deduced_values:
+                continue
+            self.logger.debug(f"deduced start {position}")
+            answer_type = self.answer_board.get_type(position)
+            if answer_type == "C":
+                false_tag = self.board.get_config(position.board_key, "MINES")
+                self.board.set_value(position, false_tag)
+            elif answer_type == "F":
+                true_tag = self.board.get_config(position.board_key, "VALUE")
+                self.board.set_value(position, true_tag)
+            elif answer_type == "N":
+                self.logger.error("\n" + self.answer_board.show_board())
+                raise ValueError("None type shouldn't on answer board")
 
-                if self.solve_current_board(self.board, drop_rules=False) == 0:
-                    deduced_values[position] = self.board.get_value(position)
+            if self.solve_current_board(self.board, drop_rules=False) == 0:
+                deduced_values[position] = self.board.get_value(position)
 
-                self.board.set_value(position, None)  # 还原
+            self.board.set_value(position, None)  # 还原
 
         self.deduced_values = deduced_values
 
         return deduced_values
 
-    def hint(self) -> list[tuple[list[str], list[AbstractPosition]]]:
+    def _hint(self) -> list[tuple[list, list[AbstractPosition]]]:
         """
         返回每一类推理依据及其能推出的位置
         """
+        if self.board == self.last_hint[0]:
+            return self.last_hint[1]
+
+        grouped_deductions: list[tuple[list, list["AbstractPosition"]]] = []
+        for pos, _ in self.board("CF"):
+            positions = self.chord_clue(pos)
+            if not positions:
+                continue
+            grouped_deductions.append(([pos], positions))
+        if grouped_deductions:
+            self.last_hint = [self.board.clone(), grouped_deductions.copy()]
+            return grouped_deductions
 
         # 初始化当前的所有可推格
         deduced_assignments = self.deduced()
+        if not deduced_assignments:
+            self.step()
+            return []
+
         # 每个可推出位置 -> 可推出它的约束来源列表
-        deduction_origin_map: dict["AbstractPosition", list[str]] = {}
+        deduction_origin_map: dict["AbstractPosition", list] = {}
 
         # 克隆一个题板用于假设推理
         hypothesis_board = self.board.clone()
 
         def build_assignment_operator(_pos: "AbstractPosition") -> \
-                tuple[Callable[[], None], Callable[[], None], str]:
+                tuple[Callable[[], None], Callable[[], None], object]:
             _val = self.board.get_value(_pos)
             if self.board.get_type(_pos) == "C":
                 _deactivate = lambda: hypothesis_board.set_value(_pos, VALUE_TAG)
@@ -272,17 +555,19 @@ class GameSession:
                 self.logger.error("board遍历的时候使用参数CF返回了N 汇报给上层")
                 raise ValueError("")
             _restore = lambda: hypothesis_board.set_value(_pos, _val)
-            return _deactivate, _restore, str(_pos)
+            # 位置直接返回位置对象
+            return _deactivate, _restore, _pos
 
         def build_subrule_toggle_operator(_param: tuple) -> \
-                tuple[Callable[[], None], Callable[[], None], str]:
+                tuple[Callable[[], None], Callable[[], None], object]:
             _rule, subrule_index = _param
             _deactivate = lambda: _rule.subrules.__getitem__(subrule_index).__setitem__(0, False)
             _restore = lambda: _rule.subrules.__getitem__(subrule_index).__setitem__(0, True)
-            return _deactivate, _restore, str(_rule.subrules[subrule_index][1])
+            # 关于hint的规则显示链接
+            return _deactivate, _restore, (_rule.name, 1)
 
         # 初始化所有线索与规则的启用/禁用操作
-        constraint_toggle_list: list[tuple[Callable[[], None], Callable[[], None], str]] = []
+        constraint_toggle_list: list[tuple[Callable[[], None], Callable[[], None], object]] = []
 
         # 加入所有线索点操作
         for pos, obj in self.board("CF"):
@@ -300,6 +585,12 @@ class GameSession:
 
         # 加入所有右线规则子约束的开关操作
         for idx in range(len(self.summon.clue_rule.subrules)):
+            constraint_toggle_list.append(
+                build_subrule_toggle_operator((self.summon.clue_rule, idx))
+            )
+
+        # 加入所有中线规则子约束的开关操作
+        for idx in range(len(self.summon.mines_clue_rule.subrules)):
             constraint_toggle_list.append(
                 build_subrule_toggle_operator((self.summon.clue_rule, idx))
             )
@@ -385,7 +676,6 @@ class GameSession:
             hypothesis_board.set_value(deduced_position, None)
 
         # 整理为约束依据 -> 被推出的所有格子列表
-        grouped_deductions: list[tuple[list[str], list["AbstractPosition"]]] = []
         for pos, origin_list in deduction_origin_map.items():
             found = False
             for existing_basis, grouped_positions in grouped_deductions:
@@ -399,6 +689,8 @@ class GameSession:
         for rule in self.summon.mines_rules.rules:
             if self.drop_r and isinstance(rule, Rule0R):
                 build_subrule_toggle_operator((rule, 0))[1]()
+
+        self.last_hint = [self.board.clone(), grouped_deductions[:]]
 
         return grouped_deductions
 
@@ -416,15 +708,15 @@ class GameSession:
             num_clues_used = float("inf")
 
             # chord
-            __board = self.summon.clue_coverage(self.board)[1]
-            chord = len([None for key in self.board.get_board_keys() for _ in self.board('N', key=key)])
-            chord -= len([None for key in __board.get_board_keys() for _ in __board('N', key=key)])
-            clue_freq[1] += chord
-            self.board = __board
-            self.logger.debug(f"确定了{chord}个线索")
-
-            if "N" not in self.board:
-                break
+            # __board = self.summon.clue_coverage(self.board)[1]
+            # chord = len([None for key in self.board.get_board_keys() for _ in self.board('N', key=key)])
+            # chord -= len([None for key in __board.get_board_keys() for _ in __board('N', key=key)])
+            # clue_freq[1] += chord
+            # self.board = __board
+            # self.logger.debug(f"确定了{chord}个线索")
+            #
+            # if "N" not in self.board:
+            #     break
 
             n_length = len([None for key in self.board.get_board_keys() for _ in self.board('N', key=key)])
             print(f"{n_num - n_length}/{n_num}", end="\r")
