@@ -20,9 +20,11 @@ Project_Default.xml
 shelved.patch
 vcs.xml
 workspace.xml
-__pycache__/ 
+__pycache__/
 *.pyc
 data/bot_prompt.txt
 diff_from_mainCSP.patch
 github.bat
 TODO.md
+
+.vscode/
