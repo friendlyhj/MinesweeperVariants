@@ -248,7 +248,7 @@ def generate_board():
         size = data["size"]
 
     # rules = data["rules"]
-    rules = ["3A"]
+    rules = ["2D"]
     hypothesis_data["summon"] = Summon(
         size, total, rules, used_r, dye
     )
@@ -265,11 +265,11 @@ def generate_board():
         print(2)
         if mode < 3:
             # try:
-                print(4)
-                print(hypothesis_data)
-                hypothesis_data["game"].answer_board = hypothesis_data["summon"].summon_board()
-                mask_board = hypothesis_data["game"].create_board()
-                print(5)
+            print(4)
+            print(hypothesis_data)
+            hypothesis_data["game"].answer_board = hypothesis_data["summon"].summon_board()
+            mask_board = hypothesis_data["game"].create_board()
+            print(5)
             # except Exception as e:
             #     print(e)
             #     return jsonify({"error": "generate failed"}), 500

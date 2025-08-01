@@ -90,13 +90,13 @@ class AbstractValue(ABC):
         """
         ...
 
-    def deduce_cells(self, board: 'AbstractBoard') -> bool:
+    def deduce_cells(self, board: 'AbstractBoard') -> Union[bool, None]:
         """
         快速检查当前题板并修改可以直接得出结论的地方
         :param board: 输入题板
-        :return: 是否修改了 True 修改 False 未修改
+        :return: 是否修改了 True 修改 False 未修改  None:未实现该方法
         """
-        return False
+        return None
 
     def code(self) -> bytes:
         """

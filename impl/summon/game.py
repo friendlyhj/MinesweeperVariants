@@ -144,14 +144,18 @@ class GameSession:
 
     def solve_current_board(self, board_state, drop_r: bool) -> int:
         # CSP 解算器包装函数
-        return solver_by_csp(
-            self.summon.mines_rules,
-            self.summon.clue_rule,
-            self.summon.mines_clue_rule,
-            board_state,
-            drop_r=drop_r,
-            bool_mode=True
-        )
+        for _ in range(5):
+            try:
+                return solver_by_csp(
+                    self.summon.mines_rules,
+                    self.summon.clue_rule,
+                    self.summon.mines_clue_rule,
+                    board_state,
+                    drop_r=drop_r,
+                    bool_mode=True
+                )
+            except Exception as e:
+                print(e)
 
     def create_board(self) -> "AbstractBoard":
         """
@@ -281,11 +285,21 @@ class GameSession:
             if any(self.board.get_type(_pos) != "N" for _pos in positions):
                 break
             return positions
+        if self.board == self.last_hint[0]:
+            return []
+        obj = self.board.get_value(clue_pos)
+        obj: AbstractClueValue
+        board: AbstractBoard = self.board.clone()
+        chord_positions = []
+        if obj.deduce_cells(board) is not None:
+            for pos, obj in self.board():
+                if (obj is None) and (board[pos] is not None):
+                    chord_positions.append(pos)
+            return chord_positions
 
         self.logger.debug(f"chord pos: {clue_pos}, {self.board[clue_pos]}")
 
         # 失效所有与其无关的约束
-        board: AbstractBoard = self.board.clone()
         for pos, obj in board():
             if pos == clue_pos:
                 continue
@@ -311,7 +325,6 @@ class GameSession:
             for idx in range(len(rule.subrules)):
                 rule.subrules[idx][0] = False
 
-        chord_positions = []
         for pos, value in list(self.deduced().items()).copy():
             obj = board[pos]
             board[pos] = value
@@ -489,26 +502,28 @@ class GameSession:
                 if position in deduced_values:
                     del deduced_values[position]
 
-        positions = [position for key in self.board.get_board_keys() for position, _ in self.board("N", key=key)]
+        board = self.board.clone()
+
+        positions = [position for key in board.get_board_keys() for position, _ in self.board("N", key=key)]
         for position in positions:
             if position in deduced_values:
                 continue
             self.logger.debug(f"deduced start {position}")
             answer_type = self.answer_board.get_type(position)
             if answer_type == "C":
-                false_tag = self.board.get_config(position.board_key, "MINES")
-                self.board.set_value(position, false_tag)
+                false_tag = board.get_config(position.board_key, "MINES")
+                board.set_value(position, false_tag)
             elif answer_type == "F":
-                true_tag = self.board.get_config(position.board_key, "VALUE")
-                self.board.set_value(position, true_tag)
+                true_tag = board.get_config(position.board_key, "VALUE")
+                board.set_value(position, true_tag)
             elif answer_type == "N":
                 self.logger.error("\n" + self.answer_board.show_board())
                 raise ValueError("None type shouldn't on answer board")
 
-            if self.solve_current_board(self.board, drop_r=self.drop_r) == 0:
-                deduced_values[position] = self.board.get_value(position)
+            if self.solve_current_board(board, drop_r=self.drop_r) == 0:
+                deduced_values[position] = board.get_value(position)
 
-            self.board.set_value(position, None)  # 还原
+            board.set_value(position, None)  # 还原
 
         self.deduced_values = deduced_values
 

@@ -446,7 +446,7 @@ class Summon:
         while True:
             flag = True
             for pos, c in [i for i in board("C")]:
-                if c.deduce_cells(board):
+                if c.deduce_cells(board) is not None:
                     flag = False
                     break
             for r in self.mines_rules.rules:
