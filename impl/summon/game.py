@@ -447,6 +447,8 @@ class GameSession:
         return self.board
 
     def step(self):
+        if self.deduced():
+            return
         # 没有可推格了
         flag = True
         for pos in self.deduced_values.keys():

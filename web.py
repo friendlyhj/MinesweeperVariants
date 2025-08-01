@@ -248,7 +248,7 @@ def generate_board():
         size = data["size"]
 
     # rules = data["rules"]
-    rules = ["2D"]
+    rules = ["3A"]
     hypothesis_data["summon"] = Summon(
         size, total, rules, used_r, dye
     )
