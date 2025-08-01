@@ -97,7 +97,14 @@ class GameSession:
             # 没有运行则启动新线程
             def hint_task():
                 try:
-                    self._hint(r)  # 直接计算
+                    # print("hint start"+"!" * 50)
+                    # print("hint start"+"!" * 50)
+                    # print("hint start"+"!" * 50)
+                    res = self._hint(r)  # 直接计算
+                    # print("hint end"+"!" * 50)
+                    # print("hint end"+"!" * 50)
+                    # print("hint end"+"!" * 50)
+                    print("hint: " + str(res))
                 except Exception as e:
                     print(f"提示计算崩溃: {e}")
                     raise  # 重新抛出异常

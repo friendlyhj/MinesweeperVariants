@@ -284,7 +284,7 @@ def generate_board():
         # answer_board = hypothesis_data["game"].answer_board
     # print(hypothesis_data)
     # print(answer_board.show_board())
-    # hypothesis_data["game"].hint(wait=False)
+    hypothesis_data["game"].hint(wait=False)
 
     response = jsonify(
         format_board(mask_board, "123456")
