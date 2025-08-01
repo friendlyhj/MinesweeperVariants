@@ -342,8 +342,8 @@ def click():
             refresh["cells"].append(data)
     refresh["success"] = True
     print(game.board)
-    print(game.deduced())
-    print(game.hint())
+    # print(game.deduced())
+    # print(game.hint())
     # print(refresh)
     # if _board:
     #     print(_board.show_board())

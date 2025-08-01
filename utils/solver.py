@@ -6,22 +6,26 @@
 # @FileName: solver.py
 
 import gc
+import threading
 
 from ortools.sat.python import cp_model
 
 MODEL = None
+model_lock = threading.Lock()
 
 
 def get_model() -> cp_model.CpModel:
     global MODEL
     if MODEL is None:
-        MODEL = reset_model()
+        with model_lock:
+            MODEL = reset_model()
     return MODEL
 
 
 def reset_model() -> cp_model.CpModel:
     global MODEL
-    del MODEL
-    gc.collect()
-    MODEL = cp_model.CpModel()
-    return MODEL
+    with model_lock:
+        del MODEL
+        gc.collect()
+        MODEL = cp_model.CpModel()
+        return MODEL

@@ -312,7 +312,7 @@ class GameSession:
                 rule.subrules[idx][0] = False
 
         chord_positions = []
-        for pos, value in self.deduced().items():
+        for pos, value in list(self.deduced().items()).copy():
             obj = board[pos]
             board[pos] = value
             if not self.solve_current_board(board, drop_r=self.drop_r):
