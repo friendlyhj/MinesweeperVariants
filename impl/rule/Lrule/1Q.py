@@ -27,7 +27,8 @@ def block(a_pos: AbstractPosition, board: AbstractBoard) -> List[AbstractPositio
 
 
 class Rule1Q(AbstractMinesRule):
-    name = "1Q"
+    name = ["1Q", "Q", "无方"]
+    doc = "每个2x2区域内都至少有一个雷"
     subrules = [
         [True, "[1Q]"]
     ]

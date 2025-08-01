@@ -13,7 +13,8 @@ from utils.solver import get_model
 
 
 class Rule1H(AbstractMinesRule):
-    name = "1H"
+    name = ["1H", "H", "横向", "Horizontal"]
+    doc = "所有雷不能与其他雷横向相邻"
     subrules = [
         [True, "[1H]横向"]
     ]

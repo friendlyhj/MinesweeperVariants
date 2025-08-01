@@ -13,7 +13,8 @@ from utils.solver import get_model
 
 
 class Rule1N(AbstractClueRule):
-    name = "1N"
+    name = ["1N", "N", "负雷", "Negative"]
+    doc = "线索表示 3x3 范围内染色格与非染色格的雷数差"
 
     def clue_class(self):
         return Value1N
@@ -46,7 +47,7 @@ class Value1N(AbstractClueValue):
 
     @classmethod
     def type(cls) -> bytes:
-        return Rule1N.name.encode("ascii")
+        return Rule1N.name[0].encode("ascii")
 
     def code(self) -> bytes:
         return bytes([self.value])

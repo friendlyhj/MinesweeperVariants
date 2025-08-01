@@ -18,7 +18,8 @@ NAME_2I = "2I"
 
 
 class Rule2Ep2I(AbstractClueRule):
-    name = "2E'2I"
+    name = ["2E'2I", "自指残缺"]
+    doc = "字母X周围8格中某7格的雷数如果有N个 则标有X=N的格子必定是雷 7格的方位被当前题板所有线索共享"
 
     def __init__(self, board: "AbstractBoard" = None, data=None) -> None:
         super().__init__()
@@ -101,7 +102,7 @@ class Value2Ep2I(AbstractClueValue):
 
     @classmethod
     def type(cls) -> bytes:
-        return Rule2Ep2I.name.encode("ascii")
+        return Rule2Ep2I.name[0].encode("ascii")
 
     def code(self) -> bytes:
         return bytes([self.value])
@@ -163,7 +164,7 @@ class Value2Ep2I_7(AbstractClueValue):
 
     @classmethod
     def type(cls) -> bytes:
-        return Rule2Ep2I.name.encode("ascii") + b"_7"
+        return Rule2Ep2I.name[0].encode("ascii") + b"_7"
 
     def create_constraints(self, board: 'AbstractBoard'):
         get_model().Add(sum(board.batch(self.neighbors, mode="variable")) == 7)

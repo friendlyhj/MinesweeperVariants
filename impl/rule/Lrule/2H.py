@@ -13,7 +13,8 @@ from utils.solver import get_model
 
 
 class Rule2H(AbstractMinesRule):
-    name = "2H"
+    name = ["2H", "横向", "Horizontal"]
+    doc = "所有雷必须存在横向相邻的雷"
     subrules = [
         [True, "[2H]横向"]
     ]

@@ -14,7 +14,8 @@ from utils.solver import get_model
 
 
 class Rule1A(AbstractMinesRule):
-    name = "1A"
+    name = ["1A", "无马步", "Anti-Knight"]
+    doc = "所有雷的马步位置不能有雷"
     subrules = [
         [True, "[1A]无马步"]
     ]

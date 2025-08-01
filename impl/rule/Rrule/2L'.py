@@ -12,6 +12,7 @@ from abs.board import AbstractBoard, AbstractPosition
 from utils.impl_obj import VALUE_CIRCLE, VALUE_CROSS
 from utils.solver import get_model
 from utils.tool import get_random, get_logger
+NAME_2L = "2L"
 
 
 def select(matrix: list[list[bool]]) -> list[tuple[int, int]]:
@@ -47,7 +48,8 @@ def select(matrix: list[list[bool]]) -> list[tuple[int, int]]:
 
 
 class Rule2L(AbstractClueRule):
-    name = "2L'"
+    name = ["2L'", "误差'", "Liar'"]
+    doc = "每行每列恰有一个非误差线索。误差线索的值比真实值大 1 或小 1"
 
     subrules = [
         [True, "[2L']每行每列恰有一个非误差"]
@@ -63,7 +65,7 @@ class Rule2L(AbstractClueRule):
             if (_bound.x != bound.x and
                     _bound.y != bound.y):
                 raise ValueError("请保证其他题板尺寸均一致")
-        board.generate_board(self.name, (bound.x + 1, bound.y + 1))
+        board.generate_board(NAME_2L, (bound.x + 1, bound.y + 1))
 
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':
         random = get_random()
@@ -101,7 +103,7 @@ class Rule2L(AbstractClueRule):
             board.set_value(pos, obj)
             logger.debug(f"[2L]put {obj} to {pos}")
 
-        for pos, _ in board(key=self.name):
+        for pos, _ in board(key=NAME_2L):
             if (pos.x, pos.y) in pos_map:
                 board.set_value(pos, VALUE_CIRCLE)
                 logger.debug(f"[2L]put O to {pos}")
@@ -115,7 +117,7 @@ class Rule2L(AbstractClueRule):
         return Value2L
 
     def init_clear(self, board: 'AbstractBoard'):
-        for pos, _ in board(key=self.name):
+        for pos, _ in board(key=NAME_2L):
             board.set_value(pos, None)
 
     def create_constraints(self, board: 'AbstractBoard') -> bool:
@@ -123,7 +125,7 @@ class Rule2L(AbstractClueRule):
             return super().create_constraints(board)
 
         model = get_model()
-        bound = board.boundary(key=self.name)
+        bound = board.boundary(key=NAME_2L)
 
         row = board.get_row_pos(bound)
         for pos in row:
@@ -137,7 +139,7 @@ class Rule2L(AbstractClueRule):
             line_var = board.batch(line, mode="variable", drop_none=True)
             model.Add(sum(line_var) == 1)
 
-        for pos, _ in board(key=self.name):
+        for pos, _ in board(key=NAME_2L):
             _pos = pos.clone()
             var = board.get_variable(pos)
             for key in board.get_interactive_keys():
@@ -154,7 +156,7 @@ class Value2L(AbstractClueValue):
         self.value = code[0]
         self.nei = pos.neighbors(2)
         self.pos = pos.clone()
-        self.pos.board_key = Rule2L.name
+        self.pos.board_key = NAME_2L
 
     def __repr__(self) -> str:
         return str(self.value)
@@ -165,7 +167,7 @@ class Value2L(AbstractClueValue):
 
     @classmethod
     def type(cls) -> bytes:
-        return Rule2L.name.encode("ascii")
+        return Rule2L.name[0].encode("ascii")
 
     def code(self) -> bytes:
         return bytes([self.value])

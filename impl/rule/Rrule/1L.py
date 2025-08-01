@@ -18,7 +18,8 @@ from utils.impl_obj import VALUE_QUESS, MINES_TAG
 
 
 class Rule1L(AbstractClueRule):
-    name = "1L"
+    name = ["1L", "L", "误差"]
+    doc = "所有线索均比真实值大1或小1"
 
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':
         random = get_random()
@@ -58,7 +59,7 @@ class Value1L(AbstractClueValue):
 
     @classmethod
     def type(cls) -> bytes:
-        return b'1L'
+        return Rule1L.name[0].encode("ascii")
 
     def code(self) -> bytes:
         return bytes([self.count])

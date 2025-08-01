@@ -22,7 +22,8 @@ def put(pos: 'AbstractPosition', board: 'AbstractBoard'):
 
 
 class Rule2X(AbstractClueRule):
-    name = "2X"
+    name = ["2X", "十字"]
+    doc = "线索代表相邻的8个格子中，染色和非染色格里的雷数(顺序不确定)"
 
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':
         logger = get_logger()
@@ -55,19 +56,19 @@ class Value2X(AbstractClueValue):
     def high_light(self, board: 'AbstractBoard') -> list['AbstractPosition']:
         return self.neighbor
 
-    def compose(self, board) -> List[Dict]:
+    def compose(self, board, web) -> Dict:
         value = [self.count // 10, self.count % 10]
         value.sort()
         text_a = get_text(str(value[0]))
         text_b = get_text(str(value[1]))
-        return [get_row(
+        return get_row(
             text_a,
             text_b
-        )]
+        )
 
     @classmethod
     def type(cls) -> bytes:
-        return Rule2X.name.encode("ascii")
+        return Rule2X.name[0].encode("ascii")
 
     def code(self) -> bytes:
         return bytes([self.count])

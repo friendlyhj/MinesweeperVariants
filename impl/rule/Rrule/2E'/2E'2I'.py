@@ -7,7 +7,6 @@
 """
 [2E'2I']自指残缺:字母X周围8格中某?格的雷数如果有N个 则标有X=N的格子必定是雷 ?格的方位被当前题板所有线索共享
 """
-from typing import List, Union
 
 from abs.Rrule import AbstractClueRule, AbstractClueValue
 from abs.board import AbstractBoard, AbstractPosition, MASTER_BOARD
@@ -20,7 +19,8 @@ NAME_2I = "2I"
 
 
 class Rule2Ep2I(AbstractClueRule):
-    name = "2E'2I'"
+    name = ["2E'2I'", "自指残缺'"]
+    doc = "字母X周围8格中某?格的雷数如果有N个 则标有X=N的格子必定是雷 ?格的方位被当前题板所有线索共享"
 
     def __init__(self, board: "AbstractBoard" = None, data=None) -> None:
         super().__init__()
@@ -103,7 +103,7 @@ class Value2Ep2I(AbstractClueValue):
 
     @classmethod
     def type(cls) -> bytes:
-        return Rule2Ep2I.name.encode("ascii")
+        return Rule2Ep2I.name[0].encode("ascii")
 
     def code(self) -> bytes:
         return bytes([self.value])
@@ -165,4 +165,4 @@ class Value2Ep2I_Quess(AbstractClueValue):
 
     @classmethod
     def type(cls) -> bytes:
-        return Rule2Ep2I.name.encode("ascii") + b"_?"
+        return Rule2Ep2I.name[0].encode("ascii") + b"_?"

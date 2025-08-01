@@ -18,7 +18,8 @@ ALPHABET = "ABCDEFGHI"
 
 
 class Rule2Ep(AbstractClueRule):
-    name = "2E'"
+    name = ["2E'", "自指"]
+    doc = "如果字母X周围8格内有N个雷，则标有X=N的格子必定是雷。"
 
     def __init__(self, board: AbstractBoard, data=None):
         super().__init__()
@@ -66,7 +67,7 @@ class Value2Ep(AbstractClueValue):
 
     @classmethod
     def type(cls) -> bytes:
-        return Rule2Ep.name.encode("ascii")
+        return Rule2Ep.name[0].encode("ascii")
 
     def code(self) -> bytes:
         return bytes([self.value])

@@ -98,7 +98,10 @@ class Summon:
         for rule in mines_rules:
             if rule.name == "R":
                 continue
-            rules.append(rule.name)
+            if type(rule.name) is str:
+                rules.append(rule.name)
+            else:
+                rules.append(rule.name[0])
 
         # 右线规则初始化
         if len(clue_rules) == 0:
@@ -108,7 +111,10 @@ class Summon:
             rules.append("#")
         else:
             self.clue_rule = clue_rules[0]
-            rules.append(clue_rules[0].name)
+            if type(clue_rules[0].name) is str:
+                rules.append(clue_rules[0].name)
+            else:
+                rules.append(clue_rules[0].name[0])
 
         # 中线规则初始化
         if len(mines_clue_rules) == 0:
@@ -120,7 +126,10 @@ class Summon:
             rules.append("F#")
         else:
             self.mines_clue_rule = mines_clue_rules[0]
-            rules.append(mines_clue_rules[0].name)
+            if type(mines_clue_rules[0].name) is str:
+                rules.append(mines_clue_rules[0].name)
+            else:
+                rules.append(mines_clue_rules[0].name[0])
 
         # 染色规则
         if dye:
@@ -131,7 +140,7 @@ class Summon:
             self.init_total()
         else:
             self.total = total
-            set_total(total=self.total)
+        set_total(total=self.total)
 
     def init_total(self):
         soft_conds = [-float("inf")]

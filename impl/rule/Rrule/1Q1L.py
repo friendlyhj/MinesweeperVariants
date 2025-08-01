@@ -29,7 +29,8 @@ def block(a_pos: AbstractPosition, board: AbstractBoard) -> List[AbstractPositio
 
 
 class Rule1Q1L(AbstractClueRule):
-    name = "QL"
+    name = ["QL", "1Q1L", "误差无方(扫联会)"]
+    doc = "误差线索比真实值大1或小1，如果线索处在2*2非雷框内，则它是误差线索，反之则是真实值。"
 
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':
         random = get_random()
@@ -107,7 +108,7 @@ class Value1Q1L(AbstractClueValue):
 
     @classmethod
     def type(cls) -> bytes:
-        return Rule1Q1L.name.encode("ascii")
+        return Rule1Q1L.name[0].encode("ascii")
 
     def code(self) -> bytes:
         return bytes([self.value])

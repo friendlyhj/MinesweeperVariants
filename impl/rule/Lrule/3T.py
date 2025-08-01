@@ -14,7 +14,8 @@ from utils.solver import get_model
 
 
 class Rule1T(AbstractMinesRule):
-    name = "3T"
+    name = ["3T", "无三联"]
+    doc = "任意三个雷不能等距排布"
     subrules = [
         [True, "[3T]雷等距无三连"]
     ]
@@ -29,13 +30,14 @@ class Rule1T(AbstractMinesRule):
             max_num = max(pos_bound.x, pos_bound.y) + 1
             for pos, _ in board():
                 positions = []
-                for i in range(1, max_num // 2):
-                    positions.extend([
-                        [pos, pos.left(i), pos.left(2*i)],
-                        [pos, pos.down(i), pos.down(2*i)],
-                        [pos, pos.left(i).down(i), pos.left(2*i).down(2*i)],
-                        [pos, pos.left(i).up(i), pos.left(2*i).up(2*i)]
-                    ])
+                for i in range(max_num // 2):
+                    for j in range(max_num // 2):
+                        if i == 0 and j == 0:
+                            continue
+                        positions.append([
+                            pos, pos.shift(i, j),
+                            pos.shift(2*i, 2*j)
+                        ])
                 for position in positions:
                     var_list = board.batch(position, mode="variable")
                     if True in [i is None for i in var_list]:

@@ -18,7 +18,8 @@ from utils.impl_obj import VALUE_QUESS, MINES_TAG
 
 
 class Rule1K(AbstractClueRule):
-    name = "1K"
+    name = ["1K", "K", "骑士", "Knight"]
+    doc = "每个位置代表其马步位置格子的总雷数"
 
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':
         logger = get_logger()
@@ -51,7 +52,7 @@ class Value1K(AbstractClueValue):
 
     @classmethod
     def type(cls) -> bytes:
-        return b'1K'
+        return Rule1K.name[0].encode("ascii")
 
     def code(self) -> bytes:
         return bytes([self.count])

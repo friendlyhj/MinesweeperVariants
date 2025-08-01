@@ -22,7 +22,8 @@ def put(pos: 'AbstractPosition', board: 'AbstractBoard'):
 
 
 class Rule3S(AbstractClueRule):
-    name = "3S"
+    name = ["3S", "贝壳"]
+    doc = "线索代表相邻的8个格子中， 中间偏上5格范围和中间偏下5格范围里的雷数(顺序不确定)"
 
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':
         logger = get_logger()
@@ -30,7 +31,7 @@ class Rule3S(AbstractClueRule):
         for pos, _ in board("N"):
             value1 = 0
             value2 = 0
-            #方向判断
+            # 方向判断
             if board.get_type(pos.left(1)) == "F": value1 += 1; value2 += 1
             if board.get_type(pos.right(1)) == "F": value1 += 1; value2 += 1
             if board.get_type(pos.up(1)) ==  "F": value1 += 1
@@ -65,19 +66,19 @@ class Value3S(AbstractClueValue):
     def high_light(self, board: 'AbstractBoard') -> list['AbstractPosition']:
         return self.neighbor[0] + self.neighbor[1]
 
-    def compose(self, board) -> List[Dict]:
+    def compose(self, board, web) -> Dict:
         value = [self.count // 10, self.count % 10]
         value.sort()
         text_a = get_text(str(value[0]))
         text_b = get_text(str(value[1]))
-        return [get_row(
+        return get_row(
             text_a,
             text_b
-        )]
+        )
 
     @classmethod
     def type(cls) -> bytes:
-        return Rule3S.name.encode("ascii")
+        return Rule3S.name[0].encode("ascii")
 
     def code(self) -> bytes:
         return bytes([self.count])

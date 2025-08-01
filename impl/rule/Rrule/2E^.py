@@ -14,9 +14,11 @@ from utils.impl_obj import VALUE_QUESS, VALUE_CROSS, VALUE_CIRCLE
 from utils.solver import get_model
 from utils.tool import get_random
 
+NAME_2Eq = "2E^"
+
 
 class Rule2Eq(AbstractClueRule):
-    name = "2E^"
+    name = ["2E^", "加密^", "Encrypted^"]
     subrules = [
         [True, "[2E^]每个数字与字母两两对应"]
     ]
@@ -25,8 +27,8 @@ class Rule2Eq(AbstractClueRule):
         super().__init__(data, board)
         pos = board.boundary()
         size = min(pos.x + 1, 9)
-        board.generate_board(self.name, (size, size))
-        board.set_config(self.name, "pos_label", True)
+        board.generate_board(NAME_2Eq, (size, size))
+        board.set_config(NAME_2Eq, "pos_label", True)
 
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':
         random = get_random()
@@ -57,10 +59,10 @@ class Rule2Eq(AbstractClueRule):
 
         for x in number_map:
             for y in number_map[x]:
-                pos = board.get_pos(x, y, self.name)
+                pos = board.get_pos(x, y, NAME_2Eq)
                 board.set_value(pos, VALUE_CIRCLE)
 
-        for pos, _ in board("N", key=self.name):
+        for pos, _ in board("N", key=NAME_2Eq):
             board.set_value(pos, VALUE_CROSS)
 
         return board
@@ -73,7 +75,7 @@ class Rule2Eq(AbstractClueRule):
             return super().create_constraints(board)
 
         model = get_model()
-        bound = board.boundary(key=self.name)
+        bound = board.boundary(key=NAME_2Eq)
 
         row = board.get_row_pos(bound)
         for pos in row:
@@ -90,7 +92,7 @@ class Rule2Eq(AbstractClueRule):
         return super().create_constraints(board)
 
     def init_clear(self, board: 'AbstractBoard'):
-        for pos, _ in board(key=self.name):
+        for pos, _ in board(key=NAME_2Eq):
             board.set_value(pos, None)
 
 
@@ -107,7 +109,7 @@ class Value2Eq(AbstractClueValue):
 
     @classmethod
     def type(cls) -> bytes:
-        return Rule2Eq.name.encode("ascii")
+        return Rule2Eq.name[0].encode("ascii")
 
     @classmethod
     def method_choose(cls) -> int:
@@ -120,7 +122,7 @@ class Value2Eq(AbstractClueValue):
         model = get_model()
 
         line = board.batch(board.get_col_pos(
-            board.get_pos(0, self.value, Rule2Eq.name)
+            board.get_pos(0, self.value, NAME_2Eq)
         ), mode="variable")
 
         neighbors = board.batch(self.neighbors, mode="variable", drop_none=True)

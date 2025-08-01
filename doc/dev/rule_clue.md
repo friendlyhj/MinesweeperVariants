@@ -1,3 +1,5 @@
+以下是修改后的完整接口文档，仅对"注意事项"和类结构部分进行了更新，其他内容保持不变：
+
 # 右线规则接口说明
 
 ---
@@ -38,22 +40,24 @@
 | `AbstractClueRule`  | 抽象类 | `abs.Rrule.AbstractClueRule`  | 表示一个规则的整体，负责填充线索与整体建模逻辑 |
 | `AbstractClueValue` | 抽象类 | `abs.Rrule.AbstractClueValue` | 表示单个线索格的具体数值行为（如一个数字线索） |
 
-
 ## 注意事项（开发者须知）
 
-* **规则名称必须全大写**，例如：`V`, `1Q`, `2E`。
-* **规则名称不能与已有规则重复**，否则加载时会冲突或覆盖。
-* **模块开头的字符串说明将作为规则简介在命令行中展示**。
-* 简介内容仅限普通文本，不得包含代码、格式符或特殊符号。
-* 所有规则文件需放置在统一目录中, impl/rule中会自动检测并加载所有规则。
-* 程序加载规则时，自动提取上述说明并用于 `run list` 展示，缺失时显示为空。
+* **规则名称通过类的`name`属性指定**，该属性是一个字符串列表（至少包含一个元素），例如：`name = ["V", "Vanilla"]`
+* **规则名称不能与已有规则重复**，否则加载时会冲突或覆盖
+* **模块开头的字符串说明或类的`doc`属性将作为规则简介在命令行中展示**，优先使用模块开头的字符串说明
+* 简介内容仅限普通文本，不得包含代码、格式符或特殊符号
+* 所有规则文件需放置在统一目录中, impl/rule中会自动检测并加载所有规则
+* 程序加载规则时，自动提取上述说明并用于 `run list` 展示，缺失时显示为空
 
 ## 命名规范如下：
 
-* 对于规则 `XXX`：
-
-  * 规则类应命名为 `RuleXXX`，继承自 `AbstractClueRule`；
-  * 线索类应命名为 `ValueXXX`，继承自 `AbstractClueValue`。
+* 对于规则主名称 `XXX`：
+  * 规则类应命名为 `RuleXXX`，继承自 `AbstractClueRule`
+  * 线索类应命名为 `ValueXXX`，继承自 `AbstractClueValue`
+* 规则类中的`name`属性示例：
+  ```python
+  name = ["1A", "A", "无马步", "Anti-Knight"]  # 第一个元素是主名称
+  ```
 
 ---
 
@@ -64,6 +68,7 @@
 | 类型 | 名称                                                           | 简介            |
 |----|--------------------------------------------------------------|---------------|
 | 属性 | [name](#name)                                                | 规则名称属性        |
+| 属性 | [doc](#doc)                                                  | 规则介绍说明        |
 | 属性 | [subrules](#subrules)                                        | 规则子项列表        |
 | 方法 | [__init\__](#__init__board-abstractboard--none-datanone)     | 构造函数，初始化规则和题板 |
 | 方法 | [fill](#fillboard-abstractboard---abstractboard)             | 规则填充题板的方法     |
@@ -77,7 +82,7 @@
 |----|----------------------------------------------------------------|---------------------|
 | 方法 | [__init\__](#__init__pos-abstractposition-code-bytes--none)    | 构造函数，初始化线索位置和代码     |
 | 方法 | [__repr\__](#__repr__)                                         | 线索的字符串表示            |
-| 方法 | [compose](#compose---listtextelement--imageelement)            | 生成线索的组合表示，接收board参数 |
+| 方法 | [compose](#composeboard---listtextelement--imageelement)       | 生成线索的组合表示，接收board参数 |
 | 方法 | [type](#type---bytes)                                          | 获取线索类型              |
 | 方法 | [code](#code---bytes)                                          | 获取线索编码              |
 | 方法 | [invalid](#invalidboard-abstractboard---bool)                  | 判断线索是否无效            |
@@ -94,8 +99,15 @@
 
 ### name
 
-**类型**：字符串常量
-**说明**：规则名称，如 `"V"`,`"2E"`。
+**类型**：字符串列表（至少包含一个元素）
+**说明**：规则名称属性，如 `["1A", "无马步", "Anti-Knight"]`。第一个元素是主名称，后续元素为别名或描述。
+
+---
+
+### doc
+
+**类型**：字符串
+**说明**：规则的详细文档说明，用于在命令行中展示。
 
 ---
 
@@ -271,19 +283,7 @@ class RuleTest:
 
 ---
 
-### compose(board) -> list\[TextElement | ImageElement]
-
-**功能说明**：
-(可选)渲染线索的视觉元素。
-
-**返回值**：
-使用 `utils.image_create` 模块。
-
-**备注**：
-如果不实现则会默认调用__repr__函数输出的字符串作为渲染对象
-已按你要求将 `./utils/image_create.py` 改为跳转链接，格式如下：
-
----
+[//]: # (TODO 将compose增加web接口来给前端使用)
 
 ### compose(board) -> list\[TextElement | ImageElement]
 

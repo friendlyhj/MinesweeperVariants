@@ -15,7 +15,8 @@ from utils.solver import get_model
 
 
 class Rule2Dp(AbstractClueRule):
-    name = "2D'"
+    name = ["2D'", "四向偏移"]
+    doc = "线索表示四方向任意偏移一格为中心的3x3区域内的总雷数"
 
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':
         random = get_random()
@@ -49,7 +50,7 @@ class Value2Dp(AbstractClueValue):
 
     @classmethod
     def type(cls) -> bytes:
-        return Rule2Dp.name.encode("ascii")
+        return Rule2Dp.name[0].encode("ascii")
 
     def code(self) -> bytes:
         return bytes([self.count])

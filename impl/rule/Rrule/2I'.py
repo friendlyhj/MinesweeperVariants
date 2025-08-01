@@ -4,6 +4,9 @@
 # @Time    : 2025/07/03 11:37
 # @Author  : Wu_RH
 # @FileName: 2I'.py
+"""
+[2I']残缺：数字表示周围8格中某n格的雷数。n格的方位被当前题板所有线索共享
+"""
 from abs.Rrule import AbstractClueValue, AbstractClueRule
 from abs.board import AbstractPosition, AbstractBoard
 from utils.impl_obj import VALUE_CROSS, VALUE_CIRCLE
@@ -14,7 +17,8 @@ NAME_2Ip = "2I'"
 
 
 class Rule2I(AbstractClueRule):
-    name = "2I'"
+    name = ["2I'", "残缺'"]
+    doc = "数字表示周围8格中某n格的雷数。n格的方位被当前题板所有线索共享"
 
     def __init__(self, board: "AbstractBoard" = None, data=None) -> None:
         super().__init__(board, data)
@@ -85,7 +89,7 @@ class Value2I(AbstractClueValue):
 
     @classmethod
     def type(cls) -> bytes:
-        return Rule2I.name.encode("ascii")
+        return Rule2I.name[0].encode("ascii")
 
     def code(self):
         return bytes([self.value])
@@ -135,4 +139,4 @@ class Value2I_Quess(AbstractClueValue):
 
     @classmethod
     def type(cls) -> bytes:
-        return Rule2I.name.encode("ascii") + b"_?"
+        return Rule2I.name[0].encode("ascii") + b"_?"

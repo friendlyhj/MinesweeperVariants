@@ -17,7 +17,8 @@ from utils.tool import get_logger
 
 
 class Rule3F(AbstractMinesClueRule):
-    name = "3F"
+    name = ["3F", "不是V"]
+    doc = "雷线索表示附近八个格子内的非雷格数"
 
     def mines_class(self):
         return MinesValue3F
@@ -38,13 +39,13 @@ class MinesValue3F(AbstractMinesValue):
     def __repr__(self):
         return "["+str(self.value)+"]"
 
-    def compose(self, board) -> List[Dict]:
-        return [get_col(
+    def compose(self, board, web) -> Dict:
+        return get_col(
             get_dummy(height=0.175),
             get_text(str(self.value),
                      color=("#FFFF00", "#FF7F00")),
             get_dummy(height=0.175),
-        )]
+        )
 
     @classmethod
     def method_choose(cls) -> int:
@@ -52,7 +53,7 @@ class MinesValue3F(AbstractMinesValue):
 
     @classmethod
     def type(cls) -> bytes:
-        return Rule3F.name.encode("ascii")
+        return Rule3F.name[0].encode("ascii")
 
     def create_constraints(self, board: 'AbstractBoard'):
         model = get_model()

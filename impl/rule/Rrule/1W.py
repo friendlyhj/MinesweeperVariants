@@ -140,45 +140,45 @@ class Value1W(AbstractClueValue):
     def high_light(self, board: 'AbstractBoard') -> list['AbstractPosition']:
         return self.pos.neighbors(2)
 
-    def compose(self, board) -> List[Dict]:
+    def compose(self, board, web) -> Dict:
         if len(self.values) <= 1:
             value = 0
             if len(self.values) == 1:
                 value = self.values[0]
-            return [get_col(
+            return get_col(
                 get_dummy(height=0.175),
                 get_text(str(value)),
                 get_dummy(height=0.175),
-            )]
+            )
         if len(self.values) == 2:
             text_a = get_text(str(self.values[0]))
             text_b = get_text(str(self.values[1]))
-            return [get_col(
+            return get_col(
                 get_dummy(height=0.175),
                 get_row(
                     text_a,
                     text_b
                 ),
                 get_dummy(height=0.175),
-            )]
+            )
         elif len(self.values) == 3:
             text_a = get_text(str(self.values[0]))
             text_b = get_text(str(self.values[1]))
             text_c = get_text(str(self.values[2]))
-            return [get_col(
+            return get_col(
                 get_row(
                     text_a,
                     text_b,
                     # spacing=0
                 ),
                 text_c,
-            )]
+            )
         elif len(self.values) == 4:
             text_a = get_text(str(self.values[0]))
             text_b = get_text(str(self.values[1]))
             text_c = get_text(str(self.values[2]))
             text_d = get_text(str(self.values[3]))
-            return [get_col(
+            return get_col(
                 get_row(
                     text_a,
                     text_b,
@@ -187,9 +187,10 @@ class Value1W(AbstractClueValue):
                     text_c,
                     text_d
                 )
-            )]
+            )
         else:
-            return []
+            # 我也不知道为什么会出现>5个数字的情况
+            return get_text("")
 
     @classmethod
     def method_choose(cls) -> int:

@@ -25,6 +25,7 @@ class Rule3Ap(AbstractClueRule):
     def clue_class(self):
         return Value3Ap
 
+
 class Value3Ap(AbstractClueValue):
     def __init__(self, pos: 'AbstractPosition', code: bytes = b''):
         super().__init__(pos, code)

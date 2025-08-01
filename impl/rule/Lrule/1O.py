@@ -27,7 +27,8 @@ def block(a_pos: AbstractPosition, board: AbstractBoard) -> List[AbstractPositio
 
 
 class Rule1O(AbstractMinesRule):
-    name = "1O"
+    name = ["1O", "O", "外部", "Outside"]
+    doc = "非雷区域四连通；每个雷区域以四连通连接到题版边界"
 
     subrules = [
         [True, "[1O]外部"]

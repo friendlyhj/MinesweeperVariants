@@ -13,4 +13,5 @@ from abs.Lrule import Rule0R
 
 
 class RuleR(Rule0R):
-    name = "R"
+    name = ["R", "总雷数"]
+    doc = "有时你会需要用到总雷数来推理"

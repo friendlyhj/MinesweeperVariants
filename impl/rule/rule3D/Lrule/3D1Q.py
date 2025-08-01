@@ -35,7 +35,8 @@ def block(a_pos: AbstractPosition, board: AbstractBoard) -> List[AbstractPositio
 
 
 class Rule1Q(Abstract3DMinesRule):
-    name = "3D1Q"
+    name = ["3D1Q", "3DQ", "三维无方"]
+    doc = "每个2x2x2区域内都至少有2个雷"
     subrules = [
         [True, "[3D1Q]"]
     ]

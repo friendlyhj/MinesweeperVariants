@@ -16,7 +16,8 @@ from utils.solver import get_model
 
 
 class Rule2A(AbstractClueRule):
-    name = "2A"
+    name = ["2A", "面积", "Area"]
+    doc = "线索表示四方向相邻雷区域的面积之和"
 
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':
         logger = get_logger()
@@ -62,7 +63,7 @@ class Value2A(AbstractClueValue):
 
     @classmethod
     def type(cls) -> bytes:
-        return Rule2A.name.encode("ascii")
+        return Rule2A.name[0].encode("ascii")
 
     def code(self) -> bytes:
         return bytes([self.value])

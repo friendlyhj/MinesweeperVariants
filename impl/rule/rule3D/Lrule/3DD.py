@@ -9,7 +9,8 @@ from utils.solver import get_model
 
 
 class Rule3DD(Abstract3DMinesRule):  # type: ignore
-    name = "3DD"
+    name = ["3DD", "3D1D", "蛆", "三维对偶"]
+    doc = "所有雷均形成1x2x1、2x1x1或1x1x2的三维矩形"
     subrules = [
         [True, "[3DD] 对偶"]
     ]

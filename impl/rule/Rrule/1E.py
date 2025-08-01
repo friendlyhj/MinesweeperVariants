@@ -15,7 +15,8 @@ from utils.solver import get_model
 
 
 class Rule1E(AbstractClueRule):
-    name = "1E"
+    name = ["1E", "E", "视野", "Eyesight"]
+    doc = "线索表示四方向上能看到的非雷格数量（包括自身），雷会阻挡视线"
 
     def clue_class(self):
         return Value1E
@@ -63,7 +64,7 @@ class Value1E(AbstractClueValue):
 
     @classmethod
     def type(cls) -> bytes:
-        return Rule1E.name.encode("ascii")
+        return Rule1E.name[0].encode("ascii")
 
     def code(self) -> bytes:
         return bytes([self.value])

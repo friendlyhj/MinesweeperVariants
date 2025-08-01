@@ -79,6 +79,7 @@ def print_with_indent(text, indent="\t"):
 if args.command == "list":
     from impl import rule
     rule_list = rule.get_all_rules()
+    # print(rule_list)
 
     if args.shell:
         import random
@@ -96,20 +97,20 @@ if args.command == "list":
         sys.stdout.buffer.flush()
         sys.exit(0)
 
-    if rule_list["L"]:
-        print("\n\n左线规则:", flush=True)
-    for doc in rule_list["L"].values():
-        print_with_indent(doc)
-
-    if rule_list["M"]:
-        print("\n\n中线规则:", flush=True)
-    for doc in rule_list["M"].values():
-        print_with_indent(doc)
-
-    if rule_list["R"]:
-        print("\n\n右线规则:", flush=True)
-    for doc in rule_list["R"].values():
-        print_with_indent(doc)
+    for rule_line, rule_line_name in [
+        ("L", "\n\n左线规则:"),
+        ("M", "\n\n中线规则:"),
+        ("R", "\n\n右线规则:"),
+    ]:
+        if rule_list[rule_line]:
+            print(rule_line_name, flush=True)
+        for name in rule_list[rule_line]:
+            doc = rule_list[rule_line][name]["module_doc"]
+            unascii_name = [n for n in rule_list[rule_line][name]["names"] if not n.isascii()]
+            zh_name = unascii_name[0] if unascii_name else ""
+            if not doc:
+                doc = f"[{name}]{zh_name}: " + rule_list[rule_line][name]["doc"]
+            print_with_indent(doc)
 
     sys.exit(0)
 

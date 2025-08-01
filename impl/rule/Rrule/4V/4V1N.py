@@ -17,7 +17,8 @@ from . import BOARD_NAME_4V
 
 
 class Rule1N(AbstractClueRule):
-    name = "4V1N"
+    name = ["4V1N", "负雷映射"]
+    doc = "线索表示数字是两个题板中相同位置的其中一个3x3范围内染色格与非染色格的雷数差"
 
     def __init__(self, board: "AbstractBoard" = None, data=None) -> None:
         super().__init__(board, data)
@@ -79,7 +80,7 @@ class Value1N(AbstractClueValue):
 
     @classmethod
     def type(cls) -> bytes:
-        return Rule1N.name.encode("ascii")
+        return Rule1N.name[0].encode("ascii")
 
     def code(self) -> bytes:
         return bytes([self.value])

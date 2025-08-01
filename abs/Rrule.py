@@ -74,16 +74,16 @@ class AbstractClueValue(AbstractValue):
         """
         return ""
 
-    def compose(self, board) -> List[Dict]:
+    def compose(self, board, web) -> Dict:
         """
         返回一个可渲染对象列表
         默认使用__repr__
         """
-        return [get_col(
+        return get_col(
             get_dummy(height=0.175),
             get_text(self.__repr__()),
             get_dummy(height=0.175),
-        )]
+        )
 
 
 # --------实例类-------- #
@@ -125,8 +125,8 @@ class ValueCross(AbstractClueValue):
     def __repr__(self):
         return "X"
 
-    def compose(self, board) -> List[Dict]:
-        return [get_image("Cross")]
+    def compose(self, board, web) -> Dict:
+        return get_image("Cross")
 
     @classmethod
     def type(cls) -> bytes:

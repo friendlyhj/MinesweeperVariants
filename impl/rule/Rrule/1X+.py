@@ -12,7 +12,8 @@ from utils.impl_obj import VALUE_QUESS, MINES_TAG
 
 
 class Rule1XPlus(AbstractClueRule):
-    name = "1X+"
+    name = ["1X+", "城堡", "Castle"]
+    doc = "线索数表示与其同行或同列的所有格子中的雷数"
 
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':
         logger = get_logger()
@@ -93,7 +94,7 @@ class Value1XPlus(AbstractClueValue):
 
     @classmethod
     def type(cls) -> bytes:
-        return b'1X+'
+        return Rule1XPlus.name[0].encode("ascii")
 
     def code(self) -> bytes:
         return bytes([self.count])

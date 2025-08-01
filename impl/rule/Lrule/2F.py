@@ -14,7 +14,8 @@ from utils.solver import get_model
 
 
 class Rule2F(AbstractMinesRule):
-    name = "2F"
+    name = ["2F", "花田", "Flower"]
+    doc = "染色格中的雷周围四格内恰好有1个雷"
 
     def create_constraints(self, board: 'AbstractBoard'):
         model = get_model()

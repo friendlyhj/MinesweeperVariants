@@ -14,7 +14,8 @@ from abs.Rrule import AbstractClueValue
 
 
 class Rule3D1X(Abstract3DClueRule):
-    name = "3D1X"
+    name = ["3D1X", "三维十字"]
+    doc = "线索表示(上下左右前后)2格的十字范围内的雷数"
 
     def __init__(self, board: AbstractBoard, data: str = None):
         super().__init__(board, data)
@@ -49,7 +50,7 @@ class Value3D1X(AbstractClueValue):
 
     @classmethod
     def type(cls) -> bytes:
-        return Rule3D1X.name.encode("ascii")
+        return Rule3D1X.name[0].encode("ascii")
 
     def code(self) -> bytes:
         return bytes([self.value])

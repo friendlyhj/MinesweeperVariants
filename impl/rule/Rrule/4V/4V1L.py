@@ -18,7 +18,8 @@ from . import BOARD_NAME_4V
 
 
 class Rule4V(AbstractClueRule):
-    name = "4V1L"
+    name = ["4V1L", "误差映射"]
+    doc = "线索表示数字是两个题板中相同位置的其中一个范围中心3*3区域的雷总数 线索均比真实值大1或小1"
 
     def __init__(self, board: "AbstractBoard" = None, data=None) -> None:
         super().__init__(board, data)
@@ -92,7 +93,7 @@ class Value4V(AbstractClueValue):
 
     @classmethod
     def type(cls) -> bytes:
-        return Rule4V.name.encode("ascii")
+        return Rule4V.name[0].encode("ascii")
 
     def __repr__(self) -> str:
         return f"{self.value}"

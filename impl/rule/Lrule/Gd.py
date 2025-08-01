@@ -5,7 +5,7 @@
 # @Author  : Wu_RH
 # @FileName: Gd.py
 """
-[GD]: 每列雷数不少于左一列雷数；每行雷数不少于上一行雷数
+[Gd]: 每列雷数不少于左一列雷数；每行雷数不少于上一行雷数
 """
 
 from abs.Lrule import AbstractMinesRule
@@ -14,8 +14,9 @@ from utils.solver import get_model
 
 
 class RuleGd(AbstractMinesRule):
-    name = "GD"
-    subrules = [[True, ""], [True, "[1B]行平衡"]]
+    name = ["Gd", "GD"]
+    doc = "1.每行值不大于上一行 2.每列值不大于左一列"
+    subrules = [[True, "[Gd]1"], [True, "[Gd]2"]]
 
     def create_constraints(self, board: 'AbstractBoard'):
         model = get_model()

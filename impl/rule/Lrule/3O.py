@@ -13,7 +13,8 @@ from utils.solver import get_model
 
 
 class Rule3O(AbstractMinesRule):
-    name = "3O"
+    name = ["3O", "横纵"]
+    doc = "雷从四个方向中的任意一个连到题板外"
     subrules = [[True, "[3O]"]]
 
     @classmethod
@@ -21,6 +22,8 @@ class Rule3O(AbstractMinesRule):
         return 1
 
     def create_constraints(self, board: 'AbstractBoard'):
+        if not self.subrules[0][0]:
+            return
         model = get_model()
         for pos, var in board(mode="variable"):
             row = board.get_row_pos(pos)

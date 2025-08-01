@@ -347,9 +347,7 @@ def draw_board(
         if pos_label:
             label_font = load_font(int(cell_size * CONFIG["pos_label"]["size"]))
             for pos, obj in board(mode="object", key=key):
-                if (obj is not None and
-                        all(element["cover"] for
-                            element in obj.compose(board))):
+                if obj is not None and obj.compose(board, False)["cover"]:
                     continue
                 r, c = pos.x, pos.y
                 x = x_offset + c * cell_size + cell_size / 2
@@ -376,8 +374,7 @@ def draw_board(
                 font_path=CONFIG["font"]["path"]
             )
 
-            for e in value.compose(board):
-                renderer.render(image, e)
+            renderer.render(image, value.compose(board, False))
 
         # 渲染角标
         if by_mini:

@@ -68,17 +68,17 @@ class AbstractMinesValue(AbstractValue, ABC):
         """
         return "_F_"
 
-    def compose(self, board: 'AbstractBoard') -> List[Dict]:
+    def compose(self, board: 'AbstractBoard', web) -> Dict:
         """
         返回一个可渲染对象列表
         默认使用__repr__
         """
-        return [get_col(
+        return get_col(
             get_dummy(height=0.175),
             get_text(self.__repr__(),
                      color=("#FFFF00", "#FF7F00")),
             get_dummy(height=0.175),
-        )]
+        )
 
 
 # --------实例类-------- #
@@ -100,11 +100,11 @@ class MinesTag(AbstractMinesValue):
     def __repr__(self):
         return "雷"
 
-    def compose(self, board) -> List[Dict]:
-        return [get_image(
+    def compose(self, board, web) -> Dict:
+        return get_image(
             "flag",
             cover_pos_label=False
-        )]
+        )
 
     @classmethod
     def type(cls) -> bytes:
@@ -142,8 +142,8 @@ class ValueCircle(AbstractMinesValue):
     def __repr__(self):
         return "O"
 
-    def compose(self, board) -> List[Dict]:
-        return [get_image("circle", cover_pos_label=False)]
+    def compose(self, board, web) -> Dict:
+        return get_image("circle", cover_pos_label=False)
 
     def code(self) -> bytes:
         return b""

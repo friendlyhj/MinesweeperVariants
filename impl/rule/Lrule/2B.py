@@ -13,7 +13,8 @@ from utils.solver import get_model
 
 
 class Rule2B(AbstractMinesRule):
-    name = "2B"
+    name = ["2B", "桥", "Bridge"]
+    doc = "所有雷构成若干组桥。桥是从题版左边界八连通连接（水平或斜角连接）到右边界，宽度为 1、长度与题版宽度相等的一条路径"
     subrules = [
         [True, "[2B]"]
     ]

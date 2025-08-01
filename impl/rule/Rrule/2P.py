@@ -67,7 +67,8 @@ def get_factor_pairs(n):
 
 
 class Rule2P(AbstractClueRule):
-    name = "2P"
+    name = ["2P", "乘积", "Product"]
+    doc = "线索表示距离最近的 2 个雷的距离之积"
 
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':
         if len([_ for _ in board("F")]) < 2:
@@ -117,27 +118,40 @@ class Value2P(AbstractClueValue):
             return f"√{value_b}"
         return f"{value_a}√{value_b}"
 
-    def compose(self, board) -> List[Dict]:
+    def compose(self, board, web) -> Dict:
         value_a, value_b = sqrt_form(self.value)
+        if web:
+            if value_b == -1:
+                return get_text(str(value_a))
+            if value_a == -1:
+                return get_text(
+                    "$\\sqrt{" + str(value_b) + "}$"
+                )
+            else:
+                return get_text(
+                    "$" + str(value_a) +
+                    "\\sqrt{" + str(value_b) +
+                    "}$"
+                )
         if value_b == -1:
-            return [get_col(
+            return get_col(
                 get_dummy(height=0.175),
                 get_text(str(value_a)),
                 get_dummy(height=0.175),
-            )]
+            )
         elif value_a == -1:
-            return [get_row(
+            return get_row(
                 get_image("sqrt"),
                 get_text(str(value_b)),
                 spacing=-0.15
-            )]
+            )
         else:
-            return [get_row(
+            return get_row(
                 get_text(str(value_a)),
                 get_image("sqrt"),
                 get_text(str(value_b)),
                 spacing=-0.2
-            )]
+            )
 
     def high_light(self, board: 'AbstractBoard') -> list['AbstractPosition']:
         n = 1
@@ -164,7 +178,7 @@ class Value2P(AbstractClueValue):
 
     @classmethod
     def type(cls) -> bytes:
-        return Rule2P.name.encode("ascii")
+        return Rule2P.name[0].encode("ascii")
 
     def code(self) -> bytes:
         if self.value > 254:

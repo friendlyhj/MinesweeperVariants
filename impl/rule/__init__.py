@@ -7,9 +7,10 @@
 
 import os
 import ast
+from typing import Dict, Union
 
 
-def extract_module_docstring(filepath):
+def extract_module_docstring(filepath) -> Union[Dict, None]:
     try:
         with open(filepath, 'r', encoding='utf-8') as f:
             source = f.read()
@@ -22,8 +23,6 @@ def extract_module_docstring(filepath):
         return None
 
     module_doc = ast.get_docstring(tree)
-    if module_doc is None:
-        return None
 
     for node in ast.walk(tree):
         if not isinstance(node, ast.ClassDef):
@@ -49,16 +48,46 @@ def extract_module_docstring(filepath):
         if x == 6:
             x = 2
 
+        info = {}
         for stmt in node.body:
             if isinstance(stmt, ast.Assign):
                 for target in stmt.targets:
                     if (
                         isinstance(target, ast.Name) and target.id == "name" and
+                        (isinstance(stmt.value, ast.Str) or
+                         isinstance(stmt.value, ast.List) or
+                         isinstance(stmt.value, ast.Tuple))
+                    ):
+                        # 处理字符串列表的情况
+                        if (
+                            isinstance(stmt.value, ast.List) or
+                            isinstance(stmt.value, ast.Tuple)
+                        ):
+                            # 提取列表中的第一个字符串作为名称
+                            name_vals = []
+                            for elt in stmt.value.elts:
+                                if isinstance(elt, ast.Str) and elt.s.strip():
+                                    name_val = elt.s.strip()
+                                    name_vals.append(name_val)
+                            info["x"] = x
+                            info["module_doc"] = module_doc
+                            info["names"] = name_vals
+                        # 处理单个字符串的情况
+                        elif isinstance(stmt.value, ast.Str) and stmt.value.s.strip():
+                            name_val = stmt.value.s.strip()
+                            info["x"] = x
+                            info["module_doc"] = module_doc
+                            info["names"] = [name_val]
+                    if (
+                        isinstance(target, ast.Name) and
+                        target.id == "doc" and
                         isinstance(stmt.value, ast.Str)
                     ):
-                        name_val = stmt.value.s.strip()
-                        if name_val:
-                            return module_doc, x, name_val
+                        # 处理单个字符串的情况
+                        doc_val = stmt.value.s.strip()
+                        info["doc"] = doc_val
+        if "names" in info:
+            return info
     return None
 
 
@@ -71,21 +100,31 @@ def scan_module_docstrings(directory):
                 pck = extract_module_docstring(path)
                 if pck is None:
                     continue
-                doc, x, name = pck
-                results.append((doc, x, name))
+                m_doc = pck.get('module_doc', "")
+                x = pck.get('x', 0)
+                names = pck.get('names', [])
+                doc = pck.get('doc', "")
+                results.append((m_doc, doc, x, names))
     return results
 
 
 def get_all_rules():
     results = {"R": {}, "M": {}, "L": {}}
     dir_path = os.path.dirname(os.path.abspath(__file__))
-    for doc, x, name in scan_module_docstrings(dir_path):  # 替换路径
-        if x == 0:
-            continue
+    for m_doc, doc, x, names in scan_module_docstrings(dir_path):
+        name, names = names[0], names[1:]
+        rule_line = None
         if x == 1:
-            results["L"][name] = f'{doc}'
-        if x == 2:
-            results["M"][name] = f'{doc}'
-        if x == 4:
-            results["R"][name] = f'{doc}'
+            rule_line = "L"
+        elif x == 2:
+            rule_line = "M"
+        elif x == 4:
+            rule_line = "R"
+        if rule_line is None:
+            continue
+        results[rule_line][name] = {
+            "names": names,
+            "doc": doc,
+            "module_doc": m_doc,
+        }
     return results

@@ -12,7 +12,8 @@ from utils.impl_obj import VALUE_QUESS, MINES_TAG
 
 
 class Rule1XStar(AbstractClueRule):
-    name = "1X*"
+    name = ["1X*", "王后", "Queen"]
+    doc = "线索数表示斜向和横纵所有格子中的雷数"
 
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':
         logger = get_logger()
@@ -157,7 +158,7 @@ class Value1XStar(AbstractClueValue):
 
     @classmethod
     def type(cls) -> bytes:
-        return b'1X*'
+        return Rule1XStar.name[0].encode("ascii")
 
     def code(self) -> bytes:
         return bytes([self.count])

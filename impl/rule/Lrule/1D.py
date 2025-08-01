@@ -14,9 +14,10 @@ from utils.solver import get_model
 
 
 class Rule1D(AbstractMinesRule):
-    name = "1D"
+    name = ["1D", "D", "对偶"]
+    doc = "雷均有1x2或2x1的矩阵组成"
     subrules = [
-        [True, "[1D]"]
+        [True, "[1D]对偶"]
     ]
 
     def create_constraints(self, board: 'AbstractBoard'):

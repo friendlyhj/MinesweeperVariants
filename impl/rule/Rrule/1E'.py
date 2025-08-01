@@ -16,7 +16,8 @@ from utils.solver import get_model
 
 
 class Rule1E(AbstractClueRule):
-    name = "1E'"
+    name = ["1E'", "E'", "视差", "Eyesight'"]
+    doc = "线索表示纵向和横向的视野之差，箭头指示视野更长的方向"
 
     def clue_class(self):
         return Value1E
@@ -63,28 +64,27 @@ class Value1E(AbstractClueValue):
                 positions.append(fn(n))
         return positions
 
-    def compose(self, board) -> List[Dict]:
+    def compose(self, board, web) -> Dict:
         if self.value == 0:
-            return super().compose(board)
+            return super().compose(board, web)
         if self.value < 0:
-            return [get_col(
+            return get_col(
                 get_image(
                     "double_horizontal_arrow",
                     image_height=0.4,
                 ),
                 get_dummy(height=-0.1),
                 get_text(str(-self.value))
-            )]
+            )
         if self.value > 0:
-            return [
-                get_row(
+            return get_row(
                     get_dummy(width=0.15),
                     get_image("double_vertical_arrow", ),
                     get_dummy(width=-0.15),
                     get_text(str(self.value)),
                     get_dummy(width=0.15),
-                ),
-            ]
+            )
+
 
     @classmethod
     def method_choose(cls) -> int:
@@ -92,7 +92,7 @@ class Value1E(AbstractClueValue):
 
     @classmethod
     def type(cls) -> bytes:
-        return Rule1E.name.encode("ascii")
+        return Rule1E.name[0].encode("ascii")
 
     def code(self) -> bytes:
         return bytes([self.value + 128])

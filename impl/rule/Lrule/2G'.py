@@ -13,7 +13,8 @@ from utils.solver import get_model
 
 
 class Rule2Gp(AbstractMinesRule):
-    name = "2G'"
+    name = ["2G'", "三联块", "Group'"]
+    doc = "所有四连通雷区域的面积为3"
     subrules = [[True, "[2G']三联块"]]
 
     @classmethod

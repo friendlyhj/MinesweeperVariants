@@ -18,7 +18,8 @@ NAME_2I = "2I"
 
 
 class Rule2I(AbstractClueRule):
-    name = "2I"
+    name = ["2I", "残缺"]
+    doc = "数字表示周围8格中某7格的雷数。7格的方位被当前题板所有线索共享"
 
     def __init__(self, board: "AbstractBoard" = None, data=None) -> None:
         super().__init__(board, data)
@@ -89,7 +90,7 @@ class Value2I(AbstractClueValue):
 
     @classmethod
     def type(cls) -> bytes:
-        return Rule2I.name.encode("ascii")
+        return Rule2I.name[0].encode("ascii")
 
     def code(self):
         return bytes([self.value])
@@ -139,7 +140,7 @@ class Value2I_7(AbstractClueValue):
 
     @classmethod
     def type(cls) -> bytes:
-        return Rule2I.name.encode("ascii") + b"_7"
+        return Rule2I.name[0].encode("ascii") + b"_7"
 
     def create_constraints(self, board: 'AbstractBoard'):
         get_model().Add(sum(board.batch(self.neighbors, mode="variable")) == 7)

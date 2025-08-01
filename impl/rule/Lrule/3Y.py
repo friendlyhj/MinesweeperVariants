@@ -26,13 +26,17 @@ def block(a_pos: AbstractPosition, board: AbstractBoard) -> List[AbstractPositio
 
 
 class Rule3Y(AbstractMinesRule):
-    name = "3Y"
+    name = ["3Y", "阴阳", "Yin-Yang"]
+    doc = "所有雷四连通，所有非雷四连通，不存在2*2的雷或非雷"
+    subrules = [[True, "3Y"]]
 
     @classmethod
     def method_choose(cls) -> int:
         return 1
 
     def create_constraints(self, board: 'AbstractBoard'):
+        if not self.subrules[0][0]:
+            return
         model = get_model()
 
         positions_vars = [(pos, var) for pos, var in board("always", mode="variable")]

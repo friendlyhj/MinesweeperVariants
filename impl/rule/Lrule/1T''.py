@@ -15,7 +15,8 @@ from utils.solver import get_model
 
 
 class Rule1Tpp(AbstractMinesRule):
-    name = "1T''"
+    # name = ["1T''", "纯三连"]
+    doc = "所有雷格必须与其他雷组成三连，且最终题板可以为每一个雷构造唯一的三连组（我又表达困难了，淦）"
     subrules = [
         [True, "[1T'']"]
     ]

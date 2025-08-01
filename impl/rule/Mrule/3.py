@@ -36,7 +36,8 @@ def get_text(
 
 
 class Rule3P(AbstractMinesClueRule):
-    name = "3"
+    name = ["3"]
+    doc = "雷指向的方向存在n个雷(不包括自己)"
 
     def mines_class(self):
         return Value3P
@@ -75,28 +76,36 @@ class Value3P(AbstractMinesValue):
     def __repr__(self):
         return "><V^"[self.dir] + str(self.value)
 
-    def compose(self, board) -> List[Dict]:
+    def compose(self, board, web) -> Dict:
+        if web:
+            if self.dir in [0, 1]:
+                return get_col(
+                    get_text("→←↓↑"[self.dir]),
+                    get_text(str(self.value))
+                )
+            else:
+                return get_row(
+                    get_text("→←↓↑"[self.dir]),
+                    get_text(str(self.value))
+                )
         match self.dir:
             case 3:
                 # 上 ↑ ^
                 if self.value == 1:
-                    return [
-                        get_row(
+                    return get_row(
                             get_dummy(width=0.175),
                             get_text("1"),
                             get_image("up_flag"),
                             get_dummy(width=0.175),
-                        )]
-                return [
-                    get_row(
+                        )
+                return get_row(
                         get_text(str(self.value)),
                         get_image("up_flag"),
                         spacing=-0.1,
                     )
-                ]
             case 0:
                 # 右 → >
-                return [get_col(
+                return get_col(
                     get_dummy(height=0.1),
                     get_image(
                         "right_flag",
@@ -106,27 +115,24 @@ class Value3P(AbstractMinesValue):
                     get_dummy(height=-0.05),
                     get_text(str(self.value)),
                     get_dummy(height=0.2)
-                )]
+                )
             case 2:
                 # 下 ↓ V
                 if self.value == 1:
-                    return [
-                        get_row(
+                    return get_row(
                             get_dummy(width=0.175),
                             get_text("1"),
                             get_image("down_flag"),
                             get_dummy(width=0.175),
-                        )]
-                return [
-                    get_row(
+                        )
+                return get_row(
                         get_text(str(self.value)),
                         get_image("down_flag"),
                         spacing=-0.1,
                     )
-                ]
             case 1:
                 # 左 ← <
-                return [get_col(
+                return get_col(
                     get_dummy(height=0.1),
                     get_image(
                         "left_flag",
@@ -136,8 +142,8 @@ class Value3P(AbstractMinesValue):
                     get_dummy(height=-0.05),
                     get_text(str(self.value)),
                     get_dummy(height=0.2)
-                )]
-        return []
+                )
+        return get_text("")
 
     # def compose(self) -> List[Dict]:
     #     return super().compose()
@@ -166,7 +172,7 @@ class Value3P(AbstractMinesValue):
 
     @classmethod
     def type(cls) -> bytes:
-        return Rule3P.name.encode("ascii")
+        return Rule3P.name[0].encode("ascii")
 
     def code(self) -> bytes:
         return bytes([self.value | self.dir << 6])

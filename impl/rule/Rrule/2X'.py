@@ -15,7 +15,8 @@ from utils.solver import get_model
 
 
 class Rule2X(AbstractClueRule):
-    name = "2X'"
+    name = ["2X'", "十字'", "2Cross'"]
+    doc = "线索表示 3x3 范围内染色格或非染色格的雷数"
 
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':
         logger = get_logger()
@@ -45,7 +46,7 @@ class Value2X(AbstractClueValue):
 
     @classmethod
     def type(cls) -> bytes:
-        return Rule2X.name.encode("ascii")
+        return Rule2X.name[0].encode("ascii")
 
     def code(self) -> bytes:
         return bytes([self.value])

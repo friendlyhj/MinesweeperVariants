@@ -19,7 +19,8 @@ from . import BOARD_NAME_4V
 
 
 class Rule4V1K(AbstractClueRule):
-    name = "4V1K"
+    name = ["4V1K", "马步映射"]
+    doc = "线索表示数字是两个题板中相同位置的其中一个为中心的马步区域的雷总数"
 
     def __init__(self, board: "AbstractBoard" = None, data=None) -> None:
         super().__init__(board, data)
@@ -81,7 +82,7 @@ class Value4V1K(AbstractClueValue):
 
     @classmethod
     def type(cls) -> bytes:
-        return Rule4V1K.name.encode("ascii")
+        return Rule4V1K.name[0].encode("ascii")
 
     def __repr__(self) -> str:
         return f"{self.value}"

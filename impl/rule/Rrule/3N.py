@@ -67,7 +67,8 @@ def format(n: Root, p: P):
 
 
 class BaseRule3N(AbstractClueRule):
-    name = "3N"
+    name = ["3N", "范数", "Norm"]
+    doc = "线索(a_p)表示距离自己lp范数最近的雷的lp范数大小为a。(p=0,1,2,00)"
     p: P = -1
 
     def __init__(self, board: AbstractBoard, data: list[AbstractClueRule] = None):
@@ -148,29 +149,47 @@ class BaseValue3N(AbstractClueValue):
     def __repr__(self):
         return format(self.n, self.p)
 
-    def compose(self, board) -> List[Dict]:
-
+    def compose(self, board, web) -> Dict:
+        if web:
+            if self.n[1] == 1:
+                return get_text(str(self.n[0]))
+            elif self.n[1] == 2:
+                value_a, value_b = simplify_sqrt(self.n[0])
+                if value_b == -1:
+                    return get_text(str(value_a))
+                if value_a == -1:
+                    return get_text(
+                        "$\\sqrt{" + str(value_b) + "}$"
+                    )
+                else:
+                    return get_text(
+                        "$" + str(value_a) +
+                        "\\sqrt{" + str(value_b) +
+                        "}$"
+                    )
+            else:
+                raise ValueError("Unsupported root type")
         if self.n[1] == 1:
-            return [get_col(
+            return get_col(
                 get_dummy(height=0.175),
                 get_text(str(self.n[0])),
                 get_dummy(height=0.175),
-            )]
+            )
         elif self.n[1] == 2:
             value_a, value_b = simplify_sqrt(self.n[0])
             if value_a == 1:
-                return [get_row(
+                return get_row(
                     get_image("sqrt"),
                     get_text(str(value_b)),
                     spacing=-0.15
-                )]
+                )
             else:
-                return [get_row(
+                return get_row(
                     get_text(str(value_a)),
                     get_image("sqrt"),
                     get_text(str(value_b)),
                     spacing=-0.2
-                )]
+                )
         else:
             raise ValueError("Unsupported root type")
 

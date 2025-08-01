@@ -17,7 +17,8 @@ from utils.solver import get_model
 
 
 class Rule2M(AbstractClueRule):
-    name = "2M"
+    name = ["2M", "取模", "Mod"]
+    doc = "线索与周围8格的雷数除以3的余数相同"
 
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':
         logger = get_logger()
@@ -51,7 +52,7 @@ class Value2M(AbstractClueValue):
 
     @classmethod
     def type(cls) -> bytes:
-        return Rule2M.name.encode("ascii")
+        return Rule2M.name[0].encode("ascii")
 
     def code(self) -> bytes:
         return bytes([self.count])

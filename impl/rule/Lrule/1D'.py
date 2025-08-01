@@ -13,7 +13,8 @@ from utils.solver import get_model
 
 
 class Rule1Dp(AbstractMinesRule):
-    name = "1D'"
+    name = ["1D'", "战舰", "Battleship"]
+    doc = "每个雷区域为宽度为 1、长度不超过 4 的矩形，矩形不能对角相邻"
     subrules = [
         [True, "[1D']战舰"]
     ]
@@ -23,6 +24,8 @@ class Rule1Dp(AbstractMinesRule):
         return 1
 
     def create_constraints(self, board: AbstractBoard):
+        if not self.subrules[0][0]:
+            return
         # 获取求解器模型
         model = get_model()
 

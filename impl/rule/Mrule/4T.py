@@ -13,7 +13,8 @@ from utils.solver import get_model
 
 
 class Rule4T(AbstractMinesClueRule):
-    name = "*3T"
+    name = ["*3T", "雷三连"]
+    doc = "雷线索指示包含自身的雷三连数量。雷三连允许部分重合"
 
     def mines_class(self):
         return Value4T
@@ -95,7 +96,7 @@ class Value4T(AbstractMinesValue):
 
     @classmethod
     def type(cls) -> bytes:
-        return Rule4T.name.encode("ascii")
+        return Rule4T.name[0].encode("ascii")
 
     def create_constraints_(self, var_list: list):
         model = get_model()

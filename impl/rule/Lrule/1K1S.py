@@ -14,9 +14,13 @@ from .connect import connect
 
 
 class Rule1S(AbstractMinesRule):
-    name = "1K1S"
+    name = ["1K1S", "马步蛇", "Knight-Snake"]
+    doc = "所有雷构成一条蛇。蛇是一条宽度为 1 的马步连通路径，不存在分叉、环、交叉"
+    subrules = [[True, "1K1S"]]
 
     def create_constraints(self, board):
+        if not self.subrules[0][0]:
+            return
         model = get_model()
 
         connect(

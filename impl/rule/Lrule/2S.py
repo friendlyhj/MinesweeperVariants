@@ -14,7 +14,8 @@ from utils.solver import get_model
 
 
 class Rule2S(AbstractMinesRule):
-    name = "2S"
+    name = ["2S", "分段", "Segment"]
+    doc = "每行有且仅有一组连续的雷"
     subrules = [
         [True, "[2S]分段"]
     ]

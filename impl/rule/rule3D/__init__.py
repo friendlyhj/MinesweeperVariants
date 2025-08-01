@@ -16,8 +16,6 @@ from utils.impl_obj import VALUE_QUESS, MINES_TAG
 
 
 class Abstract3DRule:
-    name = ""
-
     def __init__(self, board: AbstractBoard, data: str = None):
         if data == "":
             return

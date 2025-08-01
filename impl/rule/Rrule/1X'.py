@@ -16,7 +16,8 @@ from utils.impl_obj import VALUE_QUESS, MINES_TAG
 
 
 class Rule1Xp(AbstractClueRule):
-    name = "1X'"
+    name = ["1X'", "X'", "小十字", "Mini Cross"]
+    doc = "线索表示半径为 1 的十字范围内的雷数"
 
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':
         logger = get_logger()
@@ -49,7 +50,7 @@ class Value1X(AbstractClueValue):
 
     @classmethod
     def type(cls) -> bytes:
-        return b"1X'"
+        return Rule1Xp.name[0].encode("ascii")
 
     def code(self) -> bytes:
         return bytes([self.count])

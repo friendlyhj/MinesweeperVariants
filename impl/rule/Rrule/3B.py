@@ -5,7 +5,7 @@
 # @Author  : Wu_RH
 # @FileName: 3B.py
 """
-[3B]二进Binary:无雷是0，有雷是1，线索代表每行（左起）和每列（上起）对应两个二进制数的按位异或值
+[3B]二进(Binary):无雷是0，有雷是1，线索代表每行（左起）和每列（上起）对应两个二进制数的按位异或值
 """
 from typing import List
 
@@ -63,7 +63,8 @@ def decode_bools_7bit(data: bytes) -> list[bool]:
 
 
 class Rule3B(AbstractClueRule):
-    name = "3B"
+    name = ["3B", "二进", "Binary"]
+    doc = "无雷是0，有雷是1，线索代表每行（左起）和每列（上起）对应两个二进制数的按位异或值"
 
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':
         logger = get_logger()
@@ -99,7 +100,7 @@ class Value3B(AbstractClueValue):
 
     @classmethod
     def type(cls) -> bytes:
-        return Rule3B.name.encode("ascii")
+        return Rule3B.name[0].encode("ascii")
 
     def code(self) -> bytes:
         return self.__code

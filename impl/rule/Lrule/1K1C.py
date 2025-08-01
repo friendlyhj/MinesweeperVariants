@@ -5,7 +5,7 @@
 # @Author  : Wu_RH
 # @FileName: 1C.py
 """
-[1K1C] 马步八连通 (Connected)：雷区域八连通
+[1K1C] 马步八连通 (Knight-Connected)：雷区域马步连通
 """
 from abs.Lrule import AbstractMinesRule
 from abs.board import AbstractBoard
@@ -16,9 +16,10 @@ from .connect import connect
 
 
 class Rule1C(AbstractMinesRule):
-    name = "1K1C"
+    name = ["1K1C", "马步八连通", "Knight-Connected"]
+    doc = "雷区域马步连通"
     subrules = [
-        [True, "[1K1C]八连通"]
+        [True, "[1K1C]马步连通"]
     ]
 
     def create_constraints(self, board):

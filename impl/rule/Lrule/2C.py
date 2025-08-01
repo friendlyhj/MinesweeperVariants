@@ -25,7 +25,8 @@ def block(a_pos: AbstractPosition, board: AbstractBoard) -> List[AbstractPositio
 
 
 class Rule2C(AbstractMinesRule):
-    name = "2C"
+    name = ["2C", "连方", "Connected"]
+    doc = "(1) 所有四连通雷区域为矩形；(2) 所有雷区域对角相邻"
     subrules = [
         [True, "[2C]雷区必须是矩形"],
         [True, "[2C]雷区必须联通"]

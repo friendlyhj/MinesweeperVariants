@@ -15,19 +15,23 @@ from collections import defaultdict
 
 
 class Rule2G(AbstractMinesRule):
-    name = "2G"
+    name = ["2G", "四连块", "Group"]
+    doc = "所有四连通雷区域的面积为 4"
+    subrules = [[True, "四连块"]]
 
     def create_constraints(self, board: AbstractBoard):
+        if not self.subrules[0][0]:
+            return
         model = get_model()
 
-        def dfs(_board: AbstractBoard, _valides: list, step=0, checked=None, possible_list=None):
-            if possible_list is None:
-                possible_list = set()
+        def dfs(_board: AbstractBoard, _valides: list, step=0, checked=None, _possible_list=None):
+            if _possible_list is None:
+                _possible_list = set()
             if checked is None:
                 checked = []
             if step == 4:
-                possible_list.add((tuple(sorted(set(_valides))), tuple(sorted(set(checked)))))
-                return possible_list
+                _possible_list.add((tuple(sorted(set(_valides))), tuple(sorted(set(checked)))))
+                return _possible_list
             for _pos in sorted(set(_valides)):
                 if _pos in checked:
                     continue
@@ -45,12 +49,12 @@ class Rule2G(AbstractMinesRule):
                         continue
                     _valides.append(__pos)
                     pos_list.append(__pos)
-                dfs(_board, _valides, step + 1, checked, possible_list)
+                dfs(_board, _valides, step + 1, checked, _possible_list)
                 for __pos in pos_list:
                     _valides.remove(__pos)
                 checked.remove(_pos)
                 _valides.append(_pos)
-            return possible_list
+            return _possible_list
 
         for pos, var in board("NF", mode="variable"):
             vaildes = [pos]

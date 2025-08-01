@@ -5,7 +5,7 @@
 # @Author  : Wu_RH
 # @FileName: 1S.py
 """
-[1S'] 衔尾蛇 (Snake)：所有雷构成一条蛇。蛇是一条宽度为 1 的四连通路径，不存在分叉、环、交叉, 蛇的头尾相连
+[1S'] 衔尾蛇：所有雷构成一条蛇。蛇是一条宽度为 1 的四连通路径，不存在分叉、环、交叉, 蛇的头尾相连
 """
 from abs.Lrule import AbstractMinesRule
 from utils.solver import get_model
@@ -14,9 +14,12 @@ from .connect import connect
 
 
 class Rule1S(AbstractMinesRule):
-    name = "1S'"
+    name = ["1S'", "衔尾蛇"]
+    subrules = [[True, "[1S']"]]
 
     def create_constraints(self, board):
+        if not self.subrules[0][0]:
+            return
         model = get_model()
 
         connect(

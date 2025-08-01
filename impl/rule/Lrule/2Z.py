@@ -13,7 +13,8 @@ from utils.solver import get_model
 
 
 class Rule2Z(AbstractMinesRule):
-    name = "2Z"
+    name = "2Z", "零和", "Zero-Sum"
+    doc = "每行的染色格与非染色格的雷数相等"
     subrules = [
         [True, "[2Z]零和"]
     ]

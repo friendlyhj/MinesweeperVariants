@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
-[3D1U] 3D一元 (Unary)：所有雷不能与其他雷相邻
+[3D1U] 三维一元 (Unary)：所有雷不能与其他雷相邻
+(3维一元?那你这一维多少元)
 """
 from abs.board import AbstractBoard
 from .. import Abstract3DMinesRule
@@ -8,7 +9,8 @@ from utils.solver import get_model
 
 
 class Rule3D1U(Abstract3DMinesRule):
-    name = "3D1U"
+    name = ["3D1U", "3DU", "三维一元"]
+    doc = "所有雷不能与其他雷相邻"
     subrules = [
         [True, "[3D1U]一元"]
     ]

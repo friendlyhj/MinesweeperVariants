@@ -15,7 +15,8 @@ from utils.solver import get_model
 
 
 class Rule1T(AbstractMinesRule):
-    name = "1T"
+    name = ["1T", "无三连", "Three"]
+    doc = "雷不能在横竖对角构成三连"
     subrules = [
         [True, "[1T]雷无三连"]
     ]

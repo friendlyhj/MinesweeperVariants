@@ -6,7 +6,7 @@
 # @FileName: rule.py
 
 from abc import ABC, abstractmethod
-from typing import List, Union, TYPE_CHECKING, Dict
+from typing import List, Union, TYPE_CHECKING, Dict, Tuple
 
 if TYPE_CHECKING:
     from abs.board import AbstractBoard, AbstractPosition
@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
 class AbstractRule(ABC):
     # 规则名称
-    name: str
+    name: Union[Tuple[str], List[str], str] = None
 
     """
     subrules: 如果该规则需要使用线索数检查的话 就必须实现该属性
@@ -55,7 +55,7 @@ class AbstractValue(ABC):
     def __repr__(self):
         ...
 
-    def compose(self, board: 'AbstractBoard') -> List[Dict]:
+    def compose(self, board: 'AbstractBoard', web) -> Dict:
         """
         返回一个可渲染对象列表
         默认使用__repr__

@@ -16,29 +16,35 @@ from utils.impl_obj import VALUE_QUESS, MINES_TAG
 from utils.solver import get_model
 from utils.tool import get_random
 
+NAME_4Vp = ["4Va", "4Vb"]
+
 
 class Rule4Vp(AbstractClueRule):
-    name = "4V'"
+    name = ["4V'", "映射'"]
+    doc = "线索表示数字是三个题板中相同位置的其中某两个范围中心3*3区域的雷总数"
     size = 2
 
     def __init__(self, board: "AbstractBoard" = None, data=None) -> None:
         super().__init__(board, data)
         size = (board.boundary().x + 1, board.boundary().y + 1)
-        for i in range(self.size):
-            key = self.name + f"_{i}"
-            board.generate_board(key, size)
-            board.set_config(key, "interactive", True)
-            board.set_config(key, "row_col", True)
-            board.set_config(key, "VALUE", VALUE_QUESS)
-            board.set_config(key, "MINES", MINES_TAG)
+        board.generate_board(NAME_4Vp[0], size)
+        board.generate_board(NAME_4Vp[1], size)
+        board.set_config(NAME_4Vp[0], "interactive", True)
+        board.set_config(NAME_4Vp[1], "interactive", True)
+        board.set_config(NAME_4Vp[0], "row_col", True)
+        board.set_config(NAME_4Vp[1], "row_col", True)
+        board.set_config(NAME_4Vp[0], "VALUE", VALUE_QUESS)
+        board.set_config(NAME_4Vp[1], "VALUE", VALUE_QUESS)
+        board.set_config(NAME_4Vp[0], "MINES", MINES_TAG)
+        board.set_config(NAME_4Vp[1], "MINES", MINES_TAG)
 
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':
         random = get_random()
 
-        for key in [MASTER_BOARD] + [self.name + f"_{i}" for i in range(self.size)]:
+        for key in [MASTER_BOARD] + NAME_4Vp:
             for pos, _ in board("N", key=key):
                 neighbors_list = []
-                for _key in [MASTER_BOARD] + [self.name + f"_{i}" for i in range(Rule4Vp.size)]:
+                for _key in [MASTER_BOARD] + NAME_4Vp:
                     _pos = pos.clone()
                     _pos.board_key = _key
                     neighbors_list.append(_pos.neighbors(0, 2))
@@ -59,7 +65,7 @@ class Rule4Vp(AbstractClueRule):
 class Value4Vp(AbstractClueValue):
     def __init__(self, pos: 'AbstractPosition', code: bytes = b''):
         self.neighbors_list = []
-        for key in [MASTER_BOARD] + [Rule4Vp.name + f"_{i}" for i in range(Rule4Vp.size)]:
+        for key in [MASTER_BOARD] + NAME_4Vp:
             _pos = pos.clone()
             _pos.board_key = key
             self.neighbors_list.append(_pos.neighbors(0, 2))
@@ -72,7 +78,7 @@ class Value4Vp(AbstractClueValue):
 
     @classmethod
     def type(cls) -> bytes:
-        return Rule4Vp.name.encode("ascii")
+        return Rule4Vp.name[0].encode("ascii")
 
     def __repr__(self) -> str:
         value = [self.value_a, self.value_b]
@@ -84,15 +90,15 @@ class Value4Vp(AbstractClueValue):
                 self.neighbors_list[1] +
                 self.neighbors_list[2])
 
-    def compose(self, board) -> List[Dict]:
+    def compose(self, board, web) -> Dict:
         value = [self.value_a, self.value_b]
         value.sort()
         text_a = get_text(str(value[0]))
         text_b = get_text(str(value[1]))
-        return [get_row(
+        return get_row(
             text_a,
             text_b
-        )]
+        )
 
     def create_constraints(self, board: 'AbstractBoard'):
         model = get_model()

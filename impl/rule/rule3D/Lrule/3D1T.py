@@ -6,7 +6,7 @@
 # @FileName: 1T.py
 
 """
-[1T]无三连: 雷不能在横竖对角构成三连
+[3D1T]无三连: 雷不能在横竖对角构成三连
 """
 
 from .. import Abstract3DMinesRule
@@ -15,7 +15,8 @@ from utils.solver import get_model
 
 
 class Rule1T(Abstract3DMinesRule):
-    name = "3D1T"
+    name = ["3D1T", "无三连"]
+    doc = "雷不能在横竖对角构成三连"
     subrules = [
         [True, "[3D1T]雷无三连"]
     ]

@@ -94,8 +94,12 @@ def get_rule(name: str) -> type | None:
             AbstractMinesRule
         ]:
             continue
-        if i.name == name:
-            return i
+        if type(i.name) in (tuple, list):
+            if name in i.name:
+                return i
+        elif type(i.name) is str:
+            if name == i.name:
+                return i
     raise ValueError(f"未找到规则[{name}]")
 
 

@@ -49,9 +49,13 @@ def get_line(board: AbstractBoard, pos: AbstractPosition):
 
 
 class Rule1Bpp(AbstractMinesRule):
-    name = "1B''"
+    name = ["1B''", "后平衡"]
+    doc = "雷八方向上的总雷数均相等"
+    subrules = [[True, "[1B'']后平衡"]]
 
     def create_constraints(self, board: 'AbstractBoard'):
+        if not self.subrules[0][0]:
+            return
         model = get_model()
 
         ub = board.boundary().x * 3

@@ -17,7 +17,8 @@ from utils.solver import get_model
 
 
 class Rule1Lo(AbstractClueRule):
-    name = "2*1L"
+    name = ["2*1L", "2倍误差"]
+    doc = "所有线索均比真实值大2或小2或者不变"
 
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':
         random = get_random()
@@ -62,7 +63,7 @@ class Value1Lo(AbstractClueValue):
 
     @classmethod
     def type(cls) -> bytes:
-        return Rule1Lo.name.encode("ascii")
+        return Rule1Lo.name[0].encode("ascii")
 
     def code(self) -> bytes:
         return bytes([self.count])

@@ -44,7 +44,8 @@ def put(board, pos: 'AbstractPosition', path):
 
 
 class Rule3A(AbstractClueRule):
-    name = "3A"
+    name = ["3A", "兰顿蚂蚁"]
+    doc = "数字表示兰顿蚂蚁从线索格出发直至走出题板外所移动的次数。"
 
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':
         random = get_random()
@@ -87,28 +88,36 @@ class Value3A(AbstractClueValue):
     def __repr__(self) -> str:
         return f"{self.value}{'^>v<'[self.dir]}"
 
-    def compose(self, board) -> List[Dict]:
+    def compose(self, board, web) -> Dict:
+        if web:
+            if self.dir in [3, 1]:
+                return get_col(
+                    get_text("↑→↓←"[self.dir]),
+                    get_text(str(self.value))
+                )
+            else:
+                return get_row(
+                    get_text("↑→↓←"[self.dir]),
+                    get_text(str(self.value))
+                )
         match self.dir:
             case 0:
                 # 上 ↑ ^
                 if self.value == 1:
-                    return [
-                        get_row(
+                    return get_row(
                             get_dummy(width=0.175),
                             get_text("1"),
                             get_image("up"),
                             get_dummy(width=0.175),
-                        )]
-                return [
-                    get_row(
+                        )
+                return get_row(
                         get_text(str(self.value)),
                         get_image("up"),
                         spacing=-0.1,
                     )
-                ]
             case 1:
                 # 右 → >
-                return [get_col(
+                return get_col(
                     get_dummy(height=0.1),
                     get_image(
                         "right",
@@ -118,27 +127,24 @@ class Value3A(AbstractClueValue):
                     get_dummy(height=-0.05),
                     get_text(str(self.value)),
                     get_dummy(height=0.2)
-                )]
+                )
             case 2:
                 # 下 ↓ V
                 if self.value == 1:
-                    return [
-                        get_row(
+                    return get_row(
                             get_dummy(width=0.175),
                             get_text("1"),
                             get_image("down"),
                             get_dummy(width=0.175),
-                        )]
-                return [
-                    get_row(
+                        )
+                return get_row(
                         get_text(str(self.value)),
                         get_image("down"),
                         spacing=-0.1,
                     )
-                ]
             case 3:
                 # 左 ← <
-                return [get_col(
+                return get_col(
                     get_dummy(height=0.1),
                     get_image(
                         "left",
@@ -148,8 +154,38 @@ class Value3A(AbstractClueValue):
                     get_dummy(height=-0.05),
                     get_text(str(self.value)),
                     get_dummy(height=0.2)
-                )]
-        return []
+                )
+        return get_text("")
+
+    def high_light(self, board: 'AbstractBoard') -> List['AbstractPosition']:
+        pos = self.pos.clone()
+        path = (self.dir + 1) % 4
+        position = []
+        for _ in range(self.value):
+            if not board.in_bounds(pos):
+                break
+            if board.get_type(pos) == "N":
+                position.append(pos)
+                break
+            position.append(pos)
+            # 0.上 1.右 2.下 3.左
+            if board.get_type(pos) == "F":
+                path += 3
+                path %= 4
+            else:
+                path += 1
+                path %= 4
+            match path:
+                case 0:
+                    pos = pos.down()
+                case 1:
+                    pos = pos.left()
+                case 2:
+                    pos = pos.up()
+                case 3:
+                    pos = pos.right()
+        print(self.value, position)
+        return position
 
     def append(self, data):
         self.data.append(data)
@@ -186,7 +222,7 @@ class Value3A(AbstractClueValue):
 
     @classmethod
     def type(cls) -> bytes:
-        return Rule3A.name.encode("ascii")
+        return Rule3A.name[0].encode("ascii")
 
     def code(self) -> bytes:
         return bytes([self.dir, self.value])

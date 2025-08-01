@@ -5,7 +5,7 @@
 # @Author  : Wu_RH
 # @FileName: 1C.py
 """
-[3D1C] 八连通 (Connected)：雷区域八连通
+[3D1C] 三维八连通 (Connected)：雷区域二十六连通
 """
 from .. import Abstract3DMinesRule
 from abs.board import AbstractBoard
@@ -16,9 +16,10 @@ from .connect import connect
 
 
 class Rule1C(Abstract3DMinesRule):
-    name = "3D1C"
+    # name = ["3D1C","3DC", "二十六连通"]
+    doc = "雷区域二十六连通"
     subrules = [
-        [True, "[3D1C]八连通"]
+        [True, "[3D1C]二十六连通"]
     ]
 
     def create_constraints(self, board):

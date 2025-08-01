@@ -14,9 +14,13 @@ from utils.solver import get_model
 
 
 class Rule2F(Abstract3DMinesRule):
-    name = "3D2F"
+    name = ["3D2F", "三维花田"]
+    doc = "染色格中的雷周围六格内恰好有1个雷"
+    subrules = [[True, "[3D2F]"]]
 
     def create_constraints(self, board: 'AbstractBoard'):
+        if not self.subrules[0][0]:
+            return
         model = get_model()
         for pos, dye in board(mode="dye"):
             if not dye:

@@ -16,10 +16,9 @@ from .connect import connect
 
 
 class Rule1C(AbstractMinesRule):
-    name = "1C"
-    subrules = [
-        [True, "[1C]八连通"]
-    ]
+    name = ["1C", "C", "八连通", "Connected"]
+    doc = "雷区域八连通"
+    subrules = [[True, "[1C]八连通"]]
 
     def create_constraints(self, board):
         if not self.subrules[0][0]:

@@ -5,9 +5,9 @@
 # @Author  : Wu_RH
 # @FileName: 1B'.py
 
-"""
-[1B']失衡: 每行每列雷数均不相同
-"""
+# """
+# [1B']失衡: 每行每列雷数均不相同
+# """
 
 from utils.solver import get_model
 
@@ -16,7 +16,8 @@ from abs.board import AbstractBoard
 
 
 class Rule1B(AbstractMinesRule):
-    name = "1B'"
+    name = ["1B'", "失衡"]
+    doc = "每行每列雷数均不相同"
     subrules = [
         [True, "[1B']列不同"],
         [True, "[1B']行不同"]

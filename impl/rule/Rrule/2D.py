@@ -15,7 +15,8 @@ from utils.solver import get_model
 
 
 class Rule2D(AbstractClueRule):
-    name = "2D"
+    name = ["2D", "偏移"]
+    doc = "线索表示上方一格为中心的3x3区域内的总雷数"
 
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':
         logger = get_logger()
@@ -49,7 +50,7 @@ class Value2D(AbstractClueValue):
 
     @classmethod
     def type(cls) -> bytes:
-        return b'2D'
+        return Rule2D.name[0].encode("ascii")
 
     def code(self) -> bytes:
         return bytes([self.count])

@@ -12,7 +12,8 @@ from utils.solver import get_model
 
 
 class Rule1EQ(AbstractClueRule):
-    name = "1EQ"
+    name = ["1EQ", "皇后视野", "Queen Eyesight"]
+    doc = "线索表示八个方向上能看到的非雷格数量（包括自身），雷会阻挡视线"
 
     def clue_class(self):
         return Value1EQ
@@ -62,7 +63,7 @@ class Value1EQ(AbstractClueValue):
 
     @classmethod
     def type(cls) -> bytes:
-        return Rule1EQ.name.encode("ascii")
+        return Rule1EQ.name[0].encode("ascii")
 
     def code(self) -> bytes:
         return bytes([self.value])

@@ -19,7 +19,8 @@ NAME_2Epp = "2E''"
 
 
 class Rule2Ep(AbstractClueRule):
-    name = "2E''"
+    name = ["2E''", "互指"]
+    doc = "如果线索X周围有N个雷 则另一个题板的X=N的格子必定为雷"
 
     def __init__(self, board: AbstractBoard, data=None):
         super().__init__()
@@ -78,7 +79,7 @@ class Value2Ep(AbstractClueValue):
 
     @classmethod
     def type(cls) -> bytes:
-        return Rule2Ep.name.encode("ascii")
+        return Rule2Ep.name[0].encode("ascii")
 
     def code(self) -> bytes:
         return bytes([self.value])

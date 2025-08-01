@@ -9,6 +9,8 @@
 [3E]演化: 每个3x1区域决定其中间下方1格是否为雷，演化被当前题板所有区域共享。
 """
 
+NAME_3E = ["3E_x", "3E_y"]
+
 from abs.Lrule import AbstractMinesRule
 from abs.board import AbstractBoard
 from utils.impl_obj import VALUE_QUESS, MINES_TAG
@@ -17,35 +19,34 @@ from utils.tool import get_random
 
 
 class Rule3E(AbstractMinesRule):
-    name = "3E"
-    subrules = []
+    name = ["3E", "迭代", "演化"]
+    doc = "每个3x1区域决定其中间下方1格是否为雷，演化被当前题板所有区域共享。"
+    subrules = [[True, "[3E]"]]
 
     def __init__(self, board: AbstractBoard, data=None):
         super().__init__(board, data)
-        board.generate_board(self.name + "_x", size=(8, 3))
-        board.generate_board(self.name + "_y", size=(8, 1))
-        board.set_config(self.name + "_y", "VALUE", VALUE_QUESS)
-        board.set_config(self.name + "_y", "MINES", MINES_TAG)
+        board.generate_board(NAME_3E[0], size=(8, 3))
+        board.generate_board(NAME_3E[1], size=(8, 1))
+        board.set_config(NAME_3E[1], "VALUE", VALUE_QUESS)
+        board.set_config(NAME_3E[1], "MINES", MINES_TAG)
 
     def create_constraints(self, board: 'AbstractBoard'):
+        if not self.subrules[0][0]:
+            return
         model = get_model()
-        random = get_random()
 
         for index, pos in enumerate(board.get_col_pos(
-                board.get_pos(0, 0, self.name + "_x"))):
+                board.get_pos(0, 0, NAME_3E[0]))):
             pos1, pos2, pos3 = board.get_row_pos(pos)
             board.set_value(pos1, MINES_TAG if index & 4 else VALUE_QUESS)
             board.set_value(pos2, MINES_TAG if index & 2 else VALUE_QUESS)
             board.set_value(pos3, MINES_TAG if index & 1 else VALUE_QUESS)
 
-        # for pos, _ in board(key=self.name + "_y"):
-        #     board.set_value(pos, VALUE_QUESS if random.random() > 0.5 else MINES_TAG)
-
         vals_list = []
 
         for i in range(8):
             x = model.NewIntVar(i, i, f"[3E]{i}_x")
-            y = board.get_variable(board.get_pos(i, 0, self.name + "_y"))
+            y = board.get_variable(board.get_pos(i, 0, NAME_3E[1]))
             model.Add(x == i)
             vals_list.append([x, y])
 
@@ -67,7 +68,7 @@ class Rule3E(AbstractMinesRule):
                         bool_var_index += 1
 
     def init_board(self, board: 'AbstractBoard'):
-        y_col = board.get_col_pos(board.boundary(key=self.name + "_y"))
+        y_col = board.get_col_pos(board.boundary(key=NAME_3E[1]))
         col = board.get_col_pos(board.boundary())
         for pos in col:
             row = board.get_row_pos(pos)
@@ -81,11 +82,11 @@ class Rule3E(AbstractMinesRule):
                 index += 1 if types[2] == "F" else 0
                 board.set_value(y_col[index], MINES_TAG if y_type == "F" else VALUE_QUESS)
 
-        for pos, _ in board("N", key=self.name + "_y"):
+        for pos, _ in board("N", key=NAME_3E[1]):
             board.set_value(pos, VALUE_QUESS)
 
     def init_clear(self, board: 'AbstractBoard'):
-        y_col = board.get_col_pos(board.boundary(key=self.name + "_y"))
+        y_col = board.get_col_pos(board.boundary(key=NAME_3E[1]))
         col = board.get_col_pos(board.boundary())
         for pos in col:
             row = board.get_row_pos(pos)
@@ -99,14 +100,11 @@ class Rule3E(AbstractMinesRule):
                 index += 1 if types[2] == "F" else 0
                 board.set_value(y_col[index], MINES_TAG)
 
-        for pos, _ in board("N", key=self.name + "_y"):
+        for pos, _ in board("N", key=NAME_3E[1]):
             board.set_value(pos, VALUE_QUESS)
 
-        for pos, _ in board("F", key=self.name + "_y"):
+        for pos, _ in board("F", key=NAME_3E[1]):
             board.set_value(pos, None)
-
-    def check(self, board: 'AbstractBoard') -> bool:
-        pass
 
     @classmethod
     def method_choose(cls) -> int:

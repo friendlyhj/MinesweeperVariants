@@ -15,7 +15,8 @@ from utils.solver import get_model
 
 
 class Rule2T(AbstractMinesRule):
-    name = "2T"
+    name = ["2T", "无三连"]
+    doc = "(1)雷不能在横竖向构成三连, (2)非雷不能在横竖向构成三连"
     subrules = [
         [True, "[2T]雷无三连"],
         [True, "[2T]非雷无三连"]

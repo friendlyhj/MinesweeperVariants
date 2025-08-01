@@ -16,7 +16,8 @@ from utils.impl_obj import VALUE_QUESS, MINES_TAG
 
 
 class RuleV(AbstractClueRule):
-    name = "V"
+    name = ["V", "标准扫雷", "Vanlia"]
+    doc = "每个数字标明周围八格内雷的数量。"
 
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':
         logger = get_logger()

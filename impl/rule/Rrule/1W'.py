@@ -60,7 +60,8 @@ def MineStatus_1W(clue: list) -> list[int]:
 
 
 class Rule1Wp(AbstractClueRule):
-    name = "1W'"
+    name = ["1W'", "W'", "最长数墙", "Longest Wall"]
+    doc = "线索表示 3x3 范围内最长的连续雷的长度"
 
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':
         for pos, _ in board("N"):
@@ -101,7 +102,7 @@ class Value1Wp(AbstractClueValue):
 
     @classmethod
     def type(cls) -> bytes:
-        return Rule1Wp.name.encode("ascii")
+        return Rule1Wp.name[0].encode("ascii")
 
     def code(self) -> bytes:
         return bytes([self.value])

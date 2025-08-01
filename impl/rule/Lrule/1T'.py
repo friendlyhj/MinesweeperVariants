@@ -16,7 +16,8 @@ from utils.tool import get_logger
 
 
 class Rule1Tp(AbstractMinesRule):
-    name = "1T'"
+    name = ["1T'", "必三联"]
+    doc = "雷必然处在横竖对角构成三连"
     subrules = [
         [True, "[1T']雷必三连"]
     ]
