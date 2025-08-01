@@ -60,9 +60,9 @@ class GameSession:
         self.drop_r = drop_r
         if mode == ULTIMATE:
             if ultimate_mode & ULTIMATE_R:
-                self.drop_r = True
-            else:
                 self.drop_r = False
+            else:
+                self.drop_r = True
 
         self.answer_board = None
         self.board = None
@@ -104,7 +104,7 @@ class GameSession:
                     # print("hint end"+"!" * 50)
                     # print("hint end"+"!" * 50)
                     # print("hint end"+"!" * 50)
-                    print("hint: " + str(res))
+                    # print("hint: " + str(res))
                 except Exception as e:
                     print(f"提示计算崩溃: {e}")
                     raise  # 重新抛出异常
@@ -135,7 +135,14 @@ class GameSession:
             # 没有运行则启动新线程
             def deduce_task():
                 try:
-                    self._deduced(r)  # 直接计算
+                    # print("deduced start"+"!" * 50)
+                    # print("deduced start"+"!" * 50)
+                    # print("deduced start"+"!" * 50)
+                    res = self._deduced(r)  # 直接计算
+                    # print("deduced end"+"!" * 50)
+                    # print("deduced end"+"!" * 50)
+                    # print("deduced end"+"!" * 50)
+                    # print(res)
                 except Exception as e:
                     print(f"推导计算崩溃: {e}")
                     raise  # 重新抛出异常
@@ -402,7 +409,9 @@ class GameSession:
             self.mode in [ULTIMATE, PUZZLE] and
             self.ultimate_mode & ULTIMATE_A
         ):
-            self.step()
+            print(self.drop_r)
+            if not self.deduced():
+                self.hint()
         return self.board
 
     def mark(self, pos: AbstractPosition) -> Union["AbstractBoard", None]:
@@ -450,12 +459,11 @@ class GameSession:
             self.mode in [ULTIMATE, PUZZLE] and
             self.ultimate_mode & ULTIMATE_A
         ):
-            self.step()
+            if not self.deduced():
+                self.hint()
         return self.board
 
     def step(self):
-        if self.deduced():
-            return
         # 没有可推格了
         flag = True
         for pos in self.deduced_values.keys():
@@ -560,6 +568,7 @@ class GameSession:
         if not deduced_assignments:
             self.step()
             if self.drop_r and not len(self.deduced().keys()):
+                print("RRRRRRRRRRRRRR!!!!!!!!!!!!!!!!!!!")
                 self.drop_r = False
                 self.last_hint = [None, []]
                 self.last_deduced_board = None

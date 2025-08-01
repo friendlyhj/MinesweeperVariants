@@ -248,7 +248,7 @@ def generate_board():
         size = data["size"]
 
     # rules = data["rules"]
-    rules = ["3A"]
+    rules = ["V"]
     hypothesis_data["summon"] = Summon(
         size, total, rules, used_r, dye
     )
@@ -284,7 +284,7 @@ def generate_board():
         # answer_board = hypothesis_data["game"].answer_board
     # print(hypothesis_data)
     # print(answer_board.show_board())
-    hypothesis_data["game"].hint(wait=False)
+    hypothesis_data["game"].deduced(wait=False)
 
     response = jsonify(
         format_board(mask_board, "123456")
@@ -349,32 +349,37 @@ def click():
     #     print(_board.show_board())
     #     print(game.deduced())
     #     print(game.last_hint[1])
-    hypothesis_data["game"].hint(wait=False)
+    hypothesis_data["game"].deduced(wait=False)
     print(refresh)
     return refresh, 200
 
 
-@app.route('/api/click', methods=['POST'])
+@app.route('/api/hint', methods=['POST'])
 def hint_post():
     global hypothesis_data
     data = request.get_json()
     count = data.get("count", 0)
     game = hypothesis_data["game"]
-    if count > 1:
-        hint_list = game.hint(wait=True)
-        min_length = min(len(tup[0]) for tup in hint_list)
-        # 步骤2: 收集所有第一个列表长度等于最小长度的二元组
-        hint_list = [tup for tup in hint_list if len(tup[0]) == min_length]
-        count -= 1
-    else:
-        deduced_dict = game.deduced(wait=True)
-        hint_list = [[], deduced_dict.values()]
-
-    b_hint, t_hint = hint_list[count]
-    # 由...
-    b_hint: list[Union["AbstractPosition", list["AbstractRule", int]]]
-    # 推出的坐标列表
-    t_hint: list["AbstractPosition"]
+    hint_list = game.hint(wait=True)
+    for hint in hint_list:
+        print(hint[0], "->", hint[1])
+    print("hint end")
+    return {}, 200
+    # if count > 1:
+    #     hint_list = game.hint(wait=True)
+    #     min_length = min(len(tup[0]) for tup in hint_list)
+    #     # 步骤2: 收集所有第一个列表长度等于最小长度的二元组
+    #     hint_list = [tup for tup in hint_list if len(tup[0]) == min_length]
+    #     count -= 1
+    # else:
+    #     deduced_dict = game.deduced(wait=True)
+    #     hint_list = [[], deduced_dict.values()]
+    #
+    # b_hint, t_hint = hint_list[count]
+    # # 由...
+    # b_hint: list[Union["AbstractPosition", list["AbstractRule", int]]]
+    # # 推出的坐标列表
+    # t_hint: list["AbstractPosition"]
 
 
 @app.route('/api/rules', methods=['POST'])
