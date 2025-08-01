@@ -60,9 +60,9 @@ class GameSession:
         self.drop_r = drop_r
         if mode == ULTIMATE:
             if ultimate_mode & ULTIMATE_R:
-                self.drop_r = False
-            else:
                 self.drop_r = True
+            else:
+                self.drop_r = False
 
         self.answer_board = None
         self.board = None
@@ -80,7 +80,7 @@ class GameSession:
         self._deduce_lock = threading.Lock()
         self._deduce_thread = None
 
-    def hint(self, wait: bool = True) -> list[tuple[list, list[AbstractPosition]]] | None:
+    def hint(self, wait: bool = True, r=False) -> list[tuple[list, list[AbstractPosition]]] | None:
         """
         简化版提示获取
         - wait=True: 启动计算并硬等到结果
@@ -97,7 +97,7 @@ class GameSession:
             # 没有运行则启动新线程
             def hint_task():
                 try:
-                    self._hint()  # 直接计算
+                    self._hint(r)  # 直接计算
                 except Exception as e:
                     print(f"提示计算崩溃: {e}")
                     raise  # 重新抛出异常
@@ -111,7 +111,7 @@ class GameSession:
 
             return None  # 不等待直接返回
 
-    def deduced(self, wait: bool = True):
+    def deduced(self, wait: bool = True, r = False):
         """
         简化版推导获取
         - wait=True: 启动计算并硬等到结果
@@ -128,7 +128,7 @@ class GameSession:
             # 没有运行则启动新线程
             def deduce_task():
                 try:
-                    self._deduced()  # 直接计算
+                    self._deduced(r)  # 直接计算
                 except Exception as e:
                     print(f"推导计算崩溃: {e}")
                     raise  # 重新抛出异常
@@ -142,14 +142,14 @@ class GameSession:
 
             return None  # 不等待直接返回
 
-    def solve_current_board(self, board_state, drop_rules: bool) -> int:
+    def solve_current_board(self, board_state, drop_r: bool) -> int:
         # CSP 解算器包装函数
         return solver_by_csp(
             self.summon.mines_rules,
             self.summon.clue_rule,
             self.summon.mines_clue_rule,
             board_state,
-            drop_r=drop_rules,
+            drop_r=drop_r,
             bool_mode=True
         )
 
@@ -315,7 +315,7 @@ class GameSession:
         for pos, value in self.deduced().items():
             obj = board[pos]
             board[pos] = value
-            if not self.solve_current_board(board, drop_rules=self.drop_r):
+            if not self.solve_current_board(board, drop_r=self.drop_r):
                 chord_positions.append(pos)
             board[pos] = obj
 
@@ -418,7 +418,7 @@ class GameSession:
             if self.board.type_value(self.deduced_values[pos]) == "F":
                 return None
             if self.mode in [ULTIMATE, PUZZLE]:
-                self.board[pos] = VALUE_TAG
+                self.board[pos] = MINES_TAG
             else:
                 self.board[pos] = self.answer_board[pos]
         else:
@@ -459,7 +459,7 @@ class GameSession:
                     continue
                 self.board[pos] = self.answer_board[pos]
 
-    def _deduced(self):
+    def _deduced(self, r=False):
         """
         收集所有必然能推出的位置及其不可能的值
         """
@@ -476,7 +476,7 @@ class GameSession:
                         pos.board_key, "VALUE")
             self.deduced_values = deduced_values
             return deduced_values
-        if self.last_deduced_board == self.board:
+        if not r and self.last_deduced_board == self.board:
             return self.deduced_values
         self.last_deduced_board = self.board.clone()
         # 获取之前推导过的
@@ -505,7 +505,7 @@ class GameSession:
                 self.logger.error("\n" + self.answer_board.show_board())
                 raise ValueError("None type shouldn't on answer board")
 
-            if self.solve_current_board(self.board, drop_rules=False) == 0:
+            if self.solve_current_board(self.board, drop_r=self.drop_r) == 0:
                 deduced_values[position] = self.board.get_value(position)
 
             self.board.set_value(position, None)  # 还原
@@ -514,11 +514,11 @@ class GameSession:
 
         return deduced_values
 
-    def _hint(self) -> list[tuple[list, list[AbstractPosition]]]:
+    def _hint(self, r=False) -> list[tuple[list, list[AbstractPosition]]]:
         """
         返回每一类推理依据及其能推出的位置
         """
-        if self.board == self.last_hint[0]:
+        if not r and self.board == self.last_hint[0]:
             return self.last_hint[1]
 
         grouped_deductions: list[tuple[list, list["AbstractPosition"]]] = []
@@ -535,6 +535,13 @@ class GameSession:
         deduced_assignments = self.deduced()
         if not deduced_assignments:
             self.step()
+            if self.drop_r and not len(self.deduced().keys()):
+                self.drop_r = False
+                self.last_hint = [None, []]
+                self.last_deduced_board = None
+                self.deduced(False)
+                return [self.board.clone(), [([("R", 0)], [])]]
+            self.last_hint = [None, []]
             return []
 
         # 每个可推出位置 -> 可推出它的约束来源列表
@@ -564,7 +571,7 @@ class GameSession:
             _deactivate = lambda: _rule.subrules.__getitem__(subrule_index).__setitem__(0, False)
             _restore = lambda: _rule.subrules.__getitem__(subrule_index).__setitem__(0, True)
             # 关于hint的规则显示链接
-            return _deactivate, _restore, (_rule.name, 1)
+            return _deactivate, _restore, (_rule.name, subrule_index)
 
         # 初始化所有线索与规则的启用/禁用操作
         constraint_toggle_list: list[tuple[Callable[[], None], Callable[[], None], object]] = []
@@ -620,7 +627,7 @@ class GameSession:
                 for idx in range(len(working_toggle_list) - 1, -1, -1):
                     deactivate, restore, constraint_label = working_toggle_list[idx]
                     deactivate()
-                    if self.solve_current_board(hypothesis_board, drop_rules=False) != 0:
+                    if self.solve_current_board(hypothesis_board, drop_r=self.drop_r) != 0:
                         deduction_origin_map[deduced_position].append(constraint_label)
                         related_toggle_stack.append(active_toggle_list.pop(idx))
                     restore()
@@ -655,7 +662,7 @@ class GameSession:
                         break
                     for _, restore, *_ in subset:
                         restore()
-                    if self.solve_current_board(hypothesis_board, drop_rules=False) == 0:
+                    if self.solve_current_board(hypothesis_board, drop_r=self.drop_r) == 0:
                         deduction_origin_map[deduced_position].extend([label for *_, label in subset])
                         found = True
                     for deactivate, *_ in subset:
@@ -677,6 +684,9 @@ class GameSession:
 
         # 整理为约束依据 -> 被推出的所有格子列表
         for pos, origin_list in deduction_origin_map.items():
+            print("origin_list", origin_list)
+            origin_list = ([i for i in origin_list if isinstance(i, tuple)] +
+                           sorted([i for i in origin_list if isinstance(i, AbstractPosition)]))
             found = False
             for existing_basis, grouped_positions in grouped_deductions:
                 if origin_list == existing_basis:
@@ -754,3 +764,23 @@ class GameSession:
         self.board = _board
         self.deduced_values = {}
         return clue_freq
+
+
+if __name__ == '__main__':
+    get_random(seed=4941992)
+    size = (5, 5)
+    rules = ["V"]
+    s = Summon(size, -1, rules)
+    g = GameSession(s, ULTIMATE, True, 8)
+    g.answer_board = s.summon_board()
+    g.create_board()
+    while "N" in g.board:
+        print(g.hint())
+        print(g.deduced_values)
+        print(g.board)
+        for p, v in list(g.deduced_values.items())[:]:
+            if v is MINES_TAG:
+                g.click(p)
+            else:
+                g.mark(p)
+    print(g.__dict__)

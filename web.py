@@ -195,6 +195,8 @@ def root():
 @app.route('/api/metadata')
 def generate_board():
     global hypothesis_data
+    if "game" in hypothesis_data and ("N" in hypothesis_data["game"].board):
+        return jsonify(format_board(hypothesis_data["game"].board))
     answer_board = None
     mask_board = None
     if mask_board:
@@ -306,10 +308,10 @@ def click():
     print(game.board.show_board())
     board = game.board.clone()
     pos = board.get_pos(data["x"], data["y"], data["boardName"])
-    if data["x"] == 0 and data["y"] == 0:
-        print(hypothesis_data["game"].hint(wait=True))
-        print(hypothesis_data["game"].deduced(wait=True))
-        return {}
+    # if data["x"] == 0 and data["y"] == 0:
+    #     print(hypothesis_data["game"].hint(wait=True))
+    #     print(hypothesis_data["game"].deduced(wait=True))
+    #     return {}
     if data["button"] == "left":
         _board = game.click(pos)
     elif data["button"] == "right":
@@ -336,15 +338,18 @@ def click():
             ):
                 continue
             data = format_cell(_board, pos)
+            print(pos, obj, data)
             refresh["cells"].append(data)
     refresh["success"] = True
+    print(game.board)
+    print(game.deduced())
+    print(game.hint())
     # print(refresh)
     # if _board:
     #     print(_board.show_board())
     #     print(game.deduced())
     #     print(game.last_hint[1])
-    if refresh["cells"]:
-        hypothesis_data["game"].hint(wait=False)
+    hypothesis_data["game"].hint(wait=False)
     print(refresh)
     return refresh, 200
 
@@ -452,5 +457,5 @@ if __name__ == '__main__':
     app.run(
         host='0.0.0.0',
         port=port,
-        debug=True
+        # debug=True
     )
