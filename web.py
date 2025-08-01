@@ -391,72 +391,65 @@ def rule_list():
         "dye": get_all_dye()  # {dye_name: doc, ...}
     }
 
+##
 
-def generate_self_signed_cert():
-    # 自动生成自签名证书函数
-    from cryptography.hazmat.backends import default_backend
-    from cryptography.hazmat.primitives import serialization, hashes
-    from cryptography.hazmat.primitives.asymmetric import rsa
-    from cryptography import x509
+# def generate_self_signed_cert():
+#     # 自动生成自签名证书函数
+#     from cryptography.hazmat.backends import default_backend
+#     from cryptography.hazmat.primitives import serialization, hashes
+#     from cryptography.hazmat.primitives.asymmetric import rsa
+#     from cryptography import x509
 
-    # 生成私钥
-    private_key = rsa.generate_private_key(
-        public_exponent=65537,
-        key_size=2048,
-        backend=default_backend()
-    )
+#     # 生成私钥
+#     private_key = rsa.generate_private_key(
+#         public_exponent=65537,
+#         key_size=2048,
+#         backend=default_backend()
+#     )
 
-    # 生成证书主体
-    subject = issuer = x509.Name([
-        x509.NameAttribute(x509.NameOID.COUNTRY_NAME, "US"),
-        x509.NameAttribute(x509.NameOID.STATE_OR_PROVINCE_NAME, "California"),
-        x509.NameAttribute(x509.NameOID.LOCALITY_NAME, "San Francisco"),
-        x509.NameAttribute(x509.NameOID.ORGANIZATION_NAME, "My Company"),
-        x509.NameAttribute(x509.NameOID.COMMON_NAME, "localhost"),
-    ])
+#     # 生成证书主体
+#     subject = issuer = x509.Name([
+#         x509.NameAttribute(x509.NameOID.COUNTRY_NAME, "US"),
+#         x509.NameAttribute(x509.NameOID.STATE_OR_PROVINCE_NAME, "California"),
+#         x509.NameAttribute(x509.NameOID.LOCALITY_NAME, "San Francisco"),
+#         x509.NameAttribute(x509.NameOID.ORGANIZATION_NAME, "My Company"),
+#         x509.NameAttribute(x509.NameOID.COMMON_NAME, "localhost"),
+#     ])
 
-    cert = (
-        x509.CertificateBuilder()
-        .subject_name(subject)
-        .issuer_name(issuer)
-        .public_key(private_key.public_key())
-        .serial_number(x509.random_serial_number())
-        .not_valid_before(datetime.utcnow())
-        .not_valid_after(datetime.utcnow() + timedelta(days=365))
-        .add_extension(
-            x509.SubjectAlternativeName([x509.DNSName("localhost")]),
-            critical=False
-        )
-        .sign(private_key, hashes.SHA256(), default_backend())
-    )
+#     cert = (
+#         x509.CertificateBuilder()
+#         .subject_name(subject)
+#         .issuer_name(issuer)
+#         .public_key(private_key.public_key())
+#         .serial_number(x509.random_serial_number())
+#         .not_valid_before(datetime.utcnow())
+#         .not_valid_after(datetime.utcnow() + timedelta(days=365))
+#         .add_extension(
+#             x509.SubjectAlternativeName([x509.DNSName("localhost")]),
+#             critical=False
+#         )
+#         .sign(private_key, hashes.SHA256(), default_backend())
+#     )
 
-    # 保存证书和私钥到文件
-    with open("cert.pem", "wb") as f:
-        f.write(cert.public_bytes(serialization.Encoding.PEM))
-    with open("key.pem", "wb") as f:
-        f.write(private_key.private_bytes(
-            encoding=serialization.Encoding.PEM,
-            format=serialization.PrivateFormat.TraditionalOpenSSL,
-            encryption_algorithm=serialization.NoEncryption()
-        ))
+#     # 保存证书和私钥到文件
+#     with open("cert.pem", "wb") as f:
+#         f.write(cert.public_bytes(serialization.Encoding.PEM))
+#     with open("key.pem", "wb") as f:
+#         f.write(private_key.private_bytes(
+#             encoding=serialization.Encoding.PEM,
+#             format=serialization.PrivateFormat.TraditionalOpenSSL,
+#             encryption_algorithm=serialization.NoEncryption()
+#         ))
 
+##
 
 if __name__ == '__main__':
-    if not (os.path.exists("cert.pem") and os.path.exists("key.pem")):
-        generate_self_signed_cert()
     port = int(sys.argv[1] if len(sys.argv) == 2 else "5050")
-    CORS(app, resources={
-        r"/api/*": {
-            "origins": github_web,
-            "methods": ["GET", "POST", "OPTIONS"],
-            "allow_headers": ["Content-Type"]
-        }
-    })
-    context = ("cert.pem", "key.pem")
-    # threading.Thread(target=lambda: webbrowser.open(f"https://localhost:{port}", new=2)).start()
+    # 允许所有来源跨域，或根据需要设置 origins=["*"]
+    CORS(app, supports_credentials=True)
+    # threading.Thread(target=lambda: webbrowser.open(f"http://localhost:{port}", new=2)).start()
     app.run(
         host='0.0.0.0',
         port=port,
-        ssl_context=context,
         debug=True
     )
