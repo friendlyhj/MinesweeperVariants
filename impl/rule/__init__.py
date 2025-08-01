@@ -109,7 +109,7 @@ def scan_module_docstrings(directory):
 
 
 def get_all_rules():
-    results = {"R": {}, "M": {}, "L": {}}
+    results = {"R": {}, "M": {}, "L": {}, "O": {}}
     dir_path = os.path.dirname(os.path.abspath(__file__))
     for m_doc, doc, x, names in scan_module_docstrings(dir_path):
         name, names = names[0], names[1:]
