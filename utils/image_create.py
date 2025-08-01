@@ -71,13 +71,10 @@ def get_image(
     else:
         dominant = "height" if dominant_by_height else "width"
     path = f"assets/{image_path}.png"
-    if not os.path.exists(path):
-        return None
-    img = Image.open(path).convert("RGBA")
     return {
         'type': 'image',
-        'image': img,  # 图片对象
-        'height': image_height, # 高度（单元格单位或auto）
+        'image': path,  # 图片对象
+        'height': image_height,  # 高度（单元格单位或auto）
         'width': image_width,   # 宽度（单元格单位或auto）
         "cover": cover_pos_label,
         "dominant": dominant
