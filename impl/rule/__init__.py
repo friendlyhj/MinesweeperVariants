@@ -58,7 +58,7 @@ def extract_module_docstring(filepath):
                     ):
                         name_val = stmt.value.s.strip()
                         if name_val:
-                            return module_doc, x
+                            return module_doc, x, name_val
     return None
 
 
@@ -71,21 +71,21 @@ def scan_module_docstrings(directory):
                 pck = extract_module_docstring(path)
                 if pck is None:
                     continue
-                doc, x = pck
-                results.append((doc, x))
+                doc, x, name = pck
+                results.append((doc, x, name))
     return results
 
 
 def get_all_rules():
-    results = {"R": [], "M": [], "L": []}
+    results = {"R": {}, "M": {}, "L": {}}
     dir_path = os.path.dirname(os.path.abspath(__file__))
-    for doc, x in scan_module_docstrings(dir_path):  # 替换路径
+    for doc, x, name in scan_module_docstrings(dir_path):  # 替换路径
         if x == 0:
             continue
         if x == 1:
-            results["L"].append(f'{doc}')
+            results["L"][name] = f'{doc}'
         if x == 2:
-            results["M"].append(f'{doc}')
+            results["M"][name] = f'{doc}'
         if x == 4:
-            results["R"].append(f'{doc}')
+            results["R"][name] = f'{doc}'
     return results

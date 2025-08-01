@@ -46,6 +46,9 @@ class Value2M(AbstractClueValue):
     def __repr__(self):
         return f"{self.count}"
 
+    def high_light(self, board: 'AbstractBoard') -> list['AbstractPosition']:
+        return self.neighbor
+
     @classmethod
     def type(cls) -> bytes:
         return Rule2M.name.encode("ascii")

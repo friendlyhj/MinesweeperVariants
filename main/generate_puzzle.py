@@ -109,6 +109,18 @@ def main(
     if not os.path.exists(CONFIG["output_path"]):
         os.mkdir(CONFIG["output_path"])
 
+    i, mask = 1, 0
+    for _, obj in _board():
+        if obj is None:
+            mask += i
+        i <<= 1
+
+    # 计算需要的字节长度
+    byte_length = (mask.bit_length() + 7) // 8  # 计算所需字节数
+    byte_length = max(byte_length, 1)  # 确保至少 1 字节
+
+    mask = mask.to_bytes(byte_length, "big", signed=False)
+
     with open(os.path.join(CONFIG["output_path"], "demo.txt"), "a", encoding="utf-8") as f:
         f.write("\n" + ("=" * 100) + "\n\n生成时间" + logger.get_time() + "\n")
         f.write(f"生成用时:{time_used}s\n")
@@ -127,6 +139,8 @@ def main(
         f.write(f"-r \"{rule_text}-R{'*' if drop_r else total}/")
         f.write(f"{n_num}-{get_seed()}\" ")
         f.write("-o demo\n")
+
+        f.write(f"\n题板代码: \n{encode_board(answer_code)}:{mask.hex()}\n")
 
     image_bytes = draw_board(board=get_board(board_class)(code=board_code), cell_size=100, output="demo",
                              bottom_text=rule_text + f"-R{'*' if drop_r else total}/{n_num}-{get_seed()}\n")

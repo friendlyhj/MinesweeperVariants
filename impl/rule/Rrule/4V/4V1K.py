@@ -7,6 +7,7 @@
 """
 [4V1K]2X'plus: 线索表示数字是两个题板中相同位置的其中一个为中心的马步区域的雷总数
 """
+from typing import List
 
 from abs.Rrule import AbstractClueRule, AbstractClueValue
 from abs.board import AbstractBoard, AbstractPosition, MASTER_BOARD
@@ -84,6 +85,9 @@ class Value4V1K(AbstractClueValue):
 
     def __repr__(self) -> str:
         return f"{self.value}"
+
+    def high_light(self, board: 'AbstractBoard') -> List['AbstractPosition']:
+        return self.neighbors_list[0]  + self.neighbors_list[1]
 
     def create_constraints(self, board: 'AbstractBoard'):
         model = get_model()

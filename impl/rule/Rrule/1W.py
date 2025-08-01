@@ -137,6 +137,9 @@ class Value1W(AbstractClueValue):
     def __repr__(self):
         return ".".join([str(i) for i in self.values]) if len(self.values) > 0 else "0"
 
+    def high_light(self, board: 'AbstractBoard') -> list['AbstractPosition']:
+        return self.pos.neighbors(2)
+
     def compose(self, board) -> List[Dict]:
         if len(self.values) <= 1:
             value = 0

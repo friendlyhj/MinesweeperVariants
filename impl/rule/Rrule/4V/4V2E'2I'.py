@@ -8,6 +8,7 @@
 [4V2E'2I']映射自指残缺(2X'plus+2E'+2I'): 字母X是两个题板中相同位置为中心其中一个的3x3区域中某?格的雷总数为N。则该对应位置所属的题板在标有X=N的位置必然是雷, 且?格的位置全局共享
 (注:生成不知道是不是概率问题 会出现大量的生成失败 不过也不是人玩的反正 加个-r估计会好)
 """
+from typing import List
 
 from abs.Rrule import AbstractClueRule, AbstractClueValue
 from abs.board import AbstractBoard, AbstractPosition, MASTER_BOARD
@@ -17,6 +18,7 @@ from utils.tool import get_random, get_logger
 from . import BOARD_NAME_4V
 
 NAME = BOARD_NAME_4V
+NAME_4V_2Ip = "4V2I'"
 ALPHABET = "ABCDEFGHIJ"
 
 
@@ -33,7 +35,7 @@ class Rule4V2Ep2Ip(AbstractClueRule):
         board.set_config(NAME, "MINES", MINES_TAG)
         board.set_config(NAME, "pos_label", True)
         board.set_config(MASTER_BOARD, "pos_label", True)
-        board.generate_board(self.name, (3, 3))
+        board.generate_board(NAME_4V_2Ip, (3, 3))
 
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':
         def apply_offsets(_pos: AbstractPosition):
@@ -45,13 +47,13 @@ class Rule4V2Ep2Ip(AbstractClueRule):
 
         random = get_random()
 
-        pos_list = [pos for pos, _ in board("N", key=self.name)]
+        pos_list = [pos for pos, _ in board("N", key=NAME_4V_2Ip)]
         pos_list = random.sample(pos_list, int(random.random() * 6 + 3))
         offsets = []
         for pos in pos_list:
             board[pos] = VALUE_CIRCLE
             offsets.append(pos.up().left())
-        for pos, _ in board("N", key=self.name):
+        for pos, _ in board("N", key=NAME_4V_2Ip):
             board[pos] = VALUE_CROSS
 
         letter_map_a = {i: [] for i in range(10)}
@@ -106,7 +108,7 @@ class Rule4V2Ep2Ip(AbstractClueRule):
         info["soft_fn"](ub * 0.4)
 
     def init_clear(self, board: 'AbstractBoard'):
-        for pos, obj in board(mode="object", key=self.name):
+        for pos, obj in board(mode="object", key=NAME_4V_2Ip):
             board[pos] = None
 
 
@@ -125,6 +127,17 @@ class Value4V2Ep2Ip(AbstractClueValue):
 
     def __repr__(self) -> str:
         return f"{ALPHABET[self.value]}"
+
+    def high_light(self, board: 'AbstractBoard') -> List['AbstractPosition']:
+        positions = []
+        for pos_key in [MASTER_BOARD, BOARD_NAME_4V]:
+            self_pos = self.pos.clone()
+            self_pos.board_key = pos_key
+            for pos, _ in board("NF", key=NAME_4V_2Ip):
+                _pos = self_pos.deviation(pos.shift(-1, -1))
+                if board.in_bounds(_pos):
+                    positions.append(pos)
+        return positions
 
     def create_constraints(self, board: 'AbstractBoard'):
         # 初始化模型
@@ -149,7 +162,7 @@ class Value4V2Ep2Ip(AbstractClueValue):
 
             # 初始化对照表
             neighbors = []
-            for pos2, obj in board(key=Rule4V2Ep2Ip.name):
+            for pos2, obj in board(key=NAME_4V_2Ip):
                 # 题板上的位置和共享的偏移位置
                 _positions = [_pos.deviation(pos2).up().left(), pos2]
                 # 第一个为题板对应的变量 第二个为偏移的变量

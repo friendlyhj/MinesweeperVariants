@@ -79,6 +79,11 @@ class Value4Vp(AbstractClueValue):
         value.sort()
         return f"{value[0]} {value[1]}"
 
+    def high_light(self, board: 'AbstractBoard') -> list['AbstractPosition']:
+        return (self.neighbors_list[0] +
+                self.neighbors_list[1] +
+                self.neighbors_list[2])
+
     def compose(self, board) -> List[Dict]:
         value = [self.value_a, self.value_b]
         value.sort()

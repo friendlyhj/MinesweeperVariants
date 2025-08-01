@@ -9,7 +9,7 @@ from abc import ABC, abstractmethod
 from typing import List, Union, TYPE_CHECKING, Dict
 
 if TYPE_CHECKING:
-    from abs.board import AbstractBoard
+    from abs.board import AbstractBoard, AbstractPosition
 
 
 class AbstractRule(ABC):
@@ -126,3 +126,11 @@ class AbstractValue(ABC):
         :return: True合法或未知 False严格非法
         """
         return True
+
+    def high_light(self, board: 'AbstractBoard') -> List['AbstractPosition']:
+        """
+        输入一个题板 随后返回所有应该显示的高光位置(web)
+        :param board: 题板
+        :return: 位置列表
+        """
+        return []

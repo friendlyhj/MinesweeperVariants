@@ -5,7 +5,7 @@
 # @Author  : xxx
 # @FileName: 3S.py
 """
-[3S] 贝壳：线索代表相邻的8个格子中，中间偏上5格范围和中间偏下5格范围里的雷数(顺序不确定)
+[3S] 贝壳：线索代表相邻的8个格子中， 中间偏上5格范围和中间偏下5格范围里的雷数(顺序不确定)
 """
 from typing import List, Dict
 
@@ -61,6 +61,9 @@ class Value3S(AbstractClueValue):
 
     def __repr__(self) -> str:
         return f"{self.count // 10} {self.count % 10}"
+
+    def high_light(self, board: 'AbstractBoard') -> list['AbstractPosition']:
+        return self.neighbor[0] + self.neighbor[1]
 
     def compose(self, board) -> List[Dict]:
         value = [self.count // 10, self.count % 10]

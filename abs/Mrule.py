@@ -102,7 +102,7 @@ class MinesTag(AbstractMinesValue):
 
     def compose(self, board) -> List[Dict]:
         return [get_image(
-            "Flag",
+            "flag",
             cover_pos_label=False
         )]
 

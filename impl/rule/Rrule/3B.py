@@ -7,6 +7,8 @@
 """
 [3B]二进Binary:无雷是0，有雷是1，线索代表每行（左起）和每列（上起）对应两个二进制数的按位异或值
 """
+from typing import List
+
 from abs.Rrule import AbstractClueRule, AbstractClueValue
 from abs.board import AbstractBoard, AbstractPosition
 from utils.solver import get_model
@@ -91,6 +93,9 @@ class Value3B(AbstractClueValue):
         for b in self.bools:
             result = (result << 1) | int(b)
         return f"{result}"
+
+    def high_light(self, board: 'AbstractBoard') -> List['AbstractPosition']:
+        return board.get_row_pos(self.pos) + board.get_col_pos(self.pos)
 
     @classmethod
     def type(cls) -> bytes:

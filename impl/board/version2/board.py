@@ -14,7 +14,6 @@ from abs.rule import AbstractValue
 from utils.impl_obj import VALUE_QUESS, MINES_TAG
 from utils.impl_obj import POSITION_TAG, VALUE_CROSS, VALUE_CIRCLE
 from utils.tool import get_logger
-from .dye import get_dye
 from utils.solver import get_model
 from abs.board import AbstractBoard, AbstractPosition, MASTER_BOARD
 from abs.Rrule import AbstractClueValue
@@ -29,12 +28,17 @@ def get_value(pos=None, code=None):
     return get_value(pos, code)
 
 
+def alpha(n: int) -> str:
+    alpha_map = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    if n < 26:
+        return alpha_map[n]
+    return alpha_map[n // 26 - 1] + alpha_map[n % 26]
+
+
 class Position(AbstractPosition):
     def __repr__(self):
-        if self.y > 25:
-            return ""
-        return (f"{'['+self.board_key+']' if self.board_key != MASTER_BOARD else ''}"
-                f"{'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[self.y]}{self.x+1}")
+        return (f"{self.board_key+':' if self.board_key != MASTER_BOARD else ''}"
+                f"{alpha(self.y)}{self.x+1}")
 
     def _up(self, n: int = 1):
         self.x -= n
@@ -395,8 +399,6 @@ class Board(AbstractBoard):
             self.board_data[key]["obj"][pos.y][pos.x] = value
             self.board_data[key]["type"][pos.y][pos.x] = self.type_value(value)
 
-    def dyed(self, name: str):
-        get_dye(name)().dye(self)
 
     def get_dyed(self, pos: 'Position') -> bool | None:
         key = pos.board_key
