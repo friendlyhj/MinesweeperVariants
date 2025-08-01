@@ -28,6 +28,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # 导入项目核心模块
 
 app = Flask(__name__)
+CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
 hypothesis_data = dict()
 github_web = "https://koolshow.github.io"
 
@@ -446,7 +447,7 @@ def rule_list():
 if __name__ == '__main__':
     port = int(sys.argv[1] if len(sys.argv) == 2 else "5050")
     # 允许所有来源跨域，或根据需要设置 origins=["*"]
-    CORS(app, supports_credentials=True)
+
     # threading.Thread(target=lambda: webbrowser.open(f"http://localhost:{port}", new=2)).start()
     app.run(
         host='0.0.0.0',
