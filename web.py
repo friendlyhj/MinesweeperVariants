@@ -382,15 +382,15 @@ def hint_post():
     # t_hint: list["AbstractPosition"]
 
 
-@app.route('/api/rules', methods=['POST'])
-def rule_list():
+@app.route('/api/rules', methods=['GET'])
+def get_rule_list():
     from impl.rule import get_all_rules
     from impl.board.dye import get_all_dye
     all_rules = get_all_rules()
     rules_info = {}
     for key in ["L", "M", "R"]:
         for name in all_rules[key]:
-            unascii_name = [n for n in rule_list[key][name]["names"] if not n.isascii()]
+            unascii_name = [n for n in all_rules[key][name]["names"] if not n.isascii()]
             zh_name = unascii_name[0] if unascii_name else ""
             rules_info[name] = [
                 key.lower() + "Rule",
