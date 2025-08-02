@@ -423,7 +423,7 @@ class Board(AbstractBoard):
                 if "variable" in self.board_data[_key]:
                     del self.board_data[_key]["variable"]
                 self.board_data[_key]["variable"] = \
-                    [[model.NewBoolVar(f"{_key}.{x}.{y}")
+                    [[model.NewBoolVar(f"var({self.get_pos(x, y, key)})")
                       for y in range(_size[0])]
                      for x in range(_size[1])]
                 get_logger().trace(f"构建新变量:{self.board_data[_key]['variable']}")

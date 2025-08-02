@@ -5,6 +5,7 @@
 # @Author  : Wu_RH
 # @FileName: game.py
 import threading
+import time
 from typing import Union, Callable
 import itertools as it
 
@@ -97,14 +98,14 @@ class GameSession:
             # 没有运行则启动新线程
             def hint_task():
                 try:
-                    # print("hint start"+"!" * 50)
-                    # print("hint start"+"!" * 50)
-                    # print("hint start"+"!" * 50)
+                    print("hint start"+"!" * 50)
+                    print("hint start"+"!" * 50)
+                    print("hint start"+"!" * 50)
                     res = self._hint(r)  # 直接计算
-                    # print("hint end"+"!" * 50)
-                    # print("hint end"+"!" * 50)
-                    # print("hint end"+"!" * 50)
-                    # print("hint: " + str(res))
+                    print("hint end"+"!" * 50)
+                    print("hint end"+"!" * 50)
+                    print("hint end"+"!" * 50)
+                    print("hint: " + str(res))
                 except Exception as e:
                     print(f"提示计算崩溃: {e}")
                     raise  # 重新抛出异常
@@ -135,14 +136,16 @@ class GameSession:
             # 没有运行则启动新线程
             def deduce_task():
                 try:
-                    # print("deduced start"+"!" * 50)
-                    # print("deduced start"+"!" * 50)
-                    # print("deduced start"+"!" * 50)
+                    t = time.time()
+                    print("deduced start"+"!" * 50)
+                    print("deduced start"+"!" * 50)
+                    print("deduced start"+"!" * 50)
                     res = self._deduced(r)  # 直接计算
-                    # print("deduced end"+"!" * 50)
-                    # print("deduced end"+"!" * 50)
-                    # print("deduced end"+"!" * 50)
-                    # print(res)
+                    print("deduced end"+"!" * 50)
+                    print("deduced end"+"!" * 50)
+                    print("deduced end"+"!" * 50)
+                    print(res)
+                    print(time.time() - t)
                 except Exception as e:
                     print(f"推导计算崩溃: {e}")
                     raise  # 重新抛出异常
@@ -218,75 +221,6 @@ class GameSession:
         self.board = board
         return board
 
-    def apply(self, pos: AbstractPosition, action: int) -> Union["AbstractBoard", None]:
-        """
-        :param pos: 交互位置
-        :param action: 操作代码
-            0: 左键点击/翻开/设置非雷
-            1: 右键点击/标雷/设置必雷
-        """
-        if self.mode == PUZZLE:
-            if action == 1:
-                value_tag = self.board.get_config(pos.board_key, "MINES")
-                self.board.set_value(pos, value_tag)
-            elif action == 0:
-                value_tag = self.board.get_config(pos.board_key, "VALUE")
-                self.board.set_value(pos, VALUE_TAG if value_tag == VALUE_QUESS else value_tag)
-            return self.board
-        if self.board.get_type(pos) != "N":
-            # 等会再写交互罢:D
-            # 懒b ↑
-            return self.board
-        if self.answer_board.get_type(pos) == "C":
-            if action == 1:
-                # 标错了
-                return None
-            if self.mode == NORMAL:
-                self.board.set_value(pos, self.answer_board.get_value(pos))
-                return self.board
-            elif self.mode == EXPERT:
-                if pos in self.deduced():
-                    self.board.set_value(pos, self.answer_board.get_value(pos))
-                    return self.board
-                else:
-                    return None
-            elif self.mode == ULTIMATE:
-                if pos in self.deduced():
-                    self.board.set_value(pos, VALUE_TAG)
-                else:
-                    return None
-                if not self.deduced():
-                    # 全部都推完了
-                    ...
-                return self.board
-
-        elif self.answer_board.get_type(pos) == "F":
-            if action == 0:
-                # 踩雷了
-                return None
-            if self.mode == NORMAL:
-                self.board.set_value(pos, self.answer_board.get_value(pos))
-                return self.board
-            elif self.mode == EXPERT:
-                if pos in self.deduced():
-                    self.board.set_value(pos, self.answer_board.get_value(pos))
-                    return self.board
-                else:
-                    return None
-            elif self.mode == ULTIMATE:
-                if pos in self.deduced():
-                    value_tag = self.board.get_config(pos.board_key, "MINES")
-                    self.board.set_value(pos, value_tag)
-                else:
-                    return None
-                if not self.deduced():
-                    # 全部都推完了
-                    ...
-                return self.board
-        else:
-            # 你答案题板为啥有None?
-            self.logger.warn("答案题板携带None")
-
     def chord_clue(self, clue_pos: AbstractPosition) -> list[AbstractPosition]:
         # 看最后一次提示有没有包含该格的单线索
         VALUE = self.board.get_config(clue_pos.board_key, "VALUE")
@@ -306,6 +240,11 @@ class GameSession:
         board: AbstractBoard = self.board.clone()
         chord_positions = []
         if obj.deduce_cells(board) is not None:
+            print("used fn deduce_cells")
+            print("used fn deduce_cells")
+            print("used fn deduce_cells")
+            print("used fn deduce_cells")
+            print("used fn deduce_cells")
             for pos, obj in self.board():
                 if (obj is None) and (board[pos] is not None):
                     chord_positions.append(pos)
@@ -363,11 +302,77 @@ class GameSession:
 
         return chord_positions
 
+    def apply(self, pos: AbstractPosition, action: int) -> Union["AbstractBoard", None]:
+        """
+        :param pos: 交互位置
+        :param action: 操作代码
+            0: 左键点击/翻开/设置非雷
+            1: 右键点击/标雷/设置必雷
+        """
+        global NORMAL, EXPERT, ULTIMATE, PUZZLE
+        if self.mode == PUZZLE:
+            if action == 1:
+                value_tag = self.board.get_config(pos.board_key, "MINES")
+                self.board.set_value(pos, value_tag)
+            elif action == 0:
+                value_tag = self.board.get_config(pos.board_key, "VALUE")
+                self.board.set_value(pos, VALUE_TAG if value_tag == VALUE_QUESS else value_tag)
+            return self.board
+        if self.board.get_type(pos) != "N":
+            # 点击了线索
+            chord_positions = self.chord_clue(pos)
+            if self.mode in [NORMAL, EXPERT]:
+                # 普通和专家直接设置值
+                for _pos in chord_positions:
+                    self.board[_pos] = self.answer_board[_pos]
+            elif self.mode in [ULTIMATE, PUZZLE]:
+                # 如果是纸笔和专家就放标志
+                for _pos in chord_positions:
+                    if self.answer_board.get_type(_pos) == "F":
+                        self.board[_pos] = MINES_TAG
+                    elif self.answer_board.get_type(_pos) == "C":
+                        self.board[_pos] = VALUE_TAG
+        elif self.mode == NORMAL:
+            # 普通模式
+            if action and self.answer_board.get_type(pos) == "F":
+                return None
+            if not action and self.answer_board.get_type(pos) == "C":
+                return None
+            self.board[pos] = self.answer_board[pos]
+        elif self.mode in [EXPERT, ULTIMATE, PUZZLE]:
+            # 专家模式
+            if pos not in self.deduced_values.keys():
+                self.deduced()
+            if pos not in self.deduced_values.keys():
+                return None
+            if action and self.board.type_value(self.deduced_values[pos]) == "C":
+                return None
+            if not action and self.board.type_value(self.deduced_values[pos]) == "F":
+                return None
+            if self.mode in [ULTIMATE, PUZZLE]:
+                self.board[pos] = MINES_TAG if action else VALUE_TAG
+            else:
+                self.board[pos] = self.answer_board[pos]
+        else:
+            return None
+        for pos, _ in self.board("CF"):
+            if pos in self.deduced_values.keys():
+                del self.deduced_values[pos]
+        if (
+            self.mode in [ULTIMATE, PUZZLE] and
+            self.ultimate_mode & ULTIMATE_A
+        ):
+            print(self.drop_r)
+            if not self.deduced():
+                self.hint()
+        return self.board
+
     def click(self, pos: "AbstractPosition") -> Union["AbstractBoard", None]:
         """
         翻开/点击 某个空白格
         :param pos: 翻开的位置
         """
+        t = time.time()
         global NORMAL, EXPERT, ULTIMATE, PUZZLE
         if self.board.get_type(pos) != "N":
             # 点击了线索
@@ -412,6 +417,7 @@ class GameSession:
             print(self.drop_r)
             if not self.deduced():
                 self.hint()
+        print("click time: ", time.time() - t)
         return self.board
 
     def mark(self, pos: AbstractPosition) -> Union["AbstractBoard", None]:
@@ -800,20 +806,23 @@ class GameSession:
 
 
 if __name__ == '__main__':
-    get_random(seed=4941992)
+    get_random(new=True, seed=9578119)
+    # get_random(seed=4941992)
     size = (5, 5)
-    rules = ["V"]
+    rules = ["3A"]
     s = Summon(size, -1, rules)
     g = GameSession(s, ULTIMATE, True, 8)
     g.answer_board = s.summon_board()
-    g.create_board()
-    while "N" in g.board:
-        print(g.hint())
-        print(g.deduced_values)
-        print(g.board)
-        for p, v in list(g.deduced_values.items())[:]:
-            if v is MINES_TAG:
-                g.click(p)
-            else:
-                g.mark(p)
-    print(g.__dict__)
+    # g.create_board()
+    # while "N" in g.board:
+    #     print(g.hint())
+    #     print(g.deduced_values)
+    #     print(g.board)
+    #     for p, v in list(g.deduced_values.items())[:]:
+    #         if v is MINES_TAG:
+    #             g.click(p)
+    #         else:
+    #             g.mark(p)
+    # print(g.__dict__)
+    print(g.answer_board)
+    print(g.answer_board[g.answer_board.get_pos(1, 1)].high_light(g.answer_board))

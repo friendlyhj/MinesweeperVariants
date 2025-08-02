@@ -1,3 +1,5 @@
+import os
+
 from PIL import Image, ImageDraw, ImageFont
 from typing import Dict, Tuple
 
@@ -366,7 +368,11 @@ class Renderer:
 
     def _render_image(self, image: Image.Image, element: Dict,
                       box: Tuple[float, float, float, float]):
-        img = element['image']
+        path = f"assets/{element['image']}.png"
+        if not os.path.exists(path):
+            return None
+        img = Image.open(path).convert("RGBA")
+
         box_x, box_y, box_w, box_h = box
 
         # 获取原始尺寸
