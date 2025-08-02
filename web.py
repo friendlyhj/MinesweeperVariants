@@ -216,7 +216,7 @@ def generate_board():
         #              "Z8BP9GfP9GfP9WfAL_Rnz_VnwG_0Z8_1Z8BP9WfAH_Rnz_Rnz_R"
         #              "nz_VnwD_1Z8Af9WfAL_VnwD_1Z8Av9WfAL_Rnw=:0167b5ba")
         code = None
-        gamemode = "ULTIMATE"
+        gamemode = "EXPERT"
         ultimate_mode = 1
         total = 10
         used_r = True
@@ -356,17 +356,16 @@ def click():
     return refresh, 200
 
 
-@app.route('/api/hint', methods=['POST'])
+@app.route('/api/hint', methods=['GET'])
 def hint_post():
     global hypothesis_data
-    data = request.get_json()
-    count = data.get("count", 0)
+    count = int(request.args.get("count", 0))
     game = hypothesis_data["game"]
     hint_list = game.hint(wait=True)
     for hint in hint_list:
         print(hint[0], "->", hint[1])
     print("hint end")
-    return {}, 200
+    return {}, 200  # 格式和click返回应一样
     # if count > 1:
     #     hint_list = game.hint(wait=True)
     #     min_length = min(len(tup[0]) for tup in hint_list)
