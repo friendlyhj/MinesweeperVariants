@@ -156,14 +156,13 @@ def format_cell(_board, pos):
     return cell_data
 
 
-def format_board(_board, rule=""):
+def format_board(_board):
     if _board is None:
         return
     # board: Board
     board_data: dict = {
-        "rules": rule,
         "boards": {},
-        "cells": []
+        "cells": [],
     }
     count = 0
     for key in _board.get_board_keys():
@@ -182,61 +181,55 @@ def format_board(_board, rule=""):
     return board_data
 
 
-# @app.route('/')
-# def index():
-#     return render_template('index.html')
-
-
 @app.route('/')
 def root():
     return redirect("https://koolshow.github.io/MinesweeperVariants-Vue/")
 
 
-@app.route('/api/metadata')
+@app.route('/api/new')
 def generate_board():
     global hypothesis_data
-    from utils.tool import get_random
+    from impl.summon.game import NORMAL, EXPERT, ULTIMATE, PUZZLE
+    from impl.summon.game import ULTIMATE_R, ULTIMATE_S, ULTIMATE_F, ULTIMATE_A
+    # from utils.tool import get_random
     # get_random(new=True, seed=8205162)
     if "game" in hypothesis_data and ("N" in hypothesis_data["game"].board):
         return jsonify(format_board(hypothesis_data["game"].board))
     answer_board = None
     mask_board = None
-    if mask_board:
-        data = request.get_json()
-        code = data.get("code", None)
-        used_r = data.get("used_r", False)
-        ultimate_mode = data.get("u_mode", "+A")
-
-        total = data.get("code", -1)
-        dye = data.get("dye", "")
-
-        gamemode = data.get("mode", "EXPERT")
-    else:
-        # code: str = ("bWFpbv8FBQP_P3z_Rnz_VnwB_0Z8_1Z8BP9GfP9WfAL_VnwC_1"
-        #              "Z8BP9GfP9GfP9WfAL_Rnz_VnwG_0Z8_1Z8BP9WfAH_Rnz_Rnz_R"
-        #              "nz_VnwD_1Z8Af9WfAL_VnwD_1Z8Av9WfAL_Rnw=:0167b5ba")
-        code = None
-        gamemode = "EXPERT"
-        ultimate_mode = 1
-        total = 10
-        used_r = True
-        dye = ""
-        data = {"size": (5, 5)}
+    data = request.get_json()
+    code = data.get("code", None)
+    used_r = data.get("used_r", True)
+    rules = data.get("rules", "V").split(",")
+    ultimate_mode = data.get("u_mode", "+A")
+    total = data.get("code", -1)
+    dye = data.get("dye", "")
+    gamemode = data.get("mode", "EXPERT")
     mode = 1
     match gamemode:
         case "NORMAL":
-            mode = 0
+            mode = NORMAL
         case "EXPERT":
-            mode = 1
+            mode = EXPERT
         case "ULTIMATE":
-            mode = 2
+            mode = ULTIMATE
         case "PAZZLE":
-            mode = 3
+            mode = PUZZLE
+    u_mode = 0
+    if "+A" in ultimate_mode:
+        u_mode |= ULTIMATE_A
+    if "+F" in ultimate_mode:
+        u_mode |= ULTIMATE_F
+    if "+S" in ultimate_mode:
+        u_mode |= ULTIMATE_S
+    if "+R" in ultimate_mode:
+        u_mode |= ULTIMATE_R
+
     # print(mode)
-    print(123456)
+    # print(123456)
     if code:
         code, mask = code.split(":", 1)
-        print(code, mask)
+        # print(code, mask)
         answer_board = decode_board(code, None)
         mask = int.from_bytes(bytes.fromhex(mask), "big", signed=False)
         mask_board = answer_board.clone()
@@ -247,10 +240,8 @@ def generate_board():
         master_key = mask_board.get_board_keys()[0]
         size = mask_board.get_config(master_key, "size")
     else:
-        size = data["size"]
+        size = [int(i) for i in data["size"].split("x")]
 
-    # rules = data["rules"]
-    rules = ["V"]
     hypothesis_data["summon"] = Summon(
         size, total, rules, used_r, dye
     )
@@ -258,40 +249,63 @@ def generate_board():
         summon=hypothesis_data["summon"],
         mode=mode,
         drop_r=not used_r,
-        ultimate_mode=ultimate_mode
+        ultimate_mode=u_mode
     )
     if code:
         hypothesis_data["game"].answer_board = answer_board
         hypothesis_data["game"].board = mask_board
     else:
-        print(2)
+        # print(2)
         if mode < 3:
-            # try:
-            print(4)
-            print(hypothesis_data)
-            hypothesis_data["game"].answer_board = hypothesis_data["summon"].summon_board()
-            mask_board = hypothesis_data["game"].create_board()
-            print(5)
-            # except Exception as e:
-            #     print(e)
-            #     return jsonify({"error": "generate failed"}), 500
+            try:
+                hypothesis_data["game"].answer_board = hypothesis_data["summon"].summon_board()
+                mask_board = hypothesis_data["game"].create_board()
+            except:
+                return jsonify({"error": "generate failed"}), 500
         else:
             try:
                 mask_board = hypothesis_data["summon"].create_puzzle()
-                ...
             except:
                 return jsonify({"error": "generate failed"}), 500
             hypothesis_data["game"].answer_board = hypothesis_data["summon"].answer_board
-        print(3)
+    if dye:
+        rules += [f"@{dye}"]
         # answer_board = hypothesis_data["game"].answer_board
     # print(hypothesis_data)
     # print(answer_board.show_board())
     hypothesis_data["game"].deduced(wait=False)
+    hypothesis_data["rules"] = rules[:]
+    board_data = format_board(mask_board)
+    board_data["rules"] = hypothesis_data["rules"]
+    remains = [-1, -1, 0]
+    remains[2] = len([_ for _ in mask_board("N")])
+    if not hypothesis_data["game"].drop_r:
+        remains[0] = len([_ for _ in mask_board("F")])
+        remains[1] = len([_ for pos, _ in answer_board("F") if mask_board.get_type(pos) == "N"])
+    else:
+        remains[0] = "*"
+        remains[1] = "*"
+    board_data["remains"] = remains
+    return jsonify(board_data)
 
-    response = jsonify(
-        format_board(mask_board, "123456")
-    )
-    return response
+
+@app.route('/api/metadata')
+def metadata():
+    if "game" in hypothesis_data:
+        board = hypothesis_data["game"].board
+        a_board = hypothesis_data["game"].answer_board
+        board_data = format_board(board)
+        remains = [-1, -1, 0]
+        remains[2] = len([_ for _ in board("N")])
+        if not hypothesis_data["game"].drop_r:
+            remains[0] = len([_ for _ in board("F")])
+            remains[1] = len([_ for pos, _ in a_board("F") if board.get_type(pos) == "N"])
+        else:
+            remains[0] = "*"
+            remains[1] = "*"
+        board_data["remains"] = remains
+        return jsonify(board_data)
+    return {}
 
 
 @app.route('/api/click', methods=['POST'])
@@ -322,12 +336,13 @@ def click():
         _board = None
     print("end click")
     # print(game.answer_board.show_board())
+
     if _board is None:
         if data["button"] == "left":
             refresh["reason"] = "你踩雷了"
         elif data["button"] == "right":
             refresh["reason"] = "你标记了一个错误的雷"
-        refresh["gameover"] = False
+        refresh["gameover"] = True
     else:
         for pos, obj in _board():
             if obj is None and board[pos] is None:
@@ -352,6 +367,16 @@ def click():
     #     print(game.deduced())
     #     print(game.last_hint[1])
     hypothesis_data["game"].deduced(wait=False)
+    a_board = hypothesis_data["game"].answer_board
+    remains = [-1, -1, 0]
+    remains[2] = len([_ for _ in board("N")])
+    if not hypothesis_data["game"].drop_r:
+        remains[0] = len([_ for _ in board("F")])
+        remains[1] = len([_ for pos, _ in a_board("F") if board.get_type(pos) == "N"])
+    else:
+        remains[0] = "*"
+        remains[1] = "*"
+    refresh["remains"] = remains
     print(refresh)
     return refresh, 200
 
