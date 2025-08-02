@@ -393,7 +393,7 @@ def click():
         remains[0] = "*"
         remains[1] = "*"
     refresh["remains"] = remains
-    print(refresh)
+    print("refresh: " + str(refresh))
     return refresh, 200
 
 
