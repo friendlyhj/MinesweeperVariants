@@ -33,7 +33,7 @@ hypothesis_data = dict()
 github_web = "https://koolshow.github.io"
 
 
-def format_cell(_board, pos):
+def format_cell(_board, pos, hint=0):
     def init_component(data) -> dict:
         if data["type"] in ["col", "row"]:
             style = "display: flex; "
@@ -103,10 +103,19 @@ def format_cell(_board, pos):
     dye = _board.get_dyed(pos)
     primary_color = "--flag-color" if _board.get_type(pos) == "F" else "--foreground-color"
     if obj is None:
-        cell_data = init_component({
-            "type": "row",
-            "children": []
-        })
+        if hint == 2:
+            cell_data = init_component({
+                "type": "row",
+                "children": [{
+                    "type": "text",
+                    "text": "!"
+                }]
+            })
+        else:
+            cell_data = init_component({
+                "type": "row",
+                "children": []
+            })
     else:
         # print(obj.compose(_board, True))
         cell_data = init_component({
@@ -116,6 +125,10 @@ def format_cell(_board, pos):
     if dye:
         # TODO 将(255, 255, 255) 改为 --foreground-color
         cell_data["style"] += " background-color: rgba(255, 255, 255, 0.296875);"
+    if hint == 1:
+        cell_data["style"] += " background-color: rgba(255, 255, 0, 0.296875);"
+    if hint == 2:
+        cell_data["style"] += " background-color: rgba(0, 255, 0, 0.296875);"
     cell_data["style"] += " width: 100%; height: 100%; align-items: center; justify-content: center;"
     VALUE = _board.get_config(pos.board_key, "VALUE")
     MINES = _board.get_config(pos.board_key, "MINES")
@@ -259,14 +272,18 @@ def generate_board():
             try:
                 hypothesis_data["game"].answer_board = hypothesis_data["summon"].summon_board()
                 mask_board = hypothesis_data["game"].create_board()
+                print(123456)
             except:
                 return jsonify({"error": "generate failed"}), 500
+            answer_board = hypothesis_data["game"].answer_board
+            print(answer_board)
         else:
             try:
                 mask_board = hypothesis_data["summon"].create_puzzle()
             except:
                 return jsonify({"error": "generate failed"}), 500
             hypothesis_data["game"].answer_board = hypothesis_data["summon"].answer_board
+            answer_board = hypothesis_data["summon"].answer_board
     if dye:
         rules += [f"@{dye}"]
         # answer_board = hypothesis_data["game"].answer_board
@@ -389,22 +406,31 @@ def hint_post():
     for hint in hint_list:
         print(hint[0], "->", hint[1])
     print("hint end")
-    return {}, 200  # 格式和click返回应一样
-    # if count > 1:
-    #     hint_list = game.hint(wait=True)
-    #     min_length = min(len(tup[0]) for tup in hint_list)
-    #     # 步骤2: 收集所有第一个列表长度等于最小长度的二元组
-    #     hint_list = [tup for tup in hint_list if len(tup[0]) == min_length]
-    #     count -= 1
-    # else:
-    #     deduced_dict = game.deduced(wait=True)
-    #     hint_list = [[], deduced_dict.values()]
-    #
-    # b_hint, t_hint = hint_list[count]
-    # # 由...
-    # b_hint: list[Union["AbstractPosition", list["AbstractRule", int]]]
-    # # 推出的坐标列表
-    # t_hint: list["AbstractPosition"]
+    # return {}, 200  # 格式和click返回应一样
+    print(count)
+    if count > 1:
+        hint_list = game.hint(wait=True)
+        min_length = min(len(tup[0]) for tup in hint_list)
+        # 步骤2: 收集所有第一个列表长度等于最小长度的二元组
+        hint_list = [tup for tup in hint_list if len(tup[0]) == min_length]
+        count -= 1
+    else:
+        deduced_dict = game.deduced(wait=True)
+        hint_list = [([], list(deduced_dict.keys()))]
+
+    count -= 1
+
+    print(hint_list)
+    print(hint_list[count])
+    b_hint, t_hint = hint_list[count]
+    # 由...
+    b_hint: list[Union["AbstractPosition", list["AbstractRule", int]]]
+    # 推出的坐标列表
+    t_hint: list["AbstractPosition"]
+    print(b_hint, "->", t_hint)
+    cell_data = [format_cell(game.board, p, hint=1) for p in b_hint]
+    cell_data += [format_cell(game.board, p, hint=2) for p in t_hint]
+    return jsonify({"cells": cell_data}), 200
 
 
 @app.route('/api/rules', methods=['GET'])
