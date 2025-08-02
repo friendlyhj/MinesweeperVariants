@@ -197,14 +197,13 @@ def generate_board():
         return jsonify(format_board(hypothesis_data["game"].board))
     answer_board = None
     mask_board = None
-    data = request.get_json()
-    code = data.get("code", None)
-    used_r = data.get("used_r", True)
-    rules = data.get("rules", "V").split(",")
-    ultimate_mode = data.get("u_mode", "+A")
-    total = data.get("code", -1)
-    dye = data.get("dye", "")
-    gamemode = data.get("mode", "EXPERT")
+    code = request.args.get("code", None)
+    used_r = request.args.get("used_r", "true").lower() == "true"
+    rules = request.args.get("rules", "V").split(",")
+    ultimate_mode = request.args.get("u_mode", "+A")
+    total = int(request.args.get("total", -1))
+    dye = request.args.get("dye", "")
+    gamemode = request.args.get("mode", "EXPERT")
     mode = 1
     match gamemode:
         case "NORMAL":
@@ -240,7 +239,7 @@ def generate_board():
         master_key = mask_board.get_board_keys()[0]
         size = mask_board.get_config(master_key, "size")
     else:
-        size = [int(i) for i in data["size"].split("x")]
+        size = [int(i) for i in request.args.get("size", None).split("x")]
 
     hypothesis_data["summon"] = Summon(
         size, total, rules, used_r, dye
