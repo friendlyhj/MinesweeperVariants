@@ -161,7 +161,8 @@ class Value3A(AbstractClueValue):
         pos = self.pos.clone()
         path = (self.dir + 1) % 4
         position = []
-        for _ in range(self.value):
+        value = float("inf") if self.value == 0 else self.value
+        while True:
             if not board.in_bounds(pos):
                 break
             if board.get_type(pos) == "N":
@@ -184,6 +185,14 @@ class Value3A(AbstractClueValue):
                     pos = pos.up()
                 case 3:
                     pos = pos.right()
+            if (
+                pos == self.pos and
+                path == (self.dir + 1) % 4
+            ):
+                break
+            value -= 1
+            if value == 0:
+                break
         print(self.value, position)
         return position
 

@@ -75,7 +75,7 @@ def format_cell(_board, pos):
             }
 
         elif data["type"] == "image":
-            path = data.get("image")[7:-4]
+            path = data.get("image")
             # 图片项：保持比例，居中显示
             return {
                 "type": "assets",
@@ -195,6 +195,8 @@ def root():
 @app.route('/api/metadata')
 def generate_board():
     global hypothesis_data
+    from utils.tool import get_random
+    # get_random(new=True, seed=8205162)
     if "game" in hypothesis_data and ("N" in hypothesis_data["game"].board):
         return jsonify(format_board(hypothesis_data["game"].board))
     answer_board = None
@@ -318,7 +320,7 @@ def click():
         _board = game.mark(pos)
     else:
         _board = None
-    # print("end click")
+    print("end click")
     # print(game.answer_board.show_board())
     if _board is None:
         if data["button"] == "left":

@@ -70,10 +70,9 @@ def get_image(
         dominant = None
     else:
         dominant = "height" if dominant_by_height else "width"
-    path = f"assets/{image_path}.png"
     return {
         'type': 'image',
-        'image': path,  # 图片对象
+        'image': image_path,  # 图片对象
         'height': image_height,  # 高度（单元格单位或auto）
         'width': image_width,   # 宽度（单元格单位或auto）
         "cover": cover_pos_label,
