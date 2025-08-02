@@ -182,8 +182,8 @@ def format_board(_board):
         board_data["boards"][key] = _board.get_config(key, "size")
         for pos, obj in _board():
             # continue
-            if obj is None:
-                continue
+            # if obj is None:
+            #     continue
             board_data["cells"].append(
                 format_cell(_board, pos))
             count += 1
