@@ -22,12 +22,6 @@ class AbstractMinesClueRule(AbstractRule):
     """
 
     @abstractmethod
-    def mines_class(self):
-        """
-        返回规则对应的Mines雷线索类
-        """
-
-    @abstractmethod
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':
         """
         将在左线放置完成后调用
@@ -35,23 +29,6 @@ class AbstractMinesClueRule(AbstractRule):
         :param board: 题板
         :return: 题板
         """
-
-    def create_constraints(self, board: 'AbstractBoard') -> bool:
-        """
-        默认直接遍历板中的所有线索添加约束函数
-        :param board: 输入题板
-        :return: 需要返回时候包含全部线索约束 True已经包含全部约束 False未包含全部约束
-        """
-        strict = True
-        for key in board.get_board_keys():
-            for _, obj in board("F", key=key):
-                if not isinstance(obj, self.mines_class()):
-                    continue
-                if obj.method_choose() & 1:
-                    obj.create_constraints(board)
-                else:
-                    strict = False
-        return strict
 
 
 class AbstractMinesValue(AbstractValue, ABC):
@@ -66,7 +43,7 @@ class AbstractMinesValue(AbstractValue, ABC):
         当前值在展示时候的显示字符串
         :return: 显示的字符串
         """
-        return "_F_"
+        return "F"
 
     def compose(self, board: 'AbstractBoard', web) -> Dict:
         """

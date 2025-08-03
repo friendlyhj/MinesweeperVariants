@@ -26,14 +26,6 @@ class AbstractMinesRule(AbstractRule):
     name: 需要命名为字符串常量 字符串为规则的名称 如0R被命名为"0R"
     """
 
-    def deduce_cells(self, board: 'AbstractBoard') -> bool:
-        """
-        快速检查当前题板并修改可以直接得出结论的地方
-        :param board: 输入题板
-        :return: 是否修改了 True 修改 False 未修改
-        """
-        return False
-
     def create_constraints(self, board: 'AbstractBoard'):
         """
         基于当前线索对象向 CP-SAT 模型添加约束。
@@ -52,22 +44,6 @@ class AbstractMinesRule(AbstractRule):
         :return: True合法 False非法
         """
         return True
-
-    @classmethod
-    @abstractmethod
-    def method_choose(cls) -> int:
-        """
-        需要返回选择哪个方法进行遍历
-        使用1至3的代码选择实现的方法
-        推荐优先实现约束生成
-        1: create_constraints方法 构建约束列表
-        2: check方法/lazy_check方法 检查题板是否符合规则
-        """
-
-    def init_board(self, board: 'AbstractBoard'):
-        """
-        用于生成answer.png 需要将题板填充至无空
-        """
 
 
 # --------实例类-------- #

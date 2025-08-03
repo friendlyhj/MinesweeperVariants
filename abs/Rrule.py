@@ -29,50 +29,18 @@ class AbstractClueRule(AbstractRule):
         """
         ...
 
-    @abstractmethod
-    def clue_class(self):
-        """
-        返回规则对应的Value线索类
-        """
-        ...
-
-    def create_constraints(self, board: 'AbstractBoard') -> bool:
-        """
-        默认直接遍历板中的所有线索添加约束函数
-        :param board: 输入题板
-        :return: 需要返回时候包含全部线索约束 True已经包含全部约束 False未包含全部约束
-        """
-        strict = True
-        for key in board.get_board_keys():
-            for _, obj in board("C", key=key):
-                if not isinstance(obj, self.clue_class()):
-                    continue
-                if obj.method_choose() & 1:
-                    obj.create_constraints(board)
-                else:
-                    strict = False
-        return strict
-
 
 class AbstractClueValue(AbstractValue):
     """
     线索格数字对象类
     """
 
-    @abstractmethod
-    def __init__(self, pos: 'AbstractPosition', code: bytes = b''):
-        """
-        获取code并初始化 输入值为code函数的返回值
-        :param code: 实例对象代码
-        """
-        self.pos = pos
-
     def __repr__(self) -> str:
         """
         当前值在展示时候的显示字符串
         :return: 显示的字符串
         """
-        return ""
+        return "?"
 
     def compose(self, board, web) -> Dict:
         """

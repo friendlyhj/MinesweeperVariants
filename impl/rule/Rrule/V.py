@@ -92,7 +92,7 @@ class ValueV(AbstractClueValue):
 
         # 添加约束：周围雷数等于count
         if neighbor_vars:
-            model.Add(sum(neighbor_vars) == self.count)
+            model.Add(sum(neighbor_vars) == self.count).OnlyEnforceIf
             get_logger().trace(f"[V] Value[{self.pos}: {self.count}] add: {neighbor_vars} == {self.count}")
 
     def check(self, board: 'AbstractBoard') -> bool:
