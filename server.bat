@@ -14,6 +14,6 @@ if exist ".venv\Scripts\python.exe" (
 )
 
 REM 执行 Python 脚本并传入所有命令行参数
-%PYTHON_EXEC% api.py %*
+%PYTHON_EXEC% web.py %*
 
-endlocal
+pause

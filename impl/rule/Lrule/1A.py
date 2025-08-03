@@ -10,20 +10,15 @@
 
 from abs.Lrule import AbstractMinesRule
 from abs.board import AbstractBoard
-from utils.solver import get_model
 
 
 class Rule1A(AbstractMinesRule):
-    name = ["1A", "无马步", "Anti-Knight"]
+    name = ["1A", "A", "无马步", "Anti-Knight"]
     doc = "所有雷的马步位置不能有雷"
-    subrules = [
-        [True, "[1A]无马步"]
-    ]
 
-    def create_constraints(self, board: 'AbstractBoard'):
-        if not self.subrules[0][0]:
-            return
-        model = get_model()
+    def create_constraints(self, board: 'AbstractBoard', switch):
+        model = board.get_model()
+        b = switch.get(model, self)
         for pos, var in board(mode="variable"):
             pos_list = [
                 pos.left(2).up(1),
@@ -33,7 +28,7 @@ class Rule1A(AbstractMinesRule):
             ]
             var_list = board.batch(pos_list, mode="variable", drop_none=True)
             for _var in var_list:
-                model.AddBoolOr([_var.Not(), var.Not()])
+                model.AddBoolOr([_var.Not(), var.Not()]).OnlyEnforceIf(b)
 
     @classmethod
     def method_choose(cls) -> int:

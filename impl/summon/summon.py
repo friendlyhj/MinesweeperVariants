@@ -15,7 +15,6 @@ from ortools.sat.python import cp_model
 from abs.Mrule import AbstractMinesClueRule
 from abs.Rrule import AbstractClueRule
 from utils.impl_obj import set_total, VALUE_QUESS, MINES_TAG
-from utils.solver import reset_model
 from .solver import solver_by_csp
 from utils.tool import get_random, get_logger
 
@@ -96,7 +95,7 @@ class Summon:
         # 左线规则初始化
         self.mines_rules = MinesRules(mines_rules)
         for rule in mines_rules:
-            if rule.name == "R":
+            if "R" in rule.name:
                 continue
             if type(rule.name) is str:
                 rules.append(rule.name)
@@ -106,6 +105,7 @@ class Summon:
         # 右线规则初始化
         if len(clue_rules) == 0:
             self.clue_rule = get_rule("V")(board=self.board, data=None)
+            rules.append("V")
         elif len(clue_rules) > 1:
             self.clue_rule = get_rule("#")(board=self.board, data=clue_rules)
             rules.append("#")
@@ -191,7 +191,7 @@ class Summon:
                 set_total(total=n)
                 return
 
-            model = reset_model()
+            model = cp_model.CpModel()
 
             total_var = model.NewIntVar(0, ub, "total")
             model.Add(total_var == n)

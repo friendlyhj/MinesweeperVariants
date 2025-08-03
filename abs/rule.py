@@ -8,29 +8,28 @@
 from abc import ABC, abstractmethod
 from typing import List, Union, TYPE_CHECKING, Dict, Tuple
 
+
 if TYPE_CHECKING:
     from abs.board import AbstractBoard, AbstractPosition
+    from impl.summon.solver import Switch
 
 
 class AbstractRule(ABC):
     # 规则名称
     name: Union[Tuple[str], List[str], str] = None
 
-    """
-    subrules: 如果该规则需要使用线索数检查的话 就必须实现该属性
-        列表内为一个二元列表 其二元列表第一个为一个bool值用来表示该规则的子规则约束模块的开关
-        并对应到check和create_constraints这个两个函数 bool:True表示开启 False表示关闭
-        其二元列表的第二个是该子规则模块的描述 用来在线索的时候返回
-    """
-    subrules: list[list[bool, str]] = []
-
     def __init__(self, board: "AbstractBoard" = None, data=None) -> None:
         ...
 
-    def init_clear(self, board: 'AbstractBoard'):
+    def create_constraints(self, board: 'AbstractBoard', switch: 'Switch') -> bool:
         """
-        在题板生成阶段调用，用于删除题板上必须被清除的线索或对象。
-        例如纸笔题目中，某些规则可能要求特定位置不能出现雷或线索。
+        基于当前线索对象向 CP-SAT 模型添加约束。
+        此方法根据当前线索的位置与规则，分析题板上的变量布局，并在模型中添加等价的逻辑约束表达式。
+        所有变量必须来源于 board.get_variable(pos) 返回的变量。
+        model 可以通过 board.get_model() 获取。
+
+        :param board: 输入的题板对象
+        :param switch: 接收当前规则，返回一个布尔变量，作为该线索激活开关；约束只在该变量为 True 时生效
         """
 
     def suggest_total(self, info: dict):
@@ -50,8 +49,27 @@ class AbstractRule(ABC):
         规则在生成阶段调用，向`info`添加硬约束，并通过调用 `info` 根键的软约束函数实现软约束。
         """
 
+    def init_board(self, board: 'AbstractBoard'):
+        """
+        用于生成answer.png 需要将题板填充至无空
+        """
+
+    def init_clear(self, board: 'AbstractBoard'):
+        """
+        在题板生成阶段调用，用于删除题板上必须被清除的线索或对象。
+        例如纸笔题目中，某些规则可能要求特定位置不能出现雷或线索。
+        """
+
 
 class AbstractValue(ABC):
+    @abstractmethod
+    def __init__(self, pos: 'AbstractPosition', code: bytes = b''):
+        """
+        获取code并初始化 输入值为code函数的返回值
+        :param code: 实例对象代码
+        """
+        self.pos = pos
+
     def __repr__(self):
         ...
 
@@ -64,24 +82,6 @@ class AbstractValue(ABC):
 
     @classmethod
     @abstractmethod
-    def method_choose(cls) -> int:
-        """
-        需要返回选择哪个方法进行遍历
-        使用1 2表示的1-7的代码选择
-        推荐优先实现约束生成
-        1: create_constraints方法 构建约束列表
-        2: check方法 检查题板是否符合规则
-        """
-
-    def invalid(self, board: 'AbstractBoard') -> bool:
-        """
-        返回该线索对于输入题板是否无用
-        :return: True:已经无效 False:仍然有效
-        """
-        return False
-
-    @classmethod
-    @abstractmethod
     def type(cls) -> bytes:
         """
         返回当前规则的类型 必须所有规则返回是不同的
@@ -89,14 +89,6 @@ class AbstractValue(ABC):
         :return:
         """
         ...
-
-    def deduce_cells(self, board: 'AbstractBoard') -> Union[bool, None]:
-        """
-        快速检查当前题板并修改可以直接得出结论的地方
-        :param board: 输入题板
-        :return: 是否修改了 True 修改 False 未修改  None:未实现该方法
-        """
-        return None
 
     def code(self) -> bytes:
         """
@@ -107,25 +99,17 @@ class AbstractValue(ABC):
         """
         return b''
 
-    def create_constraints(self, board: 'AbstractBoard'):
+    def create_constraints(self, board: 'AbstractBoard', switch: 'Switch'):
         """
         基于当前线索对象向 CP-SAT 模型添加约束。
         此方法根据当前线索的位置与规则，分析题板上的变量布局，并在模型中添加等价的逻辑约束表达式。
-        所有变量必须来源于board中get_variable(pos)返回的变量
-        model可以通过utils.solver下的函数get_model()获取
-        如果必然无法用约束表达的规则应通过 check()/exhaustive() 实现。
-        :param      board: 输入的题板对象
+        所有变量必须来源于 board.get_variable(pos) 返回的变量。
+        model 可以通过 board.get_model() 获取。
+
+        :param board: 输入的题板对象
+        :param switch: get接收当前线索对象与位置，返回一个布尔变量，作为该线索激活开关；约束只在该变量为 True 时生效
         """
         ...
-
-    def check(self, board: 'AbstractBoard') -> bool:
-        """
-        检查当前题板的该线索是否严格非法
-        如果存在其他合法但是未赋值的情况则返回合法
-        :param board: 题板
-        :return: True合法或未知 False严格非法
-        """
-        return True
 
     def high_light(self, board: 'AbstractBoard') -> List['AbstractPosition']:
         """
@@ -134,3 +118,11 @@ class AbstractValue(ABC):
         :return: 位置列表
         """
         return []
+
+    def deduce_cells(self, board: 'AbstractBoard') -> Union[bool, None]:
+        """
+        快速检查当前题板并修改可以直接得出结论的地方
+        :param board: 输入题板
+        :return: 是否修改了 True 修改 False 未修改  None:未实现该方法
+        """
+        return None

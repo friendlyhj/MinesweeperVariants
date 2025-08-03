@@ -287,7 +287,7 @@ def generate_board():
         # answer_board = hypothesis_data["game"].answer_board
     # print(hypothesis_data)
     # print(answer_board.show_board())
-    hypothesis_data["game"].deduced(wait=False)
+    # hypothesis_data["game"].deduced(wait=False)
     hypothesis_data["rules"] = rules[:]
     board_data = format_board(mask_board)
     board_data["rules"] = hypothesis_data["rules"]
@@ -352,6 +352,7 @@ def click():
     print("end click")
     # print(game.answer_board.show_board())
 
+    refresh["success"] = True
     if _board is None:
         if data["button"] == "left":
             refresh["reason"] = "你踩雷了"
@@ -359,20 +360,23 @@ def click():
             refresh["reason"] = "你标记了一个错误的雷"
         refresh["gameover"] = True
     else:
-        for pos, obj in _board():
-            if obj is None and board[pos] is None:
-                continue
-            if (
-                    not (obj is None or board[pos] is None) and
-                    obj.type() == board[pos].type() and
-                    obj.code() == board[pos].code() and
-                    obj.high_light(_board) == board[pos].high_light(board)
-            ):
-                continue
-            data = format_cell(_board, pos)
-            print(pos, obj, data)
-            refresh["cells"].append(data)
-    refresh["success"] = True
+        if "N" in _board:
+            for pos, obj in _board():
+                if obj is None and board[pos] is None:
+                    continue
+                if (
+                        not (obj is None or board[pos] is None) and
+                        obj.type() == board[pos].type() and
+                        obj.code() == board[pos].code() and
+                        obj.high_light(_board) == board[pos].high_light(board)
+                ):
+                    continue
+                data = format_cell(_board, pos)
+                print(pos, obj, data)
+                refresh["cells"].append(data)
+        else:
+            refresh["gameover"] = True
+            refresh["reason"] = "你过关!!!(震声)"
     print(game.board)
     # print(game.deduced())
     # print(game.hint())
@@ -381,7 +385,7 @@ def click():
     #     print(_board.show_board())
     #     print(game.deduced())
     #     print(game.last_hint[1])
-    hypothesis_data["game"].deduced(wait=False)
+    # hypothesis_data["game"].deduced(wait=False)
     a_board = hypothesis_data["game"].answer_board
     remains = [-1, -1, 0]
     remains[2] = len([_ for _ in board("N")])
@@ -399,37 +403,53 @@ def click():
 @app.route('/api/hint', methods=['GET'])
 def hint_post():
     global hypothesis_data
-    count = int(request.args.get("count", 0))
     game = hypothesis_data["game"]
-    hint_list = game.hint(wait=True)
-    for hint in hint_list:
+    hint_list = game.hint()
+    for hint in hint_list.items():
         print(hint[0], "->", hint[1])
     print("hint end")
     # return {}, 200  # 格式和click返回应一样
-    print(count)
-    if count > 1:
-        hint_list = game.hint(wait=True)
-        min_length = min(len(tup[0]) for tup in hint_list)
-        # 步骤2: 收集所有第一个列表长度等于最小长度的二元组
-        hint_list = [tup for tup in hint_list if len(tup[0]) == min_length]
-        count -= 1
-    else:
-        deduced_dict = game.deduced(wait=True)
-        hint_list = [([], list(deduced_dict.keys()))]
+    hint_list = game.hint().items()
+    min_length = min(len(tup[0]) for tup in hint_list)
+    print(min_length)
+    # 步骤2: 收集所有第一个列表长度等于最小长度的二元组
+    hint_list = [tup for tup in hint_list if len(tup[0]) == min_length]
 
-    count -= 1
+    hint_list = [([], game.deduced())] + hint_list
+    results = []
 
-    print(hint_list)
-    print(hint_list[count])
-    b_hint, t_hint = hint_list[count]
-    # 由...
-    b_hint: list[Union["AbstractPosition", list["AbstractRule", int]]]
-    # 推出的坐标列表
-    t_hint: list["AbstractPosition"]
-    print(b_hint, "->", t_hint)
-    cell_data = [format_cell(game.board, p, hint=1) for p in b_hint]
-    cell_data += [format_cell(game.board, p, hint=2) for p in t_hint]
-    return jsonify({"cells": cell_data}), 200
+    # print(hint_list)
+    for _b_hint, _t_hint in hint_list:
+        print(_b_hint, "->", _t_hint)
+        b_hint = []
+        t_hint = []
+        for b in _b_hint:
+            bes_type = b[0].split("|", 1)[0].lower()
+            name = b[0].split("|", 1)[1]
+            if bes_type == "rule":
+                b_hint.append({
+                    "type": "rule",
+                    "name": name
+                })
+            elif bes_type == "pos":
+                info = name.split("|")
+                print(bes_type, name)
+                b_hint.append({
+                    "type": "pos",
+                    "x": int(info[0]),
+                    "y": int(info[1]),
+                    "boardkey": info[2],
+                })
+        for t in _t_hint:
+            t_hint.append({
+                "type": "pos",
+                "x": t.x,
+                "y": t.y,
+                "boardkey": t.board_key,
+            })
+        results.append((b_hint, t_hint))
+    print(results)
+    return jsonify({"hints": results}), 200
 
 
 @app.route('/api/rules', methods=['GET'])
