@@ -529,8 +529,5 @@ if __name__ == '__main__':
     # 允许所有来源跨域，或根据需要设置 origins=["*"]
 
     # threading.Thread(target=lambda: webbrowser.open(f"http://localhost:{port}", new=2)).start()
-    app.run(
-        host='0.0.0.0',
-        port=port,
-        # debug=True
-    )
+    import waitress
+    waitress.serve(app, host='0.0.0.0', port=port)
