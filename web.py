@@ -182,8 +182,8 @@ def format_board(_board):
         board_data["boards"][key] = _board.get_config(key, "size")
         for pos, obj in _board():
             # continue
-            if obj is None:
-                continue
+            # if obj is None:
+            #     continue
             board_data["cells"].append(
                 format_cell(_board, pos))
             count += 1
@@ -206,8 +206,6 @@ def generate_board():
     from impl.summon.game import ULTIMATE_R, ULTIMATE_S, ULTIMATE_F, ULTIMATE_A
     # from utils.tool import get_random
     # get_random(new=True, seed=8205162)
-    if "game" in hypothesis_data and ("N" in hypothesis_data["game"].board):
-        return jsonify(format_board(hypothesis_data["game"].board))
     answer_board = None
     mask_board = None
     code = request.args.get("code", None)
@@ -312,13 +310,14 @@ def metadata():
         a_board = hypothesis_data["game"].answer_board
         board_data = format_board(board)
         remains = [-1, -1, 0]
-        remains[2] = len([_ for _ in board("N")])
+        remains[2] = str(len([_ for _ in board("N")]))
         if not hypothesis_data["game"].drop_r:
             remains[0] = len([_ for _ in board("F")])
             remains[1] = len([_ for pos, _ in a_board("F") if board.get_type(pos) == "N"])
         else:
             remains[0] = "*"
             remains[1] = "*"
+        board_data["rules"] = hypothesis_data["rules"]
         board_data["remains"] = remains
         return jsonify(board_data)
     return {}
