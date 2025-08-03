@@ -5,7 +5,7 @@
 # @Author  : Wu_RH
 # @FileName: Rrule.py
 
-from abc import abstractmethod
+from abc import abstractmethod, ABC
 from typing import TYPE_CHECKING, List, Dict
 
 from abs.rule import AbstractRule, AbstractValue
@@ -30,7 +30,7 @@ class AbstractClueRule(AbstractRule):
         ...
 
 
-class AbstractClueValue(AbstractValue):
+class AbstractClueValue(AbstractValue, ABC):
     """
     线索格数字对象类
     """
@@ -65,9 +65,6 @@ class ValueQuess(AbstractClueValue):
     def __init__(self, pos: 'AbstractPosition', code: bytes = b''):
         super().__init__(pos)
 
-    def method_choose(self) -> int:
-        return 1
-
     def __repr__(self):
         return "?"
 
@@ -86,9 +83,6 @@ class ValueCross(AbstractClueValue):
 
     def __init__(self, pos: 'AbstractPosition', code: bytes = b''):
         super().__init__(pos)
-
-    def method_choose(self) -> int:
-        return 1
 
     def __repr__(self):
         return "X"

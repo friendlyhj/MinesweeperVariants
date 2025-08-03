@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from .board import AbstractPosition, AbstractBoard
 
 
-class AbstractMinesClueRule(AbstractRule):
+class AbstractMinesClueRule(AbstractRule, ABC):
     """
     雷线索规则
     """
@@ -70,10 +70,6 @@ class MinesTag(AbstractMinesValue):
     def __init__(self, pos: 'AbstractPosition', code: bytes = None):
         pass
 
-    @classmethod
-    def method_choose(cls) -> int:
-        return 3
-
     def __repr__(self):
         return "雷"
 
@@ -98,7 +94,7 @@ class Rule0F(AbstractMinesClueRule):
         for key in board.get_board_keys():
             if not board.get_config(key, "interactive"):
                 continue
-            for pos, _ in board("F", key= key):
+            for pos, _ in board("F", key=key):
                 board.set_value(pos, None)
 
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':
@@ -111,10 +107,6 @@ class Rule0F(AbstractMinesClueRule):
 class ValueCircle(AbstractMinesValue):
     def __init__(self, pos: 'AbstractPosition', code: bytes = None):
         pass
-
-    @classmethod
-    def method_choose(cls) -> int:
-        return 3
 
     def __repr__(self):
         return "O"

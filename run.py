@@ -133,9 +133,6 @@ for rule_name in args.rules:
     if "$" in rule_name:
         args.rules[args.rules.index(rule_name)] = rule_name.replace("$", "^")
 
-with open("./output/temp.txt", "w") as f:
-    f.write(str(args.rules))
-
 if args.test:
     test(
         log_lv=args.log_lv,

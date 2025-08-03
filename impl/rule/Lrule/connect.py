@@ -10,11 +10,15 @@ from ortools.sat.python import cp_model
 from ortools.sat.python.cp_model import IntVar
 
 from abs.board import AbstractBoard
+from abs.rule import AbstractRule, AbstractValue
+from impl.summon.solver import Switch
 
 
 def connect(
         model: cp_model.CpModel,
         board: AbstractBoard,
+        switch: Switch,     # 连通性选择
+        map_index: tuple[Union[AbstractRule, AbstractValue, str], int],
         ub=False,  # 可达处的上限
         connect_value=1,  # 1=雷连通，0=非雷连通
         nei_value: Union[int, tuple, Callable] = 2,  # 1=四连通，2=八连通
@@ -25,6 +29,12 @@ def connect(
     if not positions_vars:
         return
 
+    switch_list = [switch.get(model, "") for _ in range(9)]
+    print([s.index for s in switch_list])
+    [switch.remap_index(s.index, map_index) for s in switch_list]
+    model.AddBoolAnd(switch_list[:8]).OnlyEnforceIf(switch_list[8])
+    model.AddBoolAnd([s.Not() for s in switch_list[:8]]).OnlyEnforceIf(switch_list[8].Not())
+
     pos_list, var_list = zip(*positions_vars)
     n = len(pos_list)
 
@@ -34,20 +44,20 @@ def connect(
     # 定义root_vars布尔变量
     if root_vars is None:
         root_vars = [model.NewBoolVar(f'root_{i}') for i in range(n)]
-        model.Add(sum(root_vars) == 1)
+        model.Add(sum(root_vars) == 1).OnlyEnforceIf(switch_list[0])
 
     for i in range(n):
         # 根据connect_value决定连通对象
         if connect_value == 1:  # 雷连通
-            model.AddImplication(root_vars[i], var_list[i])
-            model.Add(reach_vars[i] == 1).OnlyEnforceIf(root_vars[i])
-            model.Add(reach_vars[i] != 1).OnlyEnforceIf(root_vars[i].Not())
-            model.Add(reach_vars[i] == 0).OnlyEnforceIf(var_list[i].Not())
+            model.AddImplication(root_vars[i], var_list[i]).OnlyEnforceIf(switch_list[1])
+            model.Add(reach_vars[i] == 1).OnlyEnforceIf([root_vars[i], switch_list[1]])
+            model.Add(reach_vars[i] != 1).OnlyEnforceIf([root_vars[i].Not(), switch_list[2]])
+            model.Add(reach_vars[i] == 0).OnlyEnforceIf([var_list[i].Not(), switch_list[2]])
         else:  # 非雷连通
-            model.AddImplication(root_vars[i], var_list[i].Not())
-            model.Add(reach_vars[i] == 1).OnlyEnforceIf(root_vars[i])
-            model.Add(reach_vars[i] != 1).OnlyEnforceIf(root_vars[i].Not())
-            model.Add(reach_vars[i] == 0).OnlyEnforceIf(var_list[i])
+            model.AddImplication(root_vars[i], var_list[i].Not()).OnlyEnforceIf(switch_list[1])
+            model.Add(reach_vars[i] == 1).OnlyEnforceIf([root_vars[i], switch_list[1]])
+            model.Add(reach_vars[i] != 1).OnlyEnforceIf([root_vars[i].Not(), switch_list[2]])
+            model.Add(reach_vars[i] == 0).OnlyEnforceIf([var_list[i], switch_list[2]])
 
     # 构造邻接列表（根据nei_value决定连通方式）
     adj = [[] for _ in range(n)]
@@ -77,29 +87,29 @@ def connect(
         possible_sources = []
         for j in adj[i]:
             tmp = model.NewBoolVar(f'path_{j}_to_{i}')
-            model.Add(reach_vars[i] == reach_vars[j] + 1).OnlyEnforceIf(tmp)
+            model.Add(reach_vars[i] == reach_vars[j] + 1).OnlyEnforceIf([tmp, switch_list[3]])
 
             # 根据connect_value决定传播条件
             if connect_value == 1:
-                model.AddImplication(tmp, var_list[j])
+                model.AddImplication(tmp, var_list[j]).OnlyEnforceIf(switch_list[3])
             else:
-                model.AddImplication(tmp, var_list[j].Not())
+                model.AddImplication(tmp, var_list[j].Not()).OnlyEnforceIf(switch_list[3])
 
             is_reach_j_pos = model.NewBoolVar(f'is_reach_pos_{j}')
-            model.Add(reach_vars[j] > 0).OnlyEnforceIf(is_reach_j_pos)
-            model.Add(reach_vars[j] == 0).OnlyEnforceIf(is_reach_j_pos.Not())
-            model.AddImplication(tmp, is_reach_j_pos)
+            model.Add(reach_vars[j] > 0).OnlyEnforceIf([is_reach_j_pos, switch_list[4]])
+            model.Add(reach_vars[j] == 0).OnlyEnforceIf([is_reach_j_pos.Not(), switch_list[4]])
+            model.AddImplication(tmp, is_reach_j_pos).OnlyEnforceIf(switch_list[4])
 
             possible_sources.append(tmp)
 
         if possible_sources:
-            model.AddBoolOr(possible_sources).OnlyEnforceIf(cond)
+            model.AddBoolOr(possible_sources).OnlyEnforceIf(cond + [switch_list[5]])
 
     # 最终约束
     for i in range(n):
         if connect_value == 1:  # 雷连通
-            model.Add(reach_vars[i] > 0).OnlyEnforceIf(var_list[i])
-            model.Add(reach_vars[i] == 0).OnlyEnforceIf(var_list[i].Not())
+            model.Add(reach_vars[i] > 0).OnlyEnforceIf([var_list[i], switch_list[6]])
+            model.Add(reach_vars[i] == 0).OnlyEnforceIf([var_list[i].Not(), switch_list[7]])
         else:  # 非雷连通
-            model.Add(reach_vars[i] > 0).OnlyEnforceIf(var_list[i].Not())
-            model.Add(reach_vars[i] == 0).OnlyEnforceIf(var_list[i])
+            model.Add(reach_vars[i] > 0).OnlyEnforceIf([var_list[i].Not(), switch_list[6]])
+            model.Add(reach_vars[i] == 0).OnlyEnforceIf([var_list[i], switch_list[7]])

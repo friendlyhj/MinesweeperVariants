@@ -8,26 +8,20 @@
 from abc import ABC, abstractmethod
 from typing import List, Union, TYPE_CHECKING, Dict, Tuple
 
+
 if TYPE_CHECKING:
     from abs.board import AbstractBoard, AbstractPosition
+    from impl.summon.solver import Switch
 
 
 class AbstractRule(ABC):
     # 规则名称
     name: Union[Tuple[str], List[str], str] = None
 
-    """
-    subrules: 如果该规则需要使用线索数检查的话 就必须实现该属性
-        列表内为一个二元列表 其二元列表第一个为一个bool值用来表示该规则的子规则约束模块的开关
-        并对应到check和create_constraints这个两个函数 bool:True表示开启 False表示关闭
-        其二元列表的第二个是该子规则模块的描述 用来在线索的时候返回
-    """
-    subrules: list[list[bool, str]] = []
-
     def __init__(self, board: "AbstractBoard" = None, data=None) -> None:
         ...
 
-    def create_constraints(self, board: 'AbstractBoard', get_var) -> bool:
+    def create_constraints(self, board: 'AbstractBoard', switch: 'Switch') -> bool:
         """
         基于当前线索对象向 CP-SAT 模型添加约束。
         此方法根据当前线索的位置与规则，分析题板上的变量布局，并在模型中添加等价的逻辑约束表达式。
@@ -35,7 +29,7 @@ class AbstractRule(ABC):
         model 可以通过 board.get_model() 获取。
 
         :param board: 输入的题板对象
-        :param get_var: 接收当前线索对象，返回一个布尔变量，作为该线索激活开关；约束只在该变量为 True 时生效
+        :param switch: 接收当前规则，返回一个布尔变量，作为该线索激活开关；约束只在该变量为 True 时生效
         """
 
     def suggest_total(self, info: dict):
@@ -105,15 +99,7 @@ class AbstractValue(ABC):
         """
         return b''
 
-    def deduce_cells(self, board: 'AbstractBoard') -> Union[bool, None]:
-        """
-        快速检查当前题板并修改可以直接得出结论的地方
-        :param board: 输入题板
-        :return: 是否修改了 True 修改 False 未修改  None:未实现该方法
-        """
-        return None
-
-    def create_constraints(self, board: 'AbstractBoard', get_var: ''):
+    def create_constraints(self, board: 'AbstractBoard', switch: 'Switch'):
         """
         基于当前线索对象向 CP-SAT 模型添加约束。
         此方法根据当前线索的位置与规则，分析题板上的变量布局，并在模型中添加等价的逻辑约束表达式。
@@ -121,7 +107,7 @@ class AbstractValue(ABC):
         model 可以通过 board.get_model() 获取。
 
         :param board: 输入的题板对象
-        :param get_var: 接收当前线索对象，返回一个布尔变量，作为该线索激活开关；约束只在该变量为 True 时生效
+        :param switch: get接收当前线索对象与位置，返回一个布尔变量，作为该线索激活开关；约束只在该变量为 True 时生效
         """
         ...
 
@@ -132,3 +118,11 @@ class AbstractValue(ABC):
         :return: 位置列表
         """
         return []
+
+    def deduce_cells(self, board: 'AbstractBoard') -> Union[bool, None]:
+        """
+        快速检查当前题板并修改可以直接得出结论的地方
+        :param board: 输入题板
+        :return: 是否修改了 True 修改 False 未修改  None:未实现该方法
+        """
+        return None

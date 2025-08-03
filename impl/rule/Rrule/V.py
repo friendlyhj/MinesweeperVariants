@@ -11,7 +11,6 @@ from abs.Rrule import AbstractClueRule, AbstractClueValue
 from abs.board import AbstractBoard, AbstractPosition
 
 from utils.tool import get_logger
-from utils.solver import get_model
 from utils.impl_obj import VALUE_QUESS, MINES_TAG
 
 
@@ -79,9 +78,9 @@ class ValueV(AbstractClueValue):
             return True
         return False
 
-    def create_constraints(self, board: 'AbstractBoard'):
+    def create_constraints(self, board: 'AbstractBoard', switch):
         """创建CP-SAT约束: 周围雷数等于count"""
-        model = get_model()
+        model = board.get_model()
 
         # 收集周围格子的布尔变量
         neighbor_vars = []
@@ -92,7 +91,7 @@ class ValueV(AbstractClueValue):
 
         # 添加约束：周围雷数等于count
         if neighbor_vars:
-            model.Add(sum(neighbor_vars) == self.count).OnlyEnforceIf
+            model.Add(sum(neighbor_vars) == self.count).OnlyEnforceIf(switch.get(model, self.pos))
             get_logger().trace(f"[V] Value[{self.pos}: {self.count}] add: {neighbor_vars} == {self.count}")
 
     def check(self, board: 'AbstractBoard') -> bool:

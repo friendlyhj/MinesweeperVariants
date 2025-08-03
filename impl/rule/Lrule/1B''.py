@@ -11,7 +11,6 @@
 
 from abs.Lrule import AbstractMinesRule
 from abs.board import AbstractBoard, AbstractPosition
-from utils.solver import get_model
 
 
 def get_line(board: AbstractBoard, pos: AbstractPosition):
@@ -51,12 +50,10 @@ def get_line(board: AbstractBoard, pos: AbstractPosition):
 class Rule1Bpp(AbstractMinesRule):
     name = ["1B''", "后平衡"]
     doc = "雷八方向上的总雷数均相等"
-    subrules = [[True, "[1B'']后平衡"]]
 
-    def create_constraints(self, board: 'AbstractBoard'):
-        if not self.subrules[0][0]:
-            return
-        model = get_model()
+    def create_constraints(self, board: 'AbstractBoard', switch):
+        model = board.get_model()
+        s = switch.get(model, self)
 
         ub = board.boundary().x * 3
         all_n = model.NewIntVar(0, ub, "[1B'']n_number")
@@ -64,8 +61,4 @@ class Rule1Bpp(AbstractMinesRule):
         for pos, var in board(mode="variable"):
             all_pos = get_line(board, pos)
             all_var = board.batch(all_pos, mode="variable")
-            model.Add(sum(all_var) == all_n).OnlyEnforceIf(var)
-
-    @classmethod
-    def method_choose(cls) -> int:
-        return 1
+            model.Add(sum(all_var) == all_n).OnlyEnforceIf([var, s])

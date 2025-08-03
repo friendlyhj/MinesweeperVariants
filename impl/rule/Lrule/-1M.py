@@ -9,22 +9,15 @@
 """
 from abs.Lrule import AbstractMinesRule
 from abs.board import AbstractBoard
-from utils.solver import get_model
 
 
 class Rulen1M(AbstractMinesRule):
     name = ["*1M", "镜像", "Mirror"]
     doc = "雷分布将随机按照下述方式对称 [水平/垂直/对角/副对角/中心]对称"
-    subrules = [[True, "*1M"]]
 
-    @classmethod
-    def method_choose(cls) -> int:
-        return 1
-
-    def create_constraints(self, board: 'AbstractBoard'):
-        if not self.subrules[0][0]:
-            return
-        model = get_model()
+    def create_constraints(self, board: 'AbstractBoard', switch):
+        model = board.get_model()
+        s = switch.get(model, self)
 
         tmp_a = model.NewBoolVar("[*1M]")      # 垂直对称
         tmp_b = model.NewBoolVar("[*1M]")      # 水平对称
@@ -49,4 +42,4 @@ class Rulen1M(AbstractMinesRule):
                     model.Add(var == var_d).OnlyEnforceIf(tmp_d)
                     model.Add(var == var_e).OnlyEnforceIf(tmp_e)
 
-        model.AddBoolOr([tmp_a, tmp_b, tmp_c, tmp_d, tmp_e])
+        model.AddBoolOr([tmp_a, tmp_b, tmp_c, tmp_d, tmp_e]).OnlyEnforceIf(s)

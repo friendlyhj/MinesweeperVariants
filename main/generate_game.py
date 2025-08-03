@@ -13,7 +13,7 @@ from pathlib import Path
 
 import yaml
 
-from impl.impl_obj import ModelGenerateError, get_board
+from impl.impl_obj import ModelGenerateError, get_board, encode_board
 from impl.summon import Summon
 from impl.summon.game import GameSession, PUZZLE
 from impl.summon.summon import GenerateError

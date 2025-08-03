@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
-import gc
 # @Time    : 2025/06/03 01:58
 # @Author  : Wu_RH
 # @FileName: board.py
@@ -8,13 +7,14 @@ import gc
 from typing import List, Union, Tuple, Any, Generator, TYPE_CHECKING
 import heapq
 
+import gc
+from ortools.sat.python import cp_model
 from ortools.sat.python.cp_model import IntVar
 
 from abs.rule import AbstractValue
 from utils.impl_obj import VALUE_QUESS, MINES_TAG
 from utils.impl_obj import POSITION_TAG, VALUE_CROSS, VALUE_CIRCLE
 from utils.tool import get_logger
-from utils.solver import get_model
 from abs.board import AbstractBoard, AbstractPosition, MASTER_BOARD
 from abs.Rrule import AbstractClueValue
 from abs.Mrule import AbstractMinesValue
@@ -145,7 +145,7 @@ class Board(AbstractBoard):
     board_data: dict
 
     def __init__(self, size: tuple = None, code: bytes = None):
-        self.model_id = None
+        self._model = None
         self.board_data = dict()
 
         if code is None:
@@ -228,6 +228,20 @@ class Board(AbstractBoard):
                     if type_obj == target:
                         return True
         return False
+
+    def get_model(self):
+        if self._model is None:
+            self._model = cp_model.CpModel()
+            for _key in self.board_data:
+                _size = self.board_data[_key]["config"]["size"]
+                if "variable" in self.board_data[_key]:
+                    del self.board_data[_key]["variable"]
+                self.board_data[_key]["variable"] = \
+                    [[self._model.NewBoolVar(f"var({self.get_pos(x, y, _key)})")
+                      for y in range(_size[0])]
+                     for x in range(_size[1])]
+                get_logger().trace(f"构建新变量:{self.board_data[_key]['variable']}")
+        return self._model
 
     def generate_board(
             self, board_key: str,
@@ -399,7 +413,6 @@ class Board(AbstractBoard):
             self.board_data[key]["obj"][pos.y][pos.x] = value
             self.board_data[key]["type"][pos.y][pos.x] = self.type_value(value)
 
-
     def get_dyed(self, pos: 'Position') -> bool | None:
         key = pos.board_key
         size = self.board_data[key]["config"]["size"]
@@ -414,19 +427,8 @@ class Board(AbstractBoard):
 
     def get_variable(self, pos: 'Position') -> IntVar | None:
         key = pos.board_key
-        model = get_model()
         size = self.board_data[key]["config"]["size"]
-        if id(model) != self.model_id:
-            self.model_id = id(model)
-            for _key in self.board_data:
-                _size = self.board_data[_key]["config"]["size"]
-                if "variable" in self.board_data[_key]:
-                    del self.board_data[_key]["variable"]
-                self.board_data[_key]["variable"] = \
-                    [[model.NewBoolVar(f"var({self.get_pos(x, y, key)})")
-                      for y in range(_size[0])]
-                     for x in range(_size[1])]
-                get_logger().trace(f"构建新变量:{self.board_data[_key]['variable']}")
+        self.get_model()
         if 0 <= pos.x < size[0] and 0 <= pos.y < size[1]:
             return self.board_data[key]["variable"][pos.y][pos.x]
 
@@ -434,8 +436,8 @@ class Board(AbstractBoard):
         for key in self.board_data.keys():
             if "variable" in self.board_data[key]:
                 del self.board_data[key]["variable"]
+        self._model = None
         gc.collect()
-        self.model_id = None
 
     def get_config(self, board_key, config_name):
         if board_key not in self.board_data:
@@ -514,7 +516,6 @@ class Board(AbstractBoard):
             data["obj"] = [[None for _ in range(size[0])] for _ in range(size[1])]
             data["type"] = [["N" for _ in range(size[0])] for _ in range(size[1])]
             self.clear_variable()
-            self.model_id = None
 
     def get_board_keys(self) -> list[str]:
         return list(self.board_data.keys())

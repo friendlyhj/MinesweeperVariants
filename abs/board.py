@@ -9,6 +9,7 @@ from abc import ABC, abstractmethod
 from typing import List, Tuple, Union, TYPE_CHECKING, Generator, Any
 from dataclasses import dataclass
 
+from ortools.sat.python import cp_model
 from ortools.sat.python.cp_model import IntVar
 
 from impl.board.dye import get_dye
@@ -250,6 +251,9 @@ class AbstractBoard(ABC):
         :return: 克隆后的对象
         """
         return self.__class__(code=self.encode())
+
+    def get_model(self) -> cp_model.CpModel:
+        """获取cp_model"""
 
     def get_board_keys(self) -> list[str]:
         """返回当前所有题板的名称"""

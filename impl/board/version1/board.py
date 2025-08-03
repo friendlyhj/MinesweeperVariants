@@ -8,11 +8,11 @@
 from typing import List, Union, Tuple, Any, Generator, TYPE_CHECKING
 import heapq
 
+from ortools.sat.python import cp_model
 from ortools.sat.python.cp_model import IntVar
 
 from utils.impl_obj import VALUE_QUESS, MINES_TAG
 from utils.tool import get_logger
-from utils.solver import get_model
 from abs.board import AbstractBoard, AbstractPosition
 from abs.board import MASTER_BOARD
 from abs.Rrule import AbstractClueValue
@@ -221,6 +221,11 @@ class Board(AbstractBoard):
                     elif mode == "dye":
                         yield pos, self.get_dyed(pos)
 
+    def get_model(self):
+        if self.model is None:
+            self.model = cp_model.CpModel()
+        return self.model
+
     def has(self, target: str, key=None) -> bool:
         for line in self.__type_board:
             for type_obj in line:
@@ -289,8 +294,8 @@ class Board(AbstractBoard):
             self.__dye_board[pos.x][pos.y] = dyed
 
     def get_variable(self, pos: 'AbstractPosition') -> IntVar | None:
-        if self.variables is None:
-            model = get_model()
+        if self.model is None:
+            model = self.get_model()
             self.variables = \
                 [[model.NewBoolVar(f"{x}.{y}")
                   for y in range(self.size)]
@@ -306,6 +311,7 @@ class Board(AbstractBoard):
                 del self.variables[index_a][index_b]
             del self.variables[index_a]
         self.variables = None
+        self.model = None
 
     def get_row_pos(self, pos: 'AbstractPosition') -> List["AbstractPosition"]:
         _pos = pos.clone()
