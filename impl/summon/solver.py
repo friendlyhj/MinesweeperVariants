@@ -60,7 +60,7 @@ class Switch:
 
     def to_str(self, obj: Union[AbstractRule, AbstractValue, AbstractPosition, str]):
         if isinstance(obj, AbstractRule):
-            name = f"{obj.name[0]}"
+            name = f"RULE|{obj.name[0]}"
         elif (
             isinstance(obj, AbstractPosition) or
             isinstance(obj, AbstractValue)
@@ -71,7 +71,8 @@ class Switch:
                 pos = obj
             if pos is None:
                 raise ValueError("pos cannot be None")
-            name = str(pos)
+            pos = f"|{pos.x}|{pos.y}|{pos.board_key}"
+            name = "POS" + pos
         elif isinstance(obj, str):
             name = obj
         else:
@@ -201,7 +202,9 @@ def solver_by_csp(
     logger = get_logger()
 
     if model is None:
+        logger.trace("求解器输入:\n" + board.show_board())
         logger.trace("构建新模型")
+        board = board.clone()
         board.clear_variable()
         model = board.get_model()
         switch = Switch()
@@ -240,7 +243,6 @@ def solver_by_csp(
             model.Add(switch_var == 1)
 
     # 4.获取求解器并推导
-    logger.trace("求解器输入:\n" + board.show_board())
     solver = get_solver(True)
 
     if answer_board is not None:
@@ -352,7 +354,31 @@ def hint_by_csp(
 
     hint = solver.SufficientAssumptionsForInfeasibility()
     hint = [i if i > -1 else -i - 1 for i in hint]
-    print(hint)
+    # print(hint)
     hint = [switch.get_hint_by_index(i) for i in hint]
 
     return hint
+
+
+def deduced_by_csp(
+        board: AbstractBoard,
+        answer_board: AbstractBoard,
+        pos: AbstractPosition,
+):
+    """
+    检查是否无解
+    """
+    if board[pos] is not None:
+        return None
+    model = board.get_model().clone()
+    model: cp_model.CpModel
+
+    target_var = board.get_variable(pos)
+    model.Add(target_var == (0 if answer_board.get_type(pos) == "F" else 1))
+
+    solver = get_solver(False)
+    state = solver.Solve(model)
+
+    if state == cp_model.INFEASIBLE:
+        return True
+    return False
