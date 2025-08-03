@@ -124,11 +124,11 @@ def format_cell(_board, pos, hint=0):
         })
     if dye:
         # TODO 将(255, 255, 255) 改为 --foreground-color
-        cell_data["style"] += " background-color: rgba(255, 255, 255, 0.296875);"
+        cell_data["style"] += " background-color: rgb(from var(--foreground-color) r g b / 40%);"
     if hint == 1:
-        cell_data["style"] += " background-color: rgba(255, 255, 0, 0.296875);"
+        cell_data["style"] += " background-color: rgb(from var(--hint2-color) r g b / 40%);"
     if hint == 2:
-        cell_data["style"] += " background-color: rgba(0, 255, 0, 0.296875);"
+        cell_data["style"] += " background-color: rgb(from var(--hint-color) r g b / 40%); color: var(--hint-color);"
     cell_data["style"] += " width: 100%; height: 100%; align-items: center; justify-content: center;"
     VALUE = _board.get_config(pos.board_key, "VALUE")
     MINES = _board.get_config(pos.board_key, "MINES")
