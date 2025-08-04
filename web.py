@@ -24,6 +24,8 @@ from impl.summon.game import NORMAL, EXPERT, ULTIMATE, PUZZLE
 from impl.summon.game import ULTIMATE_R, ULTIMATE_S, ULTIMATE_F, ULTIMATE_A
 from datetime import datetime, timedelta
 
+from utils.tool import get_logger
+
 # 添加项目路径到系统路径
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -390,10 +392,10 @@ def click():
     a_board = hypothesis_data["game"].answer_board
     count = dict()
     count["total"] = len([_ for pos, _ in a_board("F")])
-    count["unknown"] = len([_ for _ in board("N")])
+    count["unknown"] = len([_ for _ in _board("N")])
     if not hypothesis_data["game"].drop_r:
         count["known"] = len([_ for pos, _ in a_board("F")])
-        count["remains"] = len([_ for pos, _ in a_board("F") if board.get_type(pos) == "N"])
+        count["remains"] = len([_ for pos, _ in a_board("F") if _board.get_type(pos) == "N"])
     else:
         count["known"] = None
         count["remains"] = None
@@ -406,6 +408,7 @@ def click():
 def hint_post():
     global hypothesis_data
     game = hypothesis_data["game"]
+    print("hint start")
     hint_list = game.hint()
     for hint in hint_list.items():
         print(hint[0], "->", hint[1])
@@ -446,7 +449,10 @@ def hint_post():
                 "y": t.y,
                 "boardkey": t.board_key,
             })
-        results.append((b_hint, t_hint))
+        results.append({
+            "condition": b_hint,
+            "conclusion": t_hint
+        })
     print(results)
     return jsonify({"hints": results}), 200
 
@@ -501,6 +507,7 @@ def reset():
 
 
 if __name__ == '__main__':
+    get_logger(log_lv="TRACE")
     port = int(sys.argv[1] if len(sys.argv) == 2 else "5050")
     # 允许所有来源跨域，或根据需要设置 origins=["*"]
 

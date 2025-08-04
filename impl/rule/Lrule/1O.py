@@ -37,8 +37,7 @@ class Rule1O(AbstractMinesRule):
             ub=len(positions_vars),
             connect_value=0,
             nei_value=1,
-            switch=switch,
-            map_index=(self, 0)
+            switch=s,
         )
         root_list = [model.NewBoolVar(f'root_{i}') for i in range(len(positions_vars))]
         for index, (pos, var) in enumerate(positions_vars):
@@ -60,8 +59,7 @@ class Rule1O(AbstractMinesRule):
             nei_value=1,
             root_vars=root_list,
             ub=len(positions_vars),
-            switch=switch,
-            map_index=(self, 0)
+            switch=s,
         )
         # 1O大定式
         for pos, _ in board():
@@ -71,4 +69,3 @@ class Rule1O(AbstractMinesRule):
             a, b, c, d = board.batch(pos_list, mode="variable")
             model.AddBoolOr([a.Not(), b, c, d.Not()]).OnlyEnforceIf(s)  # 排除 1010
             model.AddBoolOr([a, b.Not(), c.Not(), d]).OnlyEnforceIf(s)  # 排除 0101
-        switch.remap_index(s.index, (self, 0))

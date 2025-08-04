@@ -488,8 +488,9 @@ class GameSession:
             for fut in as_completed(future_to_param):
                 pos = future_to_param[fut]
                 try:
+                    self.logger.trace(f"pos[{pos}]: start")
                     _result = fut.result()
-                    self.logger.trace(f"pos[{pos}]: ", result)
+                    self.logger.trace(f"pos[{pos}]: {result}")
                     if _result is None:
                         continue
                     self.logger.trace(deduced)
@@ -575,12 +576,12 @@ class GameSession:
 
 def main():
     # get_random(new=True, seed=9578119)
-    # get_random(seed=6321259)
     get_logger(log_lv="TRACE")
-    size = (10, 10)
-    rules = ["V"]
+    get_random(seed=5474554)
+    size = (5, 5)
+    rules = ["1S"]
     s = Summon(size, -1, rules)
-    g = GameSession(s, ULTIMATE, True, 8)
+    g = GameSession(s, ULTIMATE, False, 8)
     g.answer_board = s.summon_board()
     g.create_board()
     # for p, i in g.board("C"):

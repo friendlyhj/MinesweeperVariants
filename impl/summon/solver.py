@@ -7,6 +7,7 @@ import math
 import os
 from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures._base import as_completed
+from multiprocessing import Queue, Process
 from pathlib import Path
 import yaml
 from ortools.sat.python.cp_model import IntVar
@@ -409,6 +410,26 @@ def _hint_by_csp(
     offset=0,
     pos=None
 ):
+    def _run_solver(model, assumptions, q):
+        solver = get_solver(True)
+        q.put(solver.Solve(model, None))
+
+    def solve_with_timeout_retry(model, assumptions):
+        for _ in range(3):
+            q = Queue()
+            p = Process(target=_run_solver, args=(model, assumptions, q))
+            p.start()
+            p.join(2)
+            if p.is_alive():
+                p.terminate()
+                p.join()
+                continue
+            try:
+                return q.get_nowait()
+            except:
+                pass
+        return None
+
     logger = get_logger()
     logger.trace(f"pos {pos} off {offset}: start\n", end="")
     future_to_param = {}
@@ -418,7 +439,7 @@ def _hint_by_csp(
             _model = model.clone()
             _model.Add(var == 0)
             _model.AddBoolAnd([v for v in assumptions if v != var])
-            solver = get_solver(False)
+            solver = get_solver(True)
             fut = executor.submit(
                 solver.Solve,
                 _model, None
@@ -427,17 +448,15 @@ def _hint_by_csp(
         for fut in as_completed(future_to_param):
             try:
                 var = future_to_param[fut]
-                status = fut.result()
-                if status == cp_model.INFEASIBLE: ...   # 无解
-                elif status in (cp_model.OPTIMAL, cp_model.FEASIBLE):
-                    # 有解 代表该约束为必要约束 属于该层的与节点
+                logger.trace(f"pos {pos} off {offset} wait: {var}")
+                status = fut.result(timeout=2)
+                if status == cp_model.INFEASIBLE:
                     _results.append(var)
-                else: raise ValueError(f"unknow status: {status}")
             except Exception as e:
                 logger.trace(e)
                 continue
 
-    if upper_bound is not None and len(_results) - 1 > (upper_bound[0] - offset):
+    if upper_bound is not None and len(_results) - 2 > (upper_bound[0] - offset):
         logger.trace(f"pos {pos}, off {offset}: fail (len>ub)\n", end="")
         return None
     # 将与的状态保留至model
@@ -500,7 +519,8 @@ def _hint_by_csp(
             _model,
             _assumptions[:],
             upper_bound=upper_bound,
-            offset=offset + len(_results) + len(_mcs)
+            offset=offset + len(_results) + len(_mcs),
+            pos=pos
         )
         if result is None:
             # 该节点求解失败或者出现错误或者提前步出

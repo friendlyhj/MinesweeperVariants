@@ -19,26 +19,22 @@ class Rule1S(AbstractMinesRule):
 
     def create_constraints(self, board, switch):
         model = board.get_model()
-        s1 = switch.get(model, self)
-        s2 = switch.get(model, self)
-        switch.remap_switch(s1, (self, 0))
-        switch.remap_switch(s2, (self, 0))
+        s = switch.get(model, self)
 
         connect(
             model=model,
             board=board,
             connect_value=1,
             nei_value=1,
-            switch=switch,
-            map_index=(self, 0)
+            switch=s,
         )
 
         tmp_list = []
         for pos, var in board(mode="variable"):
             tmp_bool = model.NewBoolVar("tmp")
             var_list = board.batch(pos.neighbors(1), mode="variable", drop_none=True)
-            model.Add(sum(var_list) < 3).OnlyEnforceIf([var, s2])
-            model.Add(sum(var_list) == 1).OnlyEnforceIf([tmp_bool, s2])
-            model.Add(var == 1).OnlyEnforceIf([tmp_bool, s2])
+            model.Add(sum(var_list) < 3).OnlyEnforceIf([var, s])
+            model.Add(sum(var_list) == 1).OnlyEnforceIf([tmp_bool, s])
+            model.Add(var == 1).OnlyEnforceIf([tmp_bool, s])
             tmp_list.append(tmp_bool)
-        model.Add(sum(tmp_list) == 2).OnlyEnforceIf(s1)
+        model.Add(sum(tmp_list) == 2).OnlyEnforceIf(s)

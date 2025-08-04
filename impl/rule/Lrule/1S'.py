@@ -19,15 +19,13 @@ class Rule1S(AbstractMinesRule):
     def create_constraints(self, board, switch):
         model = board.get_model()
         s = switch.get(model, self)
-        switch.remap_switch(s, (self, 0))
 
         connect(
             model=model,
             board=board,
             connect_value=1,
             nei_value=1,
-            switch=switch,
-            map_index=(self, 0)
+            switch=s,
         )
 
         for pos, var in board(mode="variable"):
