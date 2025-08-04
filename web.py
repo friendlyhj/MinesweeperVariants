@@ -204,7 +204,7 @@ def generate_board():
     global hypothesis_data
     from impl.summon.game import NORMAL, EXPERT, ULTIMATE, PUZZLE
     from impl.summon.game import ULTIMATE_R, ULTIMATE_S, ULTIMATE_F, ULTIMATE_A
-    from utils.tool import get_random
+    # from utils.tool import get_random
     # get_random(new=True, seed=4762844)
     answer_board = None
     mask_board = None
@@ -296,6 +296,7 @@ def generate_board():
     board_data["remains"] = remains
     hypothesis_data["game"].thread_hint()
     hypothesis_data["game"].thread_deduced()
+    hypothesis_data["board"] = mask_board.clone()
     return jsonify(board_data)
 
 
@@ -326,13 +327,15 @@ def click():
     refresh = {
         "cells": [],
         "gameover": False,
-        "reason": ""
+        "status": "success",
+        "reason": "",
+        "count": {}
     }
     print(data)
     # print(hypothesis_data)
     game: Game = hypothesis_data["game"]
     # print(game.deduced())
-    print(game.board.show_board())
+    # print(game.board.show_board())
     board = game.board.clone()
     pos = board.get_pos(data["x"], data["y"], data["boardName"])
     # if data["x"] == 0 and data["y"] == 0:
@@ -348,9 +351,7 @@ def click():
     print("end click")
     hypothesis_data["game"].thread_hint()
     hypothesis_data["game"].thread_deduced()
-    # print(game.answer_board.show_board())
 
-    refresh["success"] = True
     if _board is None:
         if data["button"] == "left":
             refresh["reason"] = "你踩雷了"
@@ -385,15 +386,16 @@ def click():
     #     print(game.last_hint[1])
     # hypothesis_data["game"].deduced(wait=False)
     a_board = hypothesis_data["game"].answer_board
-    remains = [-1, -1, 0]
-    remains[2] = len([_ for _ in board("N")])
+    count = dict()
+    count["total"] = len([_ for pos, _ in a_board("F")])
+    count["unknown"] = len([_ for _ in board("N")])
     if not hypothesis_data["game"].drop_r:
-        remains[0] = len([_ for _ in board("F")])
-        remains[1] = len([_ for pos, _ in a_board("F") if board.get_type(pos) == "N"])
+        count["known"] = len([_ for pos, _ in a_board("F")])
+        count["remains"] = len([_ for pos, _ in a_board("F") if board.get_type(pos) == "N"])
     else:
-        remains[0] = "*"
-        remains[1] = "*"
-    refresh["remains"] = remains
+        count["known"] = None
+        count["remains"] = None
+    refresh["count"] = count
     print("refresh: " + str(refresh))
     return refresh, 200
 
@@ -467,57 +469,15 @@ def get_rule_list():
         "dye": get_all_dye()  # {dye_name: doc, ...}
     }
 
-##
 
-# def generate_self_signed_cert():
-#     # 自动生成自签名证书函数
-#     from cryptography.hazmat.backends import default_backend
-#     from cryptography.hazmat.primitives import serialization, hashes
-#     from cryptography.hazmat.primitives.asymmetric import rsa
-#     from cryptography import x509
+@app.route('/api/reset', methods=['POST'])
+def reset():
+    global hypothesis_data
+    game = hypothesis_data["game"]
+    mask_board = hypothesis_data["board"]
+    game.board = mask_board
+    game
 
-#     # 生成私钥
-#     private_key = rsa.generate_private_key(
-#         public_exponent=65537,
-#         key_size=2048,
-#         backend=default_backend()
-#     )
-
-#     # 生成证书主体
-#     subject = issuer = x509.Name([
-#         x509.NameAttribute(x509.NameOID.COUNTRY_NAME, "US"),
-#         x509.NameAttribute(x509.NameOID.STATE_OR_PROVINCE_NAME, "California"),
-#         x509.NameAttribute(x509.NameOID.LOCALITY_NAME, "San Francisco"),
-#         x509.NameAttribute(x509.NameOID.ORGANIZATION_NAME, "My Company"),
-#         x509.NameAttribute(x509.NameOID.COMMON_NAME, "localhost"),
-#     ])
-
-#     cert = (
-#         x509.CertificateBuilder()
-#         .subject_name(subject)
-#         .issuer_name(issuer)
-#         .public_key(private_key.public_key())
-#         .serial_number(x509.random_serial_number())
-#         .not_valid_before(datetime.utcnow())
-#         .not_valid_after(datetime.utcnow() + timedelta(days=365))
-#         .add_extension(
-#             x509.SubjectAlternativeName([x509.DNSName("localhost")]),
-#             critical=False
-#         )
-#         .sign(private_key, hashes.SHA256(), default_backend())
-#     )
-
-#     # 保存证书和私钥到文件
-#     with open("cert.pem", "wb") as f:
-#         f.write(cert.public_bytes(serialization.Encoding.PEM))
-#     with open("key.pem", "wb") as f:
-#         f.write(private_key.private_bytes(
-#             encoding=serialization.Encoding.PEM,
-#             format=serialization.PrivateFormat.TraditionalOpenSSL,
-#             encryption_algorithm=serialization.NoEncryption()
-#         ))
-
-##
 
 if __name__ == '__main__':
     port = int(sys.argv[1] if len(sys.argv) == 2 else "5050")

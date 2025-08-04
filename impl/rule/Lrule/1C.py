@@ -26,6 +26,5 @@ class Rule1C(AbstractMinesRule):
             board=board,
             connect_value=1,
             nei_value=2,
-            switch=switch,
-            map_index=(self, 0),
+            switch=switch.get(model, self)
         )

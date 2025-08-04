@@ -9,25 +9,20 @@
 """
 from abs.Lrule import AbstractMinesRule
 from abs.board import AbstractBoard
-from utils.solver import get_model
 
 
 class Rule1Dp(AbstractMinesRule):
     name = ["1D'", "战舰", "Battleship"]
     doc = "每个雷区域为宽度为 1、长度不超过 4 的矩形，矩形不能对角相邻"
-    subrules = [
-        [True, "[1D']战舰"]
-    ]
 
     @classmethod
     def method_choose(cls) -> int:
         return 1
 
-    def create_constraints(self, board: AbstractBoard):
-        if not self.subrules[0][0]:
-            return
+    def create_constraints(self, board: AbstractBoard, switch):
         # 获取求解器模型
-        model = get_model()
+        model = board.get_model()
+        s = switch.get(model, self)
 
         interactive_keys = board.get_interactive_keys()
         if not interactive_keys:
@@ -64,7 +59,7 @@ class Rule1Dp(AbstractMinesRule):
 
                 for diag_pos in diagonals:
                     diag_var = board.get_variable(diag_pos)
-                    model.Add(diag_var == 0).OnlyEnforceIf(cell_var)
+                    model.Add(diag_var == 0).OnlyEnforceIf([cell_var, s])
 
                 # === 正交相邻雷数限制 (0-2) ===
                 ortho_vars = []
@@ -84,7 +79,7 @@ class Rule1Dp(AbstractMinesRule):
                 ortho_count = 0
                 if ortho_vars:
                     ortho_count = sum(ortho_vars)
-                    model.Add(ortho_count <= 2).OnlyEnforceIf(cell_var)
+                    model.Add(ortho_count <= 2).OnlyEnforceIf([cell_var, s])
 
                 # === 两个相邻雷必须同向 ===
                 # 创建方向指示变量
@@ -95,9 +90,9 @@ class Rule1Dp(AbstractMinesRule):
                 if 0 < x < max_x:
                     left_var = board.get_variable(board.get_pos(x - 1, y, key))
                     right_var = board.get_variable(board.get_pos(x + 1, y, key))
-                    model.Add(left_var + right_var == 2).OnlyEnforceIf(has_horizontal)
-                    model.Add(has_horizontal == 0).OnlyEnforceIf(left_var.Not())
-                    model.Add(has_horizontal == 0).OnlyEnforceIf(right_var.Not())
+                    model.Add(left_var + right_var == 2).OnlyEnforceIf([has_horizontal, s])
+                    model.Add(has_horizontal == 0).OnlyEnforceIf([left_var.Not(), s])
+                    model.Add(has_horizontal == 0).OnlyEnforceIf([right_var.Not(), s])
                 else:
                     has_horizontal = model.NewConstant(0)
 
@@ -105,15 +100,15 @@ class Rule1Dp(AbstractMinesRule):
                 if 0 < y < max_y:
                     up_var = board.get_variable(board.get_pos(x, y - 1, key))
                     down_var = board.get_variable(board.get_pos(x, y + 1, key))
-                    model.Add(up_var + down_var == 2).OnlyEnforceIf(has_vertical)
-                    model.Add(has_vertical == 0).OnlyEnforceIf(up_var.Not())
-                    model.Add(has_vertical == 0).OnlyEnforceIf(down_var.Not())
+                    model.Add(up_var + down_var == 2).OnlyEnforceIf([has_vertical, s])
+                    model.Add(has_vertical == 0).OnlyEnforceIf([up_var.Not(), s])
+                    model.Add(has_vertical == 0).OnlyEnforceIf([down_var.Not(), s])
                 else:
                     has_vertical = model.NewConstant(0)
 
                 # 当有2个相邻雷时，必须是同一直线方向
                 if ortho_vars:
-                    model.Add(ortho_count != 2).OnlyEnforceIf(has_horizontal.Not(), has_vertical.Not())
+                    model.Add(ortho_count != 2).OnlyEnforceIf([has_horizontal.Not(), has_vertical.Not(), s])
 
                 # === 战舰长度限制 (1-4) ===
                 # 水平连续长度变量 (0-4)
@@ -123,21 +118,21 @@ class Rule1Dp(AbstractMinesRule):
                 # 水平长度约束
                 if x == 0:  # 最左列
                     # 当前是起点：长度=1(是雷)或0(非雷)
-                    model.Add(h_len_var == cell_var)
+                    model.Add(h_len_var == cell_var).OnlyEnforceIf(s)
                 else:
                     left_pos = board.get_pos(x - 1, y, key)
                     left_var = board.get_variable(left_pos)
 
                     # 情况1：当前不是雷 → 长度为0
-                    model.Add(h_len_var == 0).OnlyEnforceIf(cell_var.Not())
+                    model.Add(h_len_var == 0).OnlyEnforceIf([cell_var.Not(), s])
 
                     # 情况2：当前是雷且左边不是雷 → 新起点，长度=1
-                    model.Add(h_len_var == 1).OnlyEnforceIf(cell_var, left_var.Not())
+                    model.Add(h_len_var == 1).OnlyEnforceIf([cell_var, left_var.Not(), s])
 
                     # 情况3：当前是雷且左边是雷 → 继承左边长度+1
                     if x > 0:
                         model.Add(h_len_var == h_length[(x - 1, y)] + 1).OnlyEnforceIf(
-                            cell_var, left_var)
+                            [cell_var, left_var, s])
 
                 # 垂直连续长度变量 (0-4)
                 v_len_var = model.NewIntVar(0, 4, f'vlen_{x}_{y}')
@@ -145,16 +140,16 @@ class Rule1Dp(AbstractMinesRule):
 
                 # 垂直长度约束
                 if y == 0:  # 最上行
-                    model.Add(v_len_var == cell_var)
+                    model.Add(v_len_var == cell_var).OnlyEnforceIf(s)
                 else:
                     up_pos = board.get_pos(x, y - 1, key)
                     up_var = board.get_variable(up_pos)
 
-                    model.Add(v_len_var == 0).OnlyEnforceIf(cell_var.Not())
-                    model.Add(v_len_var == 1).OnlyEnforceIf(cell_var, up_var.Not())
+                    model.Add(v_len_var == 0).OnlyEnforceIf([cell_var.Not(), s])
+                    model.Add(v_len_var == 1).OnlyEnforceIf([cell_var, up_var.Not(), s])
                     if y > 0:
                         model.Add(v_len_var == v_length[(x, y - 1)] + 1).OnlyEnforceIf(
-                            cell_var, up_var)
+                            [cell_var, up_var, s])
 
                 # === 长度上限约束 ===
                 # 当战舰达到最大长度(4)时，下一格必须不能是雷
