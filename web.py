@@ -329,7 +329,7 @@ def click():
     refresh = {
         "cells": [],
         "gameover": False,
-        "status": "success",
+        "success": True,
         "reason": "",
         "count": {}
     }

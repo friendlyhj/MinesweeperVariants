@@ -25,8 +25,7 @@ class Rule1S(AbstractMinesRule):
             board=board,
             connect_value=1,
             nei_value=(5, 5),
-            switch=switch,
-            map_index=(self, 0)
+            switch=s,
         )
 
         tmp_list = []
@@ -38,4 +37,3 @@ class Rule1S(AbstractMinesRule):
             model.Add(var == 1).OnlyEnforceIf([tmp_bool, s])
             tmp_list.append(tmp_bool)
         model.Add(sum(tmp_list) == 2).OnlyEnforceIf(s)
-        switch.remap_index(s.index, (self, 0))
