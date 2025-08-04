@@ -13,13 +13,15 @@ import webbrowser
 from flask_cors import CORS
 import sys
 
-from abs.board import AbstractPosition
+from abs.board import AbstractPosition, AbstractBoard
 from abs.rule import AbstractRule
 from impl.summon.game import GameSession as Game
 from impl.summon.summon import Summon
 from impl.impl_obj import decode_board
 from flask import Flask
 import os
+from impl.summon.game import NORMAL, EXPERT, ULTIMATE, PUZZLE
+from impl.summon.game import ULTIMATE_R, ULTIMATE_S, ULTIMATE_F, ULTIMATE_A
 from datetime import datetime, timedelta
 
 # 添加项目路径到系统路径
@@ -202,8 +204,6 @@ def root():
 @app.route('/api/new')
 def generate_board():
     global hypothesis_data
-    from impl.summon.game import NORMAL, EXPERT, ULTIMATE, PUZZLE
-    from impl.summon.game import ULTIMATE_R, ULTIMATE_S, ULTIMATE_F, ULTIMATE_A
     # from utils.tool import get_random
     # get_random(new=True, seed=4762844)
     answer_board = None
@@ -475,10 +475,29 @@ def get_rule_list():
 @app.route('/api/reset', methods=['POST'])
 def reset():
     global hypothesis_data
-    game = hypothesis_data["game"]
+    game: Game = hypothesis_data["game"]
     mask_board = hypothesis_data["board"]
+    if mask_board is None:
+        print("board is None")
+        return {}, 500
+    answer_board = game.answer_board
     game.board = mask_board
-    game
+    if game.mode == ULTIMATE:
+        if not game.ultimate_mode & ULTIMATE_R:
+            game.drop_r = False
+    board_data = format_board(mask_board)
+    count = dict()
+    count["total"] = len([_ for pos, _ in answer_board("F")])
+    count["unknown"] = len([_ for _ in mask_board("N")])
+    if not game.drop_r:
+        count["known"] = len([_ for pos, _ in answer_board("F")])
+        count["remains"] = len([_ for pos, _ in answer_board("F") if mask_board.get_type(pos) == "N"])
+    else:
+        count["known"] = None
+        count["remains"] = None
+    board_data["rules"] = hypothesis_data["rules"]
+    board_data["count"] = count
+    return jsonify(board_data)
 
 
 if __name__ == '__main__':
