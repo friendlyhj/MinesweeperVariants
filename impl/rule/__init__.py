@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
-
 # @Time    : 2025/06/03 04:23
 # @Author  : Wu_RH
 # @FileName: __init__.py
@@ -20,13 +19,6 @@ def extract_module_docstring(filepath) -> Union[Dict, None]:
     try:
         tree = ast.parse(source, filename=filepath)
     except SyntaxError:
-        return None
-
-    # 如果该脚本执行会报错，直接返回 None
-    try:
-        code = compile(source, filepath, mode='exec')
-        exec(code, {})  # 注意：存在副作用，可能会运行文件中逻辑
-    except Exception:
         return None
 
     module_doc = ast.get_docstring(tree)

@@ -11,13 +11,12 @@ from ortools.sat.python.cp_model import IntVar
 
 from abs.board import AbstractBoard
 from abs.rule import AbstractRule, AbstractValue
-from impl.summon.solver import Switch
 
 
 def connect(
         model: cp_model.CpModel,
         board: AbstractBoard,
-        switch: Switch,     # 连通性选择
+        switch,     # 连通性选择
         map_index: tuple[Union[AbstractRule, AbstractValue, str], int],
         ub=False,  # 可达处的上限
         connect_value=1,  # 1=雷连通，0=非雷连通
@@ -30,7 +29,6 @@ def connect(
         return
 
     switch_list = [switch.get(model, "") for _ in range(9)]
-    print([s.index for s in switch_list])
     [switch.remap_index(s.index, map_index) for s in switch_list]
     model.AddBoolAnd(switch_list[:8]).OnlyEnforceIf(switch_list[8])
     model.AddBoolAnd([s.Not() for s in switch_list[:8]]).OnlyEnforceIf(switch_list[8].Not())

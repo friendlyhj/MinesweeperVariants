@@ -10,7 +10,7 @@ from pathlib import Path
 import yaml
 
 from abs.board import AbstractBoard
-from impl.impl_obj import get_board, ModelGenerateError
+from impl.impl_obj import get_board, ModelGenerateError, encode_board
 from impl.summon import Summon
 from impl.summon.summon import GenerateError
 from utils.image_create import draw_board

@@ -9,12 +9,10 @@
 [1Q]无方: 每个2x2区域内都至少有一个雷
 """
 
-from typing import Union, List
+from typing import List
 
 from abs.Lrule import AbstractMinesRule
 from abs.board import AbstractPosition, AbstractBoard
-from utils.solver import get_model
-from utils.tool import get_random
 
 
 def block(a_pos: AbstractPosition, board: AbstractBoard) -> List[AbstractPosition]:
@@ -29,15 +27,10 @@ def block(a_pos: AbstractPosition, board: AbstractBoard) -> List[AbstractPositio
 class Rule1Q(AbstractMinesRule):
     name = ["1Q", "Q", "无方"]
     doc = "每个2x2区域内都至少有一个雷"
-    subrules = [
-        [True, "[1Q]"]
-    ]
 
-    def create_constraints(self, board: 'AbstractBoard'):
-        if not self.subrules[0][0]:
-            return
-            
-        model = get_model()
+    def create_constraints(self, board: 'AbstractBoard', switch):
+        model = board.get_model()
+        s = switch.get(model, self)
 
         for key in board.get_interactive_keys():
             a_pos = board.boundary(key=key)
@@ -46,8 +39,4 @@ class Rule1Q(AbstractMinesRule):
                     if not (pos_block := block(i_pos, board)):
                         continue
                     var_list = [board.get_variable(pos) for pos in pos_block]
-                    model.AddBoolOr(var_list)
-
-    @classmethod
-    def method_choose(cls) -> int:
-        return 1
+                    model.AddBoolOr(var_list).OnlyEnforceIf(s)

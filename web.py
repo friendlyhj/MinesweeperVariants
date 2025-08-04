@@ -204,8 +204,8 @@ def generate_board():
     global hypothesis_data
     from impl.summon.game import NORMAL, EXPERT, ULTIMATE, PUZZLE
     from impl.summon.game import ULTIMATE_R, ULTIMATE_S, ULTIMATE_F, ULTIMATE_A
-    # from utils.tool import get_random
-    # get_random(new=True, seed=8205162)
+    from utils.tool import get_random
+    # get_random(new=True, seed=4762844)
     answer_board = None
     mask_board = None
     code = request.args.get("code", None)
@@ -267,19 +267,13 @@ def generate_board():
     else:
         # print(2)
         if mode < 3:
-            try:
-                hypothesis_data["game"].answer_board = hypothesis_data["summon"].summon_board()
-                mask_board = hypothesis_data["game"].create_board()
-                print(123456)
-            except:
-                return jsonify({"error": "generate failed"}), 500
+            hypothesis_data["game"].answer_board = hypothesis_data["summon"].summon_board()
+            mask_board = hypothesis_data["game"].create_board()
+            print(123456)
             answer_board = hypothesis_data["game"].answer_board
             print(answer_board)
         else:
-            try:
-                mask_board = hypothesis_data["summon"].create_puzzle()
-            except:
-                return jsonify({"error": "generate failed"}), 500
+            mask_board = hypothesis_data["summon"].create_puzzle()
             hypothesis_data["game"].answer_board = hypothesis_data["summon"].answer_board
             answer_board = hypothesis_data["summon"].answer_board
     if dye:
@@ -300,6 +294,8 @@ def generate_board():
         remains[0] = "*"
         remains[1] = "*"
     board_data["remains"] = remains
+    hypothesis_data["game"].thread_hint()
+    hypothesis_data["game"].thread_deduced()
     return jsonify(board_data)
 
 
@@ -350,6 +346,8 @@ def click():
     else:
         _board = None
     print("end click")
+    hypothesis_data["game"].thread_hint()
+    hypothesis_data["game"].thread_deduced()
     # print(game.answer_board.show_board())
 
     refresh["success"] = True
@@ -424,21 +422,18 @@ def hint_post():
         b_hint = []
         t_hint = []
         for b in _b_hint:
-            bes_type = b[0].split("|", 1)[0].lower()
-            name = b[0].split("|", 1)[1]
-            if bes_type == "rule":
+            if type(b) is tuple:
                 b_hint.append({
                     "type": "rule",
-                    "name": name
+                    "name": b[0],
+                    "index": b[1]
                 })
-            elif bes_type == "pos":
-                info = name.split("|")
-                print(bes_type, name)
+            elif isinstance(b, AbstractPosition):
                 b_hint.append({
                     "type": "pos",
-                    "x": int(info[0]),
-                    "y": int(info[1]),
-                    "boardkey": info[2],
+                    "x": b.x,
+                    "y": b.y,
+                    "boardkey": b.board_key,
                 })
         for t in _t_hint:
             t_hint.append({

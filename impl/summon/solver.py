@@ -5,8 +5,12 @@
 # @FileName: solver.py
 import math
 import os
+from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures._base import as_completed
 from pathlib import Path
 import yaml
+from ortools.sat.python.cp_model import IntVar
+
 from abs.rule import AbstractRule, AbstractValue
 from ortools.sat.python import cp_model
 from collections import defaultdict
@@ -35,10 +39,10 @@ def get_solver(b: bool):
     solver.parameters.num_search_workers = CONFIG["workes_number"]  # 多线程并行搜索
     solver.parameters.search_branching = cp_model.AUTOMATIC_SEARCH
     solver.parameters.linearization_level = 2  # 启用线性化加速
-    solver.parameters.cp_model_presolve = b
+    # solver.parameters.cp_model_presolve = b
     solver.parameters.use_optional_variables = True
     solver.parameters.randomize_search = True
-    if CONFIG["timeout"] > 0:
+    if CONFIG["timeout"] > 0 and b:
         solver.parameters.max_time_in_seconds = CONFIG["timeout"]  # 时间限制
     return solver
 
@@ -119,6 +123,9 @@ class Switch:
 
         return var
 
+    def remap_switch(self, switch: IntVar, target_hint: Tuple[Any, int]):
+        return self.remap_index(switch.index, target_hint)
+
     def remap_index(self, index: int, target_hint: Tuple[Any, int]):
         """
         将现有变量索引重映射到另一个HintFlag
@@ -171,6 +178,20 @@ class Switch:
         变量列表
         """
         return self.all_vars
+
+    def get_var_by_index(self, index: int) -> IntVar | None:
+        """
+        根据index获取它的变量
+
+        参数:
+        hint: (name, index) 元组
+
+        返回:
+        变量索引列表
+        """
+        if len(line := [i for i in self.get_all_vars() if i.index == index]):
+            return line[0]
+        return None
 
     def get_indices_by_hint(self, hint: Tuple[str, int]) -> List[int]:
         """
@@ -330,36 +351,6 @@ def solver_by_csp(
     return 1
 
 
-def hint_by_csp(
-        board: AbstractBoard,
-        answer_board: AbstractBoard,
-        switch: Switch,
-        pos: AbstractPosition,
-):
-    if board[pos] is not None:
-        return None
-    model = board.get_model().clone()
-    model: cp_model.CpModel
-
-    model.AddAssumptions(switch.get_all_vars())
-
-    target_var = board.get_variable(pos)
-    model.Add(target_var == (0 if answer_board.get_type(pos) == "F" else 1))
-
-    solver = get_solver(True)
-    state = solver.Solve(model)
-
-    if state != cp_model.INFEASIBLE:
-        return None
-
-    hint = solver.SufficientAssumptionsForInfeasibility()
-    hint = [i if i > -1 else -i - 1 for i in hint]
-    # print(hint)
-    hint = [switch.get_hint_by_index(i) for i in hint]
-
-    return hint
-
-
 def deduced_by_csp(
         board: AbstractBoard,
         answer_board: AbstractBoard,
@@ -382,3 +373,143 @@ def deduced_by_csp(
     if state == cp_model.INFEASIBLE:
         return True
     return False
+
+
+def hint_by_csp(
+    board: AbstractBoard,
+    answer_board: AbstractBoard,
+    switch: Switch,
+    pos: AbstractPosition,
+    upper_bound=None
+):
+    if board[pos] is not None:
+        return None
+    model = board.get_model().clone()
+    model: cp_model.CpModel
+
+    target_var = board.get_variable(pos)
+    model.Add(target_var == (0 if answer_board.get_type(pos) == "F" else 1))
+    assumptions = switch.get_all_vars()
+
+    get_logger().trace(f"pos {pos}: start\n", end="")
+    results = _hint_by_csp(
+        model, assumptions,
+        upper_bound, 0, pos
+    )
+    get_logger().trace(f"pos {pos}: {results}\n", end="")
+    if results is None:
+        return None
+    return [switch.get_hint_by_index(r.index) for r in results]
+
+
+def _hint_by_csp(
+    model: cp_model.CpModel,
+    assumptions: List[IntVar],
+    upper_bound=None,
+    offset=0,
+    pos=None
+):
+    logger = get_logger()
+    logger.trace(f"pos {pos} off {offset}: start\n", end="")
+    future_to_param = {}
+    _results = []
+    with ThreadPoolExecutor(max_workers=CONFIG["workes_number"]) as executor:
+        for var in assumptions:
+            _model = model.clone()
+            _model.Add(var == 0)
+            _model.AddBoolAnd([v for v in assumptions if v != var])
+            solver = get_solver(False)
+            fut = executor.submit(
+                solver.Solve,
+                _model, None
+            )
+            future_to_param[fut] = var
+        for fut in as_completed(future_to_param):
+            try:
+                var = future_to_param[fut]
+                status = fut.result()
+                if status == cp_model.INFEASIBLE: ...   # 无解
+                elif status in (cp_model.OPTIMAL, cp_model.FEASIBLE):
+                    # 有解 代表该约束为必要约束 属于该层的与节点
+                    _results.append(var)
+                else: raise ValueError(f"unknow status: {status}")
+            except Exception as e:
+                logger.trace(e)
+                continue
+
+    if upper_bound is not None and len(_results) - 1 > (upper_bound[0] - offset):
+        logger.trace(f"pos {pos}, off {offset}: fail (len>ub)\n", end="")
+        return None
+    # 将与的状态保留至model
+    model.AddBoolAnd(_results)
+    # 将其他约束加入进行测试是否无解(可推)
+    _model = model.clone()
+    _model.Add(sum([v for v in assumptions if v not in _results]) == 0)
+    solver = get_solver(False)
+    status = solver.Solve(_model)
+    if status == cp_model.INFEASIBLE:
+        # 无解说明已经是包含所有的约束了 是当前层的MUS
+        if upper_bound is not None:
+            with upper_bound[1]:
+                if (len(_results) + offset) < upper_bound[0]:
+                    upper_bound[0] = len(_results) + offset
+        logger.trace(f"pos {pos} off {offset}: done {_results}\n", end="")
+        return _results
+    elif status not in (cp_model.OPTIMAL, cp_model.FEASIBLE):
+        # 未知状况直接返回None
+        logger.trace(f"pos {pos} off {offset}: error state:{status}\n", end="")
+        return None
+    # 有解说明当前层依旧有或节点未被发现 需要继续遍历
+    # 获取当前层的MCS
+    mcs = [v for v in assumptions if v not in _results]
+    # 使用二分推理或关系
+    R = 0
+    L = len(mcs)
+    mid = 2 * len(mcs) // 3
+
+    while True:
+        _model = model.clone()
+
+        _model.Add(sum(mcs) > mid)
+
+        solver = get_solver(False)
+        status = solver.Solve(_model)
+
+        if status == cp_model.INFEASIBLE:
+            # 无解
+            L = mid
+            mid = (L - R) // 2 + R
+        elif status in (cp_model.OPTIMAL, cp_model.FEASIBLE):
+            # 有解
+            R = mid
+            mid = (L - R) // 2 + R
+            if R == mid: break
+        else: return None
+
+    _mcs = [i for i in mcs if solver.Value(i) == 0]
+    results = []
+
+    for var in _mcs:
+        _model = model.clone()
+        # 只开启其中一个或节点进行广搜
+        _model.Add(var == 1)
+        _model.AddBoolAnd([v.Not() for v in _mcs if v != var])
+        _assumptions = [v for v in assumptions if v not in _mcs + _results]
+
+        result = _hint_by_csp(
+            _model,
+            _assumptions[:],
+            upper_bound=upper_bound,
+            offset=offset + len(_results) + len(_mcs)
+        )
+        if result is None:
+            # 该节点求解失败或者出现错误或者提前步出
+            continue
+        results.append(result + [var] + _results)
+
+    if not results:
+        logger.trace(f"pos {pos} off {offset}: fail (OR)\n", end="")
+        return None
+    min_length = min([len(r) for r in results])
+    logger.trace(f"pos {pos} off {offset}: {results}, min:{min_length}\n", end="")
+    return [result for result in results if (len(result) == min_length)][0]

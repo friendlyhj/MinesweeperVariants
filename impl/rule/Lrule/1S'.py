@@ -8,31 +8,28 @@
 [1S'] 衔尾蛇：所有雷构成一条蛇。蛇是一条宽度为 1 的四连通路径，不存在分叉、环、交叉, 蛇的头尾相连
 """
 from abs.Lrule import AbstractMinesRule
-from utils.solver import get_model
 
 from .connect import connect
 
 
 class Rule1S(AbstractMinesRule):
     name = ["1S'", "衔尾蛇"]
-    subrules = [[True, "[1S']"]]
+    doc = "所有雷构成一条蛇。蛇是一条宽度为 1 的四连通路径，不存在分叉、环、交叉, 蛇的头尾相连"
 
-    def create_constraints(self, board):
-        if not self.subrules[0][0]:
-            return
-        model = get_model()
+    def create_constraints(self, board, switch):
+        model = board.get_model()
+        s = switch.get(model, self)
+        switch.remap_switch(s, (self, 0))
 
         connect(
             model=model,
             board=board,
             connect_value=1,
-            nei_value=1
+            nei_value=1,
+            switch=switch,
+            map_index=(self, 0)
         )
 
         for pos, var in board(mode="variable"):
             var_list = board.batch(pos.neighbors(1), mode="variable", drop_none=True)
-            model.Add(sum(var_list) == 2).OnlyEnforceIf(var)
-
-    @classmethod
-    def method_choose(cls) -> int:
-        return 1
+            model.Add(sum(var_list) == 2).OnlyEnforceIf([var, s])
