@@ -285,15 +285,16 @@ def generate_board():
     hypothesis_data["rules"] = rules[:]
     board_data = format_board(mask_board)
     board_data["rules"] = hypothesis_data["rules"]
-    remains = [-1, -1, 0]
-    remains[2] = len([_ for _ in mask_board("N")])
+    count = dict()
+    count["total"] = len([_ for pos, _ in answer_board("F")])
+    count["unknown"] = len([_ for _ in mask_board("N")])
     if not hypothesis_data["game"].drop_r:
-        remains[0] = len([_ for _ in mask_board("F")])
-        remains[1] = len([_ for pos, _ in answer_board("F") if mask_board.get_type(pos) == "N"])
+        count["known"] = len([_ for pos, _ in answer_board("F")])
+        count["remains"] = len([_ for pos, _ in answer_board("F") if mask_board.get_type(pos) == "N"])
     else:
-        remains[0] = "*"
-        remains[1] = "*"
-    board_data["remains"] = remains
+        count["known"] = None
+        count["remains"] = None
+    board_data["remains"] = count
     hypothesis_data["game"].thread_hint()
     hypothesis_data["game"].thread_deduced()
     hypothesis_data["board"] = mask_board.clone()
@@ -306,16 +307,17 @@ def metadata():
         board = hypothesis_data["game"].board
         a_board = hypothesis_data["game"].answer_board
         board_data = format_board(board)
-        remains = [-1, -1, 0]
-        remains[2] = str(len([_ for _ in board("N")]))
+        count = dict()
+        count["total"] = len([_ for pos, _ in a_board("F")])
+        count["unknown"] = len([_ for _ in board("N")])
         if not hypothesis_data["game"].drop_r:
-            remains[0] = len([_ for _ in board("F")])
-            remains[1] = len([_ for pos, _ in a_board("F") if board.get_type(pos) == "N"])
+            count["known"] = len([_ for pos, _ in a_board("F")])
+            count["remains"] = len([_ for pos, _ in a_board("F") if board.get_type(pos) == "N"])
         else:
-            remains[0] = "*"
-            remains[1] = "*"
+            count["known"] = None
+            count["remains"] = None
         board_data["rules"] = hypothesis_data["rules"]
-        board_data["remains"] = remains
+        board_data["count"] = count
         return jsonify(board_data)
     return {}
 
