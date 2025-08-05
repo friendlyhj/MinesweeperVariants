@@ -208,7 +208,7 @@ def generate_board():
     from utils.tool import get_random
     get_random(new=True)
     # get_random(new=True, seed=1145141919810)
-    get_random(new=True, seed=4096695)
+    # get_random(new=True, seed=4096695)
     t = time.time()
     answer_board = None
     mask_board = None
@@ -518,7 +518,7 @@ def reset():
 
 
 if __name__ == '__main__':
-    get_logger(log_lv="TRACE")
+    # get_logger(log_lv="TRACE")
     port = int(sys.argv[1] if len(sys.argv) == 2 else "5050")
     # 允许所有来源跨域，或根据需要设置 origins=["*"]
 
