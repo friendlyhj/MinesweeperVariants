@@ -90,10 +90,10 @@ class Manger:
 
 
 class GameSession:
-    def __init__(self, summon: Summon = None,
-                 mode=NORMAL, drop_r=False,
-                 ultimate_mode=ULTIMATE_A | ULTIMATE_F | ULTIMATE_S,
-                 ):
+    def __init__(
+        self, summon: Summon = None, mode=NORMAL, drop_r=False,
+        ultimate_mode=ULTIMATE_A | ULTIMATE_F | ULTIMATE_S,
+    ):
         self.logger = get_logger()
         self.summon = summon
         self.drop_r = drop_r
@@ -113,6 +113,7 @@ class GameSession:
         self.last_hint = [None, {}]
         self.deducedManger = Manger(self.deduced)
         self.hintManger = Manger(self.hint)
+        print("init: drop_r", self.drop_r)
 
     def solve_current_board(
         self, board_state,
@@ -330,12 +331,14 @@ class GameSession:
         self.last_deduced[1] = deduced
         self.last_deduced[0] = self.board.clone()
 
-        self.logger.trace("last_deduced", self.last_deduced[1])
+        self.logger.trace(f"last_deduced {str(self.last_deduced[1])}")
 
         return deduced
 
     def _deduced(self, board, all_rules):
         self.logger.trace("构建新模型")
+        self.logger.trace(f"deduced all_rules: {all_rules}")
+        self.logger.trace(f"deduced drop_r: {self.drop_r}")
         board.clear_variable()
         model = board.get_model()
         switch = Switch()
@@ -384,13 +387,17 @@ class GameSession:
             for fut in as_completed(future_to_param):
                 pos = future_to_param[fut]
                 try:
+                    self.logger.trace(f"deduced pos {pos} wait")
                     result = fut.result()
+                    self.logger.trace(f"deduced pos {pos} end: {result}")
                     if result is None:
                         continue
                     if result:
                         results.append(pos)
                 except Exception as exc:
                     raise exc
+
+        self.logger.trace(f"deduced done: {results}")
 
         return results
 
@@ -575,31 +582,33 @@ class GameSession:
 
 
 def main():
-    # get_random(new=True, seed=9578119)
     get_logger(log_lv="TRACE")
-    get_random(seed=5474554)
+    get_random(new=True, seed=8894987)
+    # get_random(seed=5474554)
     size = (5, 5)
-    rules = ["1S"]
+    rules = ["1A", "*1M"]
     s = Summon(size, -1, rules)
-    g = GameSession(s, ULTIMATE, False, 8)
-    g.answer_board = s.summon_board()
-    g.create_board()
+    g = GameSession(s, ULTIMATE, False, ULTIMATE_R)
+    g.board = s.create_puzzle()
+    g.answer_board = s.answer_board
+    # g.create_board()
     # for p, i in g.board("C"):
     #     g.chord_clue(p)
-    g.drop_r = True
+    # g.drop_r = True
     print("=" * 20)
     print(g.board)
     print("=" * 20)
-    print(g.deduced())
+    print(d := g.deduced())
     print("=" * 20)
     print(g.board)
     print("=" * 20)
-    print(h := g.hint())
-    print("=" * 20)
-    print(g.board)
-    print("=" * 20)
-    for b, t in h.items():
-        print(b, "->", t)
+    print(f"deduced: {d}")
+    # print(h := g.hint())
+    # print("=" * 20)
+    # print(g.board)
+    # print("=" * 20)
+    # for b, t in h.items():
+    #     print(b, "->", t)
     # g.create_board()
     # while "N" in g.board:
     #     print(g.hint())

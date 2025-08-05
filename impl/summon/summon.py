@@ -105,7 +105,6 @@ class Summon:
         # 右线规则初始化
         if len(clue_rules) == 0:
             self.clue_rule = get_rule("V")(board=self.board, data=None)
-            rules.append("V")
         elif len(clue_rules) > 1:
             self.clue_rule = get_rule("#")(board=self.board, data=clue_rules)
             rules.append("#")
@@ -130,6 +129,9 @@ class Summon:
                 rules.append(mines_clue_rules[0].name)
             else:
                 rules.append(mines_clue_rules[0].name[0])
+
+        if not rules:
+            rules.append("V")
 
         # 染色规则
         if dye:

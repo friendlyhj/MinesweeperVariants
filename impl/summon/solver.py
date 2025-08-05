@@ -373,7 +373,10 @@ def deduced_by_csp(
 
     if state == cp_model.INFEASIBLE:
         return True
-    return False
+    elif state in (cp_model.OPTIMAL, cp_model.FEASIBLE):
+        return False
+    else:
+        return None
 
 
 def hint_by_csp(
@@ -410,26 +413,6 @@ def _hint_by_csp(
     offset=0,
     pos=None
 ):
-    def _run_solver(model, assumptions, q):
-        solver = get_solver(True)
-        q.put(solver.Solve(model, None))
-
-    def solve_with_timeout_retry(model, assumptions):
-        for _ in range(3):
-            q = Queue()
-            p = Process(target=_run_solver, args=(model, assumptions, q))
-            p.start()
-            p.join(2)
-            if p.is_alive():
-                p.terminate()
-                p.join()
-                continue
-            try:
-                return q.get_nowait()
-            except:
-                pass
-        return None
-
     logger = get_logger()
     logger.trace(f"pos {pos} off {offset}: start\n", end="")
     future_to_param = {}
@@ -449,12 +432,15 @@ def _hint_by_csp(
             try:
                 var = future_to_param[fut]
                 logger.trace(f"pos {pos} off {offset} wait: {var}")
-                status = fut.result(timeout=2)
-                if status == cp_model.INFEASIBLE:
+                status = fut.result()
+                logger.trace(f"pos {pos} off {offset} end wait: {status}")
+                if status in (cp_model.FEASIBLE, cp_model.OPTIMAL):
                     _results.append(var)
             except Exception as e:
                 logger.trace(e)
                 continue
+
+    logger.trace(f"pos {pos} off {offset} end AND [{_results}]")
 
     if upper_bound is not None and len(_results) - 2 > (upper_bound[0] - offset):
         logger.trace(f"pos {pos}, off {offset}: fail (len>ub)\n", end="")
@@ -465,7 +451,9 @@ def _hint_by_csp(
     _model = model.clone()
     _model.Add(sum([v for v in assumptions if v not in _results]) == 0)
     solver = get_solver(False)
+    logger.trace(f"pos {pos} off {offset} verification and start")
     status = solver.Solve(_model)
+    logger.trace(f"pos {pos} off {offset} verification and end {status}")
     if status == cp_model.INFEASIBLE:
         # 无解说明已经是包含所有的约束了 是当前层的MUS
         if upper_bound is not None:
@@ -481,19 +469,22 @@ def _hint_by_csp(
     # 有解说明当前层依旧有或节点未被发现 需要继续遍历
     # 获取当前层的MCS
     mcs = [v for v in assumptions if v not in _results]
+
     # 使用二分推理或关系
     R = 0
     L = len(mcs)
     mid = 2 * len(mcs) // 3
 
+    logger.trace(f"pos {pos} off {offset}: start OR lever\n", end="")
     while True:
         _model = model.clone()
 
-        _model.Add(sum(mcs) > mid)
+        _model.Add(sum(mcs) >= mid)
 
         solver = get_solver(False)
+        logger.trace(f"pos {pos} off {offset}: OR => start {len(mcs)}-{L}-{mid}-{R}\n", end="")
         status = solver.Solve(_model)
-
+        logger.trace(f"pos {pos} off {offset}: OR => end {len(mcs)}-{L}-{mid}-{R} => {status}\n", end="")
         if status == cp_model.INFEASIBLE:
             # 无解
             L = mid
@@ -506,6 +497,7 @@ def _hint_by_csp(
         else: return None
 
     _mcs = [i for i in mcs if solver.Value(i) == 0]
+    logger.trace(f"pos {pos} off {offset} ORlever: {_mcs} status {status}\n", end="")
     results = []
 
     for var in _mcs:

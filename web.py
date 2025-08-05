@@ -5,6 +5,7 @@
 # @Author  : Wu_RH
 # @FileName: app.py.py
 import threading
+import time
 from pathlib import Path
 from typing import Union
 
@@ -206,8 +207,10 @@ def root():
 @app.route('/api/new')
 def generate_board():
     global hypothesis_data
-    # from utils.tool import get_random
-    # get_random(new=True, seed=4762844)
+    from utils.tool import get_random
+    get_random(new=True)
+    # get_random(new=True, seed=5021061)
+    t = time.time()
     answer_board = None
     mask_board = None
     code = request.args.get("code", None)
@@ -255,7 +258,7 @@ def generate_board():
         size = [int(i) for i in request.args.get("size", None).split("x")]
 
     hypothesis_data["summon"] = Summon(
-        size, total, rules, used_r, dye
+        size, total, rules, not used_r, dye
     )
     hypothesis_data["game"] = Game(
         summon=hypothesis_data["summon"],
@@ -300,6 +303,8 @@ def generate_board():
     hypothesis_data["game"].thread_hint()
     hypothesis_data["game"].thread_deduced()
     hypothesis_data["board"] = mask_board.clone()
+    print("生成用时: ", time.time() - t)
+    print("mode: ", mode, "u_mode", ultimate_mode)
     return jsonify(board_data)
 
 
@@ -324,7 +329,7 @@ def metadata():
     return {}
 
 
-@app.route('/api/click', methods=['POST'])
+@app.route('/api/click', methods=['POST', 'GET'])
 def click():
     global hypothesis_data
     data = request.get_json()
@@ -404,7 +409,7 @@ def click():
     return refresh, 200
 
 
-@app.route('/api/hint', methods=['GET'])
+@app.route('/api/hint', methods=['POST', 'GET'])
 def hint_post():
     global hypothesis_data
     game = hypothesis_data["game"]
@@ -457,7 +462,7 @@ def hint_post():
     return jsonify({"hints": results}), 200
 
 
-@app.route('/api/rules', methods=['GET'])
+@app.route('/api/rules', methods=['POST', 'GET'])
 def get_rule_list():
     from impl.rule import get_all_rules
     from impl.board.dye import get_all_dye
@@ -507,7 +512,7 @@ def reset():
 
 
 if __name__ == '__main__':
-    get_logger(log_lv="TRACE")
+    # get_logger(log_lv="TRACE")
     port = int(sys.argv[1] if len(sys.argv) == 2 else "5050")
     # 允许所有来源跨域，或根据需要设置 origins=["*"]
 
