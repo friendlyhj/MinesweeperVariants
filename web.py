@@ -175,7 +175,7 @@ def format_cell(_board, pos, hint=0):
     return cell_data
 
 
-def format_board(_board):
+def format_board(_board: AbstractBoard):
     if _board is None:
         return
     # board: Board
@@ -185,7 +185,12 @@ def format_board(_board):
     }
     count = 0
     for key in _board.get_board_keys():
-        board_data["boards"][key] = _board.get_config(key, "size")
+        board_data["boards"][key] = {
+            "size": _board.get_config(key, "size"),
+            "position:": [_board.get_board_keys().index(key), 0],
+            "showLabel": _board.get_config(key, "row_col")
+            # TODO X=N, poslabel
+        }
         for pos, obj in _board(key=key):
             board_data["cells"].append(
                 format_cell(_board, pos))
@@ -367,11 +372,23 @@ def click():
     hypothesis_data["game"].thread_deduced()
 
     if _board is None:
+        unbelievable = None
         if data["button"] == "left":
             refresh["reason"] = "你踩雷了"
+            unbelievable = game.unbelievable(pos, 0)
         elif data["button"] == "right":
             refresh["reason"] = "你标记了一个错误的雷"
+            unbelievable = game.unbelievable(pos, 1)
+        if unbelievable is None:
+            raise ValueError
+        print(unbelievable)
+        refresh["mines"] = [
+            {"x": _pos.x, "y": _pos.y,
+             "boardname": _pos.board_key}
+            for _pos in unbelievable
+        ]
         refresh["gameover"] = True
+        refresh["win"] = False
     else:
         for key in _board.get_board_keys():
             for pos, obj in _board(key=key):
@@ -393,6 +410,7 @@ def click():
         ):
             refresh["gameover"] = True
             refresh["reason"] = "你过关!!!(震声)"
+            refresh["win"] = True
     print(game.board)
     # print(game.deduced())
     # print(game.hint())

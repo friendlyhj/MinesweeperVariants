@@ -19,7 +19,7 @@ from abs.Rrule import AbstractClueValue
 from abs.board import AbstractBoard
 from abs.board import AbstractPosition
 from impl.summon import Summon
-from impl.summon.solver import solver_by_csp, hint_by_csp, Switch, deduced_by_csp
+from impl.summon.solver import solver_by_csp, hint_by_csp, Switch, deduced_by_csp, solver_board
 from utils.impl_obj import MINES_TAG, VALUE_QUESS, POSITION_TAG
 from utils.tool import get_logger, get_random
 
@@ -139,6 +139,37 @@ class GameSession:
             except Exception as e:
                 print(e)
         raise e
+
+    def unbelievable(self, pos, action: int):
+        """
+        action
+            0: 左键点击/翻开/设置非雷
+            1: 右键点击/标雷/设置必雷
+        """
+        if self.answer_board.get_type(pos) == "F" and action == 0:
+            return [
+                pos for key in self.answer_board.get_board_keys()
+                for pos, _ in self.answer_board(key=key)
+                if (self.board.get_type(pos) == "N" and
+                    self.answer_board.get_type(pos) == "F")
+            ]
+        if self.answer_board.get_type(pos) == "C" and action == 1:
+            return [
+                pos for key in self.answer_board.get_board_keys()
+                for pos, _ in self.answer_board(key=key)
+                if (self.board.get_type(pos) == "N" and
+                    self.answer_board.get_type(pos) == "C")
+            ]
+        all_rules = self.summon.mines_rules.rules[:]
+        all_rules += [self.summon.clue_rule, self.summon.mines_clue_rule]
+        if self.drop_r:
+            all_rules = [rule for rule in all_rules if not isinstance(rule, Rule0R)]
+        board = self.board.clone()
+        if action == 0:
+            board[pos] = MINES_TAG
+        else:
+            board[pos] = VALUE_TAG
+        return solver_board(board, all_rules)
 
     def thread_hint(self):
         threading.Thread(target=self.hintManger.wait).start()
