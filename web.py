@@ -175,7 +175,7 @@ def format_cell(_board, pos, hint=0):
     return cell_data
 
 
-def format_board(_board):
+def format_board(_board: AbstractBoard):
     if _board is None:
         return
     # board: Board
@@ -185,7 +185,12 @@ def format_board(_board):
     }
     count = 0
     for key in _board.get_board_keys():
-        board_data["boards"][key] = _board.get_config(key, "size")
+        board_data["boards"][key] = {
+            "size": _board.get_config(key, "size"),
+            "position:": [_board.get_board_keys().index(key), 0],
+            "showLabel": _board.get_config(key, "row_col")
+            # TODO X=N, poslabel
+        }
         for pos, obj in _board(key=key):
             board_data["cells"].append(
                 format_cell(_board, pos))
@@ -208,7 +213,7 @@ def generate_board():
     from utils.tool import get_random
     get_random(new=True)
     # get_random(new=True, seed=1145141919810)
-    get_random(new=True, seed=4096695)
+    # get_random(new=True, seed=4096695)
     t = time.time()
     answer_board = None
     mask_board = None
@@ -306,7 +311,7 @@ def generate_board():
         count["remains"] = None
     board_data["remains"] = count
     hypothesis_data["game"].thread_hint()
-    hypothesis_data["game"].thread_deduced()
+    # hypothesis_data["game"].thread_deduced()
     hypothesis_data["board"] = mask_board.clone()
     print("生成用时: ", time.time() - t)
     print("mode: ", mode, "u_mode", ultimate_mode)
@@ -367,30 +372,45 @@ def click():
     hypothesis_data["game"].thread_deduced()
 
     if _board is None:
+        unbelievable = None
         if data["button"] == "left":
             refresh["reason"] = "你踩雷了"
+            unbelievable = game.unbelievable(pos, 0)
         elif data["button"] == "right":
             refresh["reason"] = "你标记了一个错误的雷"
+            unbelievable = game.unbelievable(pos, 1)
+        if unbelievable is None:
+            raise ValueError
+        print(unbelievable)
+        refresh["mines"] = [
+            {"x": _pos.x, "y": _pos.y,
+             "boardname": _pos.board_key}
+            for _pos in unbelievable
+        ]
         refresh["gameover"] = True
+        refresh["win"] = False
     else:
         for key in _board.get_board_keys():
             for pos, obj in _board(key=key):
                 if obj is None and board[pos] is None:
                     continue
                 if (
-                        not (obj is None or board[pos] is None) and
-                        obj.type() == board[pos].type() and
-                        obj.code() == board[pos].code() and
-                        obj.high_light(_board) == board[pos].high_light(board)
+                    not (obj is None or board[pos] is None) and
+                    obj.type() == board[pos].type() and
+                    obj.code() == board[pos].code() and
+                    obj.high_light(_board) == board[pos].high_light(board)
                 ):
                     continue
                 data = format_cell(_board, pos)
                 print(pos, obj, data)
                 refresh["cells"].append(data)
-        if not any(_board.has("N", key=key) for
-                    key in _board.get_interactive_keys()):
+        if not any(
+            _board.has("N", key=key) for
+            key in _board.get_interactive_keys()
+        ):
             refresh["gameover"] = True
             refresh["reason"] = "你过关!!!(震声)"
+            refresh["win"] = True
     print(game.board)
     # print(game.deduced())
     # print(game.hint())
@@ -443,23 +463,20 @@ def hint_post():
         for b in _b_hint:
             if type(b) is tuple:
                 b_hint.append({
-                    "type": "rule",
-                    "name": b[0],
+                    "rule": b[0],
                     "index": b[1]
                 })
             elif isinstance(b, AbstractPosition):
                 b_hint.append({
-                    "type": "pos",
                     "x": b.x,
                     "y": b.y,
-                    "boardkey": b.board_key,
+                    "boardname": b.board_key,
                 })
         for t in _t_hint:
             t_hint.append({
-                "type": "pos",
                 "x": t.x,
                 "y": t.y,
-                "boardkey": t.board_key,
+                "boardname": t.board_key,
             })
         results.append({
             "condition": b_hint,
@@ -519,10 +536,11 @@ def reset():
 
 
 if __name__ == '__main__':
-    get_logger(log_lv="TRACE")
+    # get_logger(log_lv="TRACE")
     port = int(sys.argv[1] if len(sys.argv) == 2 else "5050")
     # 允许所有来源跨域，或根据需要设置 origins=["*"]
 
     # threading.Thread(target=lambda: webbrowser.open(f"http://localhost:{port}", new=2)).start()
     import waitress
+
     waitress.serve(app, host='0.0.0.0', port=port)

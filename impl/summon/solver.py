@@ -525,3 +525,51 @@ def _hint_by_csp(
     min_length = min([len(r) for r in results])
     logger.trace(f"pos {pos} off {offset}: {results}, min:{min_length}\n", end="")
     return [result for result in results if (len(result) == min_length)][0]
+
+
+def solver_board(
+    board: AbstractBoard,
+    all_rules: List[AbstractRule]
+):
+    model = board.get_model()
+    switch = Switch()
+
+    for rule in all_rules:
+        if rule is None:
+            continue
+        rule: AbstractRule
+        rule.create_constraints(board, switch)
+
+    for key in board.get_board_keys():
+        for pos, obj in board(key=key):
+            if obj is None:
+                continue
+            obj: AbstractValue
+            obj.create_constraints(board, switch)
+
+    # 3.获取所有变量并赋值已解完的部分
+    for key in board.get_board_keys():
+        for _, var in board("C", mode="variable", key=key):
+            model.Add(var == 0)
+        for _, var in board("F", mode="variable", key=key):
+            model.Add(var == 1)
+
+    model.AddBoolAnd(switch.get_all_vars())
+
+    solver = get_solver(True)
+    status = solver.Solve(model)
+    positions = []
+
+    if status not in (cp_model.OPTIMAL, cp_model.FEASIBLE):
+        return None
+
+    for key in board.get_board_keys():
+        for pos, var in board(key=key, mode="variable"):
+            if (
+                board.get_type(pos) == "N" and
+                solver.Value(var)
+            ):
+                positions.append(pos)
+
+    return positions
+

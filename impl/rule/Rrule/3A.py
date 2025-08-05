@@ -9,13 +9,12 @@
 箭头表示兰顿蚂蚁的初始方向，经过非雷格顺时针旋转90度(右转)，经过雷格逆时针旋转90度(左转)。
 数字可以为无穷,其表示当前路径构成了循环
 """
-from typing import List, Union, Dict
+from typing import List, Dict
 
 from abs.Rrule import AbstractClueRule, AbstractClueValue
 from abs.board import AbstractBoard, AbstractPosition
 from utils.image_create import get_image, get_text, get_row, get_col, get_dummy
 from utils.impl_obj import MINES_TAG, VALUE_QUESS
-from utils.solver import get_model
 from utils.tool import get_random
 
 
@@ -367,26 +366,20 @@ class Value3A(AbstractClueValue):
                     change = True
         return change
 
-    def create_constraints(self, board: 'AbstractBoard'):
-        model = get_model()
+    def create_constraints(self, board: 'AbstractBoard', switch):
+        model = board.get_model()
+        s = switch.get(model, self)
         answer_list = self.bfs_get_states(board)
         var_list = []
         for index in range(len(answer_list)):
             line = answer_list[index]
             var = model.NewBoolVar(f"[3A]{self.pos}{index}")
             for pos, value in line.items():
-                model.Add(board.get_variable(pos) == value).OnlyEnforceIf(var)
+                model.Add(board.get_variable(pos) == value).OnlyEnforceIf([var, s])
             var_list.append(var)
         if len(var_list) == 0:
             # 无解
             var = model.NewBoolVar(f"[3A]Error")
             model.Add(var == 1)
             model.Add(var == 0)
-        model.Add(sum(var_list) == 1)
-
-    def check(self, board: 'AbstractBoard') -> bool:
-        return True  # 写钩子
-
-    @classmethod
-    def method_choose(cls) -> int:
-        return 1
+        model.Add(sum(var_list) == 1).OnlyEnforceIf(s)

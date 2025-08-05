@@ -167,6 +167,7 @@ class Value2P(AbstractClueValue):
                 positions.append(pos)
             if v > 2:
                 break
+            n += 1
         return positions
 
     @classmethod

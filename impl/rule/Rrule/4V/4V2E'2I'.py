@@ -97,9 +97,6 @@ class Rule4V2Ep2Ip(AbstractClueRule):
     def clue_class(self):
         return Value4V2Ep2Ip
 
-    def create_constraints(self, board: 'AbstractBoard') -> bool:
-        return super().create_constraints(board)
-
     def suggest_total(self, info: dict):
         ub = 0
         for key in info["interactive"]:
@@ -135,9 +132,10 @@ class Value4V2Ep2Ip(AbstractClueValue):
                     positions.append(pos)
         return positions
 
-    def create_constraints(self, board: 'AbstractBoard'):
+    def create_constraints(self, board: 'AbstractBoard', switch):
         # 初始化模型
-        model = get_model()
+        model = board.get_model()
+        s = switch.get(model, self)
         # 初始化日志
         logger = get_logger()
 
@@ -172,9 +170,9 @@ class Value4V2Ep2Ip(AbstractClueValue):
                 # 初始化临时变量
                 tmp = model.NewBoolVar(f"included_if_{_pos}_{var_to_sum}")
                 # 如果偏移变量为真 那么tmp为题板的值
-                model.Add(tmp == var_to_sum).OnlyEnforceIf([cond, b])
+                model.Add(tmp == var_to_sum).OnlyEnforceIf([cond, b, s])
                 # 如果偏移变量为假 那么tmp为0
-                model.Add(tmp == 0).OnlyEnforceIf([cond.Not(), b])
+                model.Add(tmp == 0).OnlyEnforceIf([cond.Not(), b, s])
                 sum_vers.append(tmp)
                 logger.trace(f"[4V2E'2I'] new tempVar: {tmp} = if {cond} -> {var_to_sum}")
 
@@ -182,10 +180,10 @@ class Value4V2Ep2Ip(AbstractClueValue):
                 # 获取该列的X=index的变量
                 var = line_vars[index]
                 # 如果变量为真 那么sum应该相对 反之亦然
-                model.Add(sum(sum_vers) != index).OnlyEnforceIf([var.Not(), b])
+                model.Add(sum(sum_vers) != index).OnlyEnforceIf([var.Not(), b, s])
                 logger.trace(f"[4V2E'2I'] sum_tmp != {index} only if not {var}")
 
-        model.AddBoolOr(sum_var)
+        model.AddBoolOr(sum_var).OnlyEnforceIf(s)
         # model.Add(sum(sum_var) == 0)
 
     def code(self) -> bytes:
