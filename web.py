@@ -373,23 +373,22 @@ def click():
             refresh["reason"] = "你标记了一个错误的雷"
         refresh["gameover"] = True
     else:
-        if any(_board.has("N", key=key) for
-               key in _board.get_interactive_keys()):
-            for key in _board.get_board_keys():
-                for pos, obj in _board(key=key):
-                    if obj is None and board[pos] is None:
-                        continue
-                    if (
-                            not (obj is None or board[pos] is None) and
-                            obj.type() == board[pos].type() and
-                            obj.code() == board[pos].code() and
-                            obj.high_light(_board) == board[pos].high_light(board)
-                    ):
-                        continue
-                    data = format_cell(_board, pos)
-                    print(pos, obj, data)
-                    refresh["cells"].append(data)
-        else:
+        for key in _board.get_board_keys():
+            for pos, obj in _board(key=key):
+                if obj is None and board[pos] is None:
+                    continue
+                if (
+                        not (obj is None or board[pos] is None) and
+                        obj.type() == board[pos].type() and
+                        obj.code() == board[pos].code() and
+                        obj.high_light(_board) == board[pos].high_light(board)
+                ):
+                    continue
+                data = format_cell(_board, pos)
+                print(pos, obj, data)
+                refresh["cells"].append(data)
+        if not any(_board.has("N", key=key) for
+                    key in _board.get_interactive_keys()):
             refresh["gameover"] = True
             refresh["reason"] = "你过关!!!(震声)"
     print(game.board)
