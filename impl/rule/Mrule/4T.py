@@ -9,8 +9,7 @@
 """
 from abs.Mrule import AbstractMinesClueRule, AbstractMinesValue
 from abs.board import AbstractPosition, AbstractBoard
-from utils.solver import get_model
-
+COUNT = 0
 
 class Rule4T(AbstractMinesClueRule):
     name = ["*3T", "雷三连"]
@@ -36,8 +35,10 @@ class Rule4T(AbstractMinesClueRule):
                     board[pos].value += 1
         return board
 
-    def create_constraints(self, board: 'AbstractBoard') -> bool:
-        model = get_model()
+    def create_constraints(self, board: 'AbstractBoard', switch):
+        global COUNT
+        COUNT += 1
+        model = board.get_model()
         c_map = {}
         r_map = {}
         d1_map = {}
@@ -74,9 +75,7 @@ class Rule4T(AbstractMinesClueRule):
                     if pos not in map_list[i]:
                         continue
                     var_list.append(map_list[i][pos])
-            obj.create_constraints_(var_list)
-
-        return True
+            obj.create_constraints_(model, var_list, switch.get(model, obj))
 
 
 class Value4T(AbstractMinesValue):
@@ -91,13 +90,8 @@ class Value4T(AbstractMinesValue):
         return bytes([self.value])
 
     @classmethod
-    def method_choose(cls) -> int:
-        return 1
-
-    @classmethod
     def type(cls) -> bytes:
         return Rule4T.name[0].encode("ascii")
 
-    def create_constraints_(self, var_list: list):
-        model = get_model()
-        model.Add(sum(var_list) == self.value)
+    def create_constraints_(self, model, var_list: list, s):
+        model.Add(sum(var_list) == self.value).OnlyEnforceIf(s)

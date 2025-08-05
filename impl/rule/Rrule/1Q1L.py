@@ -12,7 +12,6 @@ from typing import List
 
 from abs.Rrule import AbstractClueValue, AbstractClueRule
 from abs.board import AbstractBoard, AbstractPosition
-from utils.solver import get_model
 from utils.tool import get_logger, get_random
 
 
@@ -63,9 +62,9 @@ class Rule1Q1L(AbstractClueRule):
     def clue_class(self):
         return Value1Q1L
 
-    def create_constraints(self, board: 'AbstractBoard') -> bool:
+    def create_constraints(self, board: 'AbstractBoard', switch) -> bool:
         block_map = {}
-        model = get_model()
+        model = board.get_model()
         for pos, _ in board():
             t = model.NewBoolVar("t")
             block_vars = block(pos.down().right(), board)
@@ -85,7 +84,7 @@ class Rule1Q1L(AbstractClueRule):
                 if _pos not in block_map:
                     continue
                 var_list.append(block_map[_pos])
-            obj.create_constraints_(board, var_list)
+            obj.create_constraints_(board, var_list, switch)
         return True
 
 
@@ -113,9 +112,10 @@ class Value1Q1L(AbstractClueValue):
     def code(self) -> bytes:
         return bytes([self.value])
 
-    def create_constraints_(self, board: 'AbstractBoard', var_list: list):
+    def create_constraints_(self, board: 'AbstractBoard', var_list: list, switch):
         """创建CP-SAT约束：周围雷数等于count"""
-        model = get_model()
+        model = board.get_model()
+        s = switch.get(model, self)
 
         # 收集周围格子的布尔变量
         neighbor_vars = []
@@ -134,20 +134,17 @@ class Value1Q1L(AbstractClueValue):
         b2 = model.NewBoolVar("[1Q1L]")
         b3 = model.NewBoolVar("[1Q1L]")
 
-        model.Add(sum(var_list) == 0).OnlyEnforceIf(b3.Not())
-        model.Add(sum(var_list) > 0).OnlyEnforceIf(b3)
+        model.Add(sum(var_list) == 0).OnlyEnforceIf([b3.Not(), s])
+        model.Add(sum(var_list) > 0).OnlyEnforceIf([b3, s])
 
         # 将布尔变量与表达式绑定
-        model.Add(neighbor_sum == self.value + 1).OnlyEnforceIf(b1)
-        model.Add(neighbor_sum != self.value + 1).OnlyEnforceIf(b1.Not())
+        model.Add(neighbor_sum == self.value + 1).OnlyEnforceIf([b1, s])
+        model.Add(neighbor_sum != self.value + 1).OnlyEnforceIf([b1.Not(), s])
 
-        model.Add(neighbor_sum == self.value - 1).OnlyEnforceIf(b2)
-        model.Add(neighbor_sum != self.value - 1).OnlyEnforceIf(b2.Not())
+        model.Add(neighbor_sum == self.value - 1).OnlyEnforceIf([b2, s])
+        model.Add(neighbor_sum != self.value - 1).OnlyEnforceIf([b2.Not(), s])
 
-        model.Add(neighbor_sum == self.value).OnlyEnforceIf(b3.Not())
-        model.Add(neighbor_sum != self.value).OnlyEnforceIf(b3)
+        model.Add(neighbor_sum == self.value).OnlyEnforceIf([b3.Not(), s])
+        model.Add(neighbor_sum != self.value).OnlyEnforceIf([b3, s])
 
-        model.Add(sum([b1, b2, b3.Not()]) == 1)
-
-    def method_choose(self) -> int:
-        return 1
+        model.Add(sum([b1, b2, b3.Not()]) == 1).OnlyEnforceIf(s)

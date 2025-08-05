@@ -7,13 +7,12 @@
 """
 [3](暂定):作者曾经在主群透露过的内容 雷指向的方向存在n个雷(不包括自己)
 """
-from typing import List, Dict
+from typing import Dict
 
 from abs.Mrule import AbstractMinesClueRule, AbstractMinesValue
 from abs.board import AbstractPosition, AbstractBoard
 from utils.image_create import get_dummy, get_image, get_col, get_row
 from utils.image_create import get_text as _get_text
-from utils.solver import get_model
 from utils.tool import get_random
 
 
@@ -38,9 +37,6 @@ def get_text(
 class Rule3P(AbstractMinesClueRule):
     name = ["3"]
     doc = "雷指向的方向存在n个雷(不包括自己)"
-
-    def mines_class(self):
-        return Value3P
 
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':
         random = get_random()
@@ -145,10 +141,9 @@ class Value3P(AbstractMinesValue):
                 )
         return get_text("")
 
-    # def compose(self) -> List[Dict]:
-    #     return super().compose()
-
-    def create_constraints(self, board: 'AbstractBoard'):
+    def create_constraints(self, board: 'AbstractBoard', switch):
+        model = board.get_model()
+        s = switch.get(model, self)
         line = []
         match self.dir:
             case 0:
@@ -164,11 +159,7 @@ class Value3P(AbstractMinesValue):
                 line = board.get_col_pos(self.pos)
                 line = line[:line.index(self.pos)]
         var_list = board.batch(line, mode="variable")
-        get_model().Add(sum(var_list) == self.value)
-
-    @classmethod
-    def method_choose(cls) -> int:
-        return 1
+        model.Add(sum(var_list) == self.value).OnlyEnforceIf(s)
 
     @classmethod
     def type(cls) -> bytes:

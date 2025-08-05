@@ -9,28 +9,19 @@
 """
 from abs.Lrule import AbstractMinesRule
 from abs.board import AbstractBoard
-from utils.solver import get_model
 
 
 class Rule2H(AbstractMinesRule):
     name = ["2H", "横向", "Horizontal"]
     doc = "所有雷必须存在横向相邻的雷"
-    subrules = [
-        [True, "[2H]横向"]
-    ]
 
-    def create_constraints(self, board: 'AbstractBoard'):
-        if not self.subrules[0][0]:
-            return
-        model = get_model()
+    def create_constraints(self, board: 'AbstractBoard', switch):
+        model = board.get_model()
+        s = switch.get(model, self)
         for pos, var in board(mode="variable"):
             if not board.in_bounds(pos.right()):
-                model.Add(board.get_variable(pos.left()) == 1).OnlyEnforceIf(var)
+                model.Add(board.get_variable(pos.left()) == 1).OnlyEnforceIf([var, s])
             elif not board.in_bounds(pos.left()):
-                model.Add(board.get_variable(pos.right()) == 1).OnlyEnforceIf(var)
+                model.Add(board.get_variable(pos.right()) == 1).OnlyEnforceIf([var, s])
             else:
-                model.AddBoolOr(board.batch([pos.right(), pos.left()], mode="variable")).OnlyEnforceIf(var)
-
-    @classmethod
-    def method_choose(cls) -> int:
-        return 1
+                model.AddBoolOr(board.batch([pos.right(), pos.left()], mode="variable")).OnlyEnforceIf([var, s])

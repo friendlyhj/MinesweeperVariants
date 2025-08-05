@@ -10,8 +10,8 @@
 from abs.Rrule import AbstractClueRule, AbstractClueValue
 from abs.board import AbstractBoard, AbstractPosition
 from utils.impl_obj import VALUE_CIRCLE, VALUE_CROSS
-from utils.solver import get_model
 from utils.tool import get_random, get_logger
+
 NAME_2L = "2L"
 
 
@@ -51,10 +51,6 @@ class Rule2L(AbstractClueRule):
     name = ["2L", "误差", "Liar"]
     doc = "每行每列恰有一个误差线索。误差线索的值比真实值大 1 或小 1"
 
-    subrules = [
-        [True, "[2L]每行每列恰有一个误差"]
-    ]
-
     def __init__(self, board: "AbstractBoard" = None, data=None) -> None:
         super().__init__(data, board)
         bound = board.boundary()
@@ -63,7 +59,7 @@ class Rule2L(AbstractClueRule):
         for key in board.get_interactive_keys():
             _bound = board.boundary(key)
             if (_bound.x != bound.x and
-                _bound.y != bound.y):
+                    _bound.y != bound.y):
                 raise ValueError("请保证其他题板尺寸均一致")
         board.generate_board(NAME_2L, (bound.x + 1, bound.y + 1))
 
@@ -86,8 +82,7 @@ class Rule2L(AbstractClueRule):
         pos_map = select(matrix)
 
         if not pos_map:
-            print("err")
-            return board
+            raise ValueError("[2L]: has a line is all mines")
 
         for pos, _ in board("N"):
             value = board.batch(pos.neighbors(2), mode="type").count("F")
@@ -120,24 +115,22 @@ class Rule2L(AbstractClueRule):
         for pos, _ in board(key=NAME_2L):
             board.set_value(pos, None)
 
-    def create_constraints(self, board: 'AbstractBoard') -> bool:
-        if not self.subrules[0][0]:
-            return super().create_constraints(board)
-
-        model = get_model()
+    def create_constraints(self, board: 'AbstractBoard', switch):
+        model = board.get_model()
+        s = switch.get(model, self)
         bound = board.boundary(key=NAME_2L)
 
         row = board.get_row_pos(bound)
         for pos in row:
             line = board.get_col_pos(pos)
             line_var = board.batch(line, mode="variable", drop_none=True)
-            model.Add(sum(line_var) == 1)
+            model.Add(sum(line_var) == 1).OnlyEnforceIf(s)
 
         col = board.get_col_pos(bound)
         for pos in col:
             line = board.get_row_pos(pos)
             line_var = board.batch(line, mode="variable", drop_none=True)
-            model.Add(sum(line_var) == 1)
+            model.Add(sum(line_var) == 1).OnlyEnforceIf(s)
 
         for pos, _ in board(key=NAME_2L):
             _pos = pos.clone()
@@ -145,9 +138,7 @@ class Rule2L(AbstractClueRule):
             for key in board.get_interactive_keys():
                 _pos.board_key = key
                 key_var = board.get_variable(_pos)
-                model.Add(key_var == 0).OnlyEnforceIf(var)
-
-        return super().create_constraints(board)
+                model.Add(key_var == 0).OnlyEnforceIf([var, s])
 
 
 class Value2L(AbstractClueValue):
@@ -171,8 +162,9 @@ class Value2L(AbstractClueValue):
     def code(self) -> bytes:
         return bytes([self.value])
 
-    def create_constraints(self, board: 'AbstractBoard'):
-        model = get_model()
+    def create_constraints(self, board: 'AbstractBoard', switch):
+        model = board.get_model()
+        s = switch.get(model, self)
         nei_vars = board.batch(self.nei, mode="variable", drop_none=True)
         var = board.get_variable(self.pos)
 
@@ -181,7 +173,7 @@ class Value2L(AbstractClueValue):
         tmp_a = model.NewBoolVar("tmp_a")
         tmp_b = model.NewBoolVar("tmp_b")
 
-        model.Add(sum(nei_vars) == self.value + 1).OnlyEnforceIf([tmp_a, var])
-        model.Add(sum(nei_vars) == self.value - 1).OnlyEnforceIf([tmp_b, var])
+        model.Add(sum(nei_vars) == self.value + 1).OnlyEnforceIf([tmp_a, var, s])
+        model.Add(sum(nei_vars) == self.value - 1).OnlyEnforceIf([tmp_b, var, s])
 
-        model.AddBoolOr([tmp_a, tmp_b])
+        model.AddBoolOr([tmp_a, tmp_b]).OnlyEnforceIf(s)

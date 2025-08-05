@@ -10,7 +10,6 @@
 
 from abs.board import AbstractBoard, AbstractPosition
 from abs.Rrule import AbstractClueRule, AbstractClueValue
-from utils.solver import get_model
 from utils.tool import get_logger
 from utils.impl_obj import VALUE_QUESS, MINES_TAG
 
@@ -65,53 +64,23 @@ class Value1M(AbstractClueValue):
     def code(self) -> bytes:
         return bytes([self.value])
 
-    def deduce_cells(self, board: 'AbstractBoard') -> bool:
-        min_value = 0
-        max_value = 0
-        types = board.batch(self.neighbors, "type")
-        if "N" not in types:
-            return False
-        dyes = board.batch(self.neighbors, "dye")
-        for pos, dye in zip(self.neighbors, dyes):
-            if board.get_type(pos) == "F":
-                min_value += 2 if dye else 1
-                max_value += 2 if dye else 1
-            elif board.get_type(pos) == "N":
-                max_value += 2 if dye else 1
-        if min_value == self.value:
-            [board.set_value(pos, VALUE_QUESS) for pos in self.neighbors if board.get_type(pos) == "N"]
-            return True
-        if max_value == self.value:
-            [board.set_value(pos, MINES_TAG) for pos in self.neighbors if board.get_type(pos) == "N"]
-            return True
-        return False
-
-    def create_constraints(self, board: 'AbstractBoard'):
-        model = get_model()
+    def create_constraints(self, board: 'AbstractBoard', switch):
+        model = board.get_model()
+        s = switch.get(model, self)
         vals = []
+        offset = 0
         dyes = board.batch(self.neighbors, "dye")
         for pos, dye in zip(self.neighbors, dyes):
-            if board.get_type(pos) != "N":
+            if board.get_type(pos) == "C":
+                continue
+            if board.get_type(pos) == "F":
+                offset += 2 if dye else 1
+                continue
+            if not board.in_bounds(pos):
                 continue
             if dye:
                 vals.append(board.get_variable(pos) * 2)
             else:
                 vals.append(board.get_variable(pos))
         if vals:
-            model.Add(sum(vals) == self.value)
-
-    def check(self, board: 'AbstractBoard') -> bool:
-        min_value = 0
-        max_value = 0
-        dyes = board.batch(self.neighbors, "dye")
-        for pos, dye in zip(self.neighbors, dyes):
-            if board.get_type(pos) == "F":
-                min_value += 2 if dye else 1
-                max_value += 2 if dye else 1
-            elif board.get_type(pos) == "N":
-                max_value += 2 if dye else 1
-        return min_value < self.value < max_value
-
-    @classmethod
-    def method_choose(cls) -> int:
-        return 3
+            model.Add(sum(vals) == (self.value - offset)).OnlyEnforceIf(s)

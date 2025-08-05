@@ -10,7 +10,6 @@
 
 from abs.board import AbstractBoard, AbstractPosition
 from abs.Rrule import AbstractClueRule, AbstractClueValue
-from utils.solver import get_model
 from utils.tool import get_logger
 from utils.impl_obj import VALUE_QUESS, MINES_TAG
 
@@ -40,14 +39,8 @@ class Rule1M(AbstractClueRule):
             logger.debug(f"[1M]: put {obj} to {pos}")
         return board
 
-    def clue_class(self):
-        return Value1M
-
 
 class Value1M(AbstractClueValue):
-    value: int
-    neighbors: list
-
     def __init__(self, pos: 'AbstractPosition', code: bytes = b''):
         super().__init__(pos)
         self.value = code[0]
@@ -57,7 +50,12 @@ class Value1M(AbstractClueValue):
         return f"{self.value}"
 
     def high_light(self, board: 'AbstractBoard') -> list['AbstractPosition']:
-        return self.neighbors
+        positions = self.neighbors[:]
+        pos_list = [self.pos.down().left(), self.pos.down(), self.pos.down().right()]
+        for pos in pos_list:
+            if board.get_type(pos) == "F":
+                positions.append(pos.down())
+        return positions
 
     @classmethod
     def type(cls) -> bytes:
@@ -66,8 +64,9 @@ class Value1M(AbstractClueValue):
     def code(self) -> bytes:
         return bytes([self.value])
 
-    def create_constraints(self, board: 'AbstractBoard'):
-        model = get_model()
+    def create_constraints(self, board: 'AbstractBoard', switch):
+        model = board.get_model()
+        s = switch.get(model, self)
         vals = []
         for pos in self.neighbors:
             if board.get_type(pos) != "N":
@@ -76,12 +75,8 @@ class Value1M(AbstractClueValue):
                 a = board.get_variable(pos)
             else:
                 a = model.NewIntVar(0, 2, "")
-                model.Add(a == board.get_variable(pos)).OnlyEnforceIf(board.get_variable(pos.down()).Not())
-                model.Add(a == board.get_variable(pos) * 2).OnlyEnforceIf(board.get_variable(pos.down()))
+                model.Add(a == board.get_variable(pos)).OnlyEnforceIf([board.get_variable(pos.down()).Not(), s])
+                model.Add(a == board.get_variable(pos) * 2).OnlyEnforceIf([board.get_variable(pos.down()), s])
             vals.append(a)
         if vals:
-            model.Add(sum(vals) == self.value)
-
-    @classmethod
-    def method_choose(cls) -> int:
-        return 1
+            model.Add(sum(vals) == self.value).OnlyEnforceIf(s)

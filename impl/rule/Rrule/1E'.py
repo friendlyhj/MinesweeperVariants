@@ -12,11 +12,11 @@ from typing import Callable, List, Dict
 from abs.Rrule import AbstractClueRule, AbstractClueValue
 from abs.board import AbstractBoard, AbstractPosition
 from utils.image_create import get_row, get_image, get_text, get_col, get_dummy
-from utils.solver import get_model
 
 
 class Rule1E(AbstractClueRule):
-    name = ["1E'", "E'", "视差", "Eyesight'"]
+    # name = ["1E'", "E'", "视差", "Eyesight'"]
+    # DFS遍历存在错误
     doc = "线索表示纵向和横向的视野之差，箭头指示视野更长的方向"
 
     def clue_class(self):
@@ -53,7 +53,7 @@ class Value1E(AbstractClueValue):
         positions = []
         pos = self.pos.clone()
         for fn in [pos.up, pos.down]:
-            n = 1
+            n = 0
             while board.get_type(fn(n)) not in "F":
                 n += 1
                 positions.append(fn(n))
@@ -85,7 +85,6 @@ class Value1E(AbstractClueValue):
                     get_dummy(width=0.15),
             )
 
-
     @classmethod
     def method_choose(cls) -> int:
         return 1
@@ -97,7 +96,7 @@ class Value1E(AbstractClueValue):
     def code(self) -> bytes:
         return bytes([self.value + 128])
 
-    def create_constraints(self, board: 'AbstractBoard'):
+    def create_constraints(self, board: 'AbstractBoard', switch):
         def dfs(value: int, pos: 'AbstractPosition'):
             def AddPossibility(_pos: 'AbstractPosition', i: int, j: int):
                 """
@@ -138,7 +137,8 @@ class Value1E(AbstractClueValue):
                 if j < 1 or j > size[0]: continue
                 AddPossibility(pos, i, j)
 
-        model = get_model()
+        model = board.get_model()
+        s = switch.get(model, self)
 
         possible_list = []
 
@@ -149,7 +149,7 @@ class Value1E(AbstractClueValue):
             vars_t = board.batch(vars_t, mode="variable")
             vars_f = board.batch(vars_f, mode="variable")
             tmp = model.NewBoolVar("tmp")
-            model.Add(sum(vars_t) == 0).OnlyEnforceIf(tmp)
-            model.AddBoolAnd(vars_f).OnlyEnforceIf(tmp)
+            model.Add(sum(vars_t) == 0).OnlyEnforceIf([tmp, s])
+            model.AddBoolAnd(vars_f).OnlyEnforceIf([tmp, s])
             tmp_list.append(tmp)
-        model.AddBoolOr(tmp_list)
+        model.AddBoolOr(tmp_list).OnlyEnforceIf(s)

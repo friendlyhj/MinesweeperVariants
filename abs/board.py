@@ -36,7 +36,8 @@ class AbstractPosition(ABC):
         return (
             isinstance(other, self.__class__) and
             self.x == other.x and
-            self.y == other.y
+            self.y == other.y and
+            self.board_key == other.board_key
         )
 
     def __hash__(self):
@@ -222,16 +223,17 @@ class AbstractBoard(ABC):
             return False
         if self.get_interactive_keys() != other.get_interactive_keys():
             return False
-        for pos, obj1 in self():
-            obj2 = other[pos]
-            if obj1 is None and obj2 is None:
-                continue
-            if obj1 is None or obj2 is None:
-                return False
-            if obj1.code() != obj2.code():
-                return False
-            if obj1.type() != obj2.type():
-                return False
+        for key in self.get_board_keys():
+            for pos, obj1 in self(key=key):
+                obj2 = other[pos]
+                if obj1 is None and obj2 is None:
+                    continue
+                if obj1 is None or obj2 is None:
+                    return False
+                if obj1.code() != obj2.code():
+                    return False
+                if obj1.type() != obj2.type():
+                    return False
         return True
 
     def dyed(self, name: str):

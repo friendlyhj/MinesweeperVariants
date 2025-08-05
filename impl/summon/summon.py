@@ -216,17 +216,6 @@ class Summon:
         self.board.clear_board()
         if self.summon_board() is None:
             raise ValueError("生成失败 左线/雷数出现矛盾")
-        if "N" in self.board:
-            _board = self.board.clone()
-            for rule in self.mines_rules.rules:
-                rule.init_board(_board)
-            self.answer_board_str = "\n" + _board.show_board()
-            self.answer_board_code = _board.encode()
-            self.answer_board = _board.clone()
-        else:
-            self.answer_board_str = "\n" + self.board.show_board()
-            self.answer_board_code = self.board.encode()
-            self.answer_board = self.board.clone()
         board_bytes = self.board.encode()
         for rule in self.mines_rules.rules + [self.clue_rule, self.mines_clue_rule]:
             rule.init_clear(self.board)
@@ -239,6 +228,17 @@ class Summon:
         _board = self.fill_valid(self.board, self.total)
         if _board is None:
             return None
+        if "N" in self.board:
+            _board = self.board.clone()
+            for rule in self.mines_rules.rules:
+                rule.init_board(_board)
+            self.answer_board_str = "\n" + _board.show_board()
+            self.answer_board_code = _board.encode()
+            self.answer_board = _board.clone()
+        else:
+            self.answer_board_str = "\n" + _board.show_board()
+            self.answer_board_code = _board.encode()
+            self.answer_board = _board.clone()
         self.board = _board
         self.logger.debug("题板生成完毕:\n" + self.board.show_board())
         self.logger.debug(self.board.encode())

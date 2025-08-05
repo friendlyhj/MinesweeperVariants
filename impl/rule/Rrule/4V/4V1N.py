@@ -10,7 +10,6 @@
 from abs.Rrule import AbstractClueRule, AbstractClueValue
 from abs.board import AbstractBoard, AbstractPosition, MASTER_BOARD
 from utils.impl_obj import VALUE_QUESS, MINES_TAG
-from utils.solver import get_model
 from utils.tool import get_random
 
 from . import BOARD_NAME_4V
@@ -28,9 +27,6 @@ class Rule1N(AbstractClueRule):
         board.set_config(BOARD_NAME_4V, "row_col", True)
         board.set_config(BOARD_NAME_4V, "VALUE", VALUE_QUESS)
         board.set_config(BOARD_NAME_4V, "MINES", MINES_TAG)
-
-    def clue_class(self):
-        return Value1N
 
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':
         random = get_random()
@@ -67,6 +63,7 @@ class Value1N(AbstractClueValue):
             _pos.board_key = key
             self.neighbors_list.append(_pos.neighbors(0, 2))
         self.value = code[0]
+        self.pos = pos
 
     def __repr__(self) -> str:
         return str(self.value)
@@ -75,18 +72,15 @@ class Value1N(AbstractClueValue):
         return self.neighbors_list[0] + self.neighbors_list[1]
 
     @classmethod
-    def method_choose(cls) -> int:
-        return 1
-
-    @classmethod
     def type(cls) -> bytes:
         return Rule1N.name[0].encode("ascii")
 
     def code(self) -> bytes:
         return bytes([self.value])
 
-    def create_constraints(self, board: 'AbstractBoard'):
-        model = get_model()
+    def create_constraints(self, board: 'AbstractBoard', switch):
+        model = board.get_model()
+        s = switch.get(model, self)
         a = model.NewBoolVar("abs_diff")
         b = model.NewBoolVar("abs_diff")
 
@@ -109,8 +103,8 @@ class Value1N(AbstractClueValue):
         abs_diff_b = model.NewIntVar(0, max_abs_b, "abs_diff")
 
         model.AddAbsEquality(abs_diff_a, diff_a)
-        model.Add(abs_diff_a == self.value).OnlyEnforceIf(a)
+        model.Add(abs_diff_a == self.value).OnlyEnforceIf([a, s])
         model.AddAbsEquality(abs_diff_b, diff_b)
-        model.Add(abs_diff_b == self.value).OnlyEnforceIf(b)
+        model.Add(abs_diff_b == self.value).OnlyEnforceIf([b, s])
 
-        model.AddBoolOr([a, b])
+        model.AddBoolOr([a, b]).OnlyEnforceIf(s)

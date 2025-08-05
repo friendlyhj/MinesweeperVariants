@@ -13,7 +13,6 @@ from abs.Rrule import AbstractClueRule, AbstractClueValue
 from abs.board import AbstractBoard, AbstractPosition
 
 from utils.tool import get_logger
-from utils.solver import get_model
 
 
 class Rule2M(AbstractClueRule):
@@ -28,9 +27,6 @@ class Rule2M(AbstractClueRule):
             board.set_value(pos, Value2M(pos, count=value))
             logger.debug(f"Set {pos} to 2M[{value}]")
         return board
-
-    def clue_class(self):
-        return Value2M
 
 
 class Value2M(AbstractClueValue):
@@ -60,9 +56,10 @@ class Value2M(AbstractClueValue):
     def deduce_cells(self, board: 'AbstractBoard') -> bool:
         return False        # 123123
 
-    def create_constraints(self, board: 'AbstractBoard'):
+    def create_constraints(self, board: 'AbstractBoard', switch):
         """创建CP-SAT约束：周围雷数等于count"""
-        model = get_model()
+        model = board.get_model()
+        s = switch.get(model, self)
 
         # 收集周围格子的布尔变量
         neighbor_vars = []
@@ -82,25 +79,19 @@ class Value2M(AbstractClueValue):
             b5 = model.NewBoolVar(f"[2M]b3")
 
             # 将布尔变量与表达式绑定
-            model.Add(neighbor_sum == self.count).OnlyEnforceIf(b1)
-            model.Add(neighbor_sum != self.count).OnlyEnforceIf(b1.Not())
+            model.Add(neighbor_sum == self.count).OnlyEnforceIf([b1, s])
+            model.Add(neighbor_sum != self.count).OnlyEnforceIf([b1.Not(), s])
 
-            model.Add(neighbor_sum == self.count + 2).OnlyEnforceIf(b2)
-            model.Add(neighbor_sum != self.count + 2).OnlyEnforceIf(b2.Not())
+            model.Add(neighbor_sum == self.count + 2).OnlyEnforceIf([b2, s])
+            model.Add(neighbor_sum != self.count + 2).OnlyEnforceIf([b2.Not(), s])
 
-            model.Add(neighbor_sum == self.count + 4).OnlyEnforceIf(b3)
-            model.Add(neighbor_sum != self.count + 4).OnlyEnforceIf(b3.Not())
+            model.Add(neighbor_sum == self.count + 4).OnlyEnforceIf([b3, s])
+            model.Add(neighbor_sum != self.count + 4).OnlyEnforceIf([b3.Not(), s])
 
-            model.Add(neighbor_sum == self.count + 6).OnlyEnforceIf(b4)
-            model.Add(neighbor_sum != self.count + 6).OnlyEnforceIf(b4.Not())
+            model.Add(neighbor_sum == self.count + 6).OnlyEnforceIf([b4, s])
+            model.Add(neighbor_sum != self.count + 6).OnlyEnforceIf([b4.Not(), s])
 
-            model.Add(neighbor_sum == self.count + 8).OnlyEnforceIf(b5)
-            model.Add(neighbor_sum != self.count + 8).OnlyEnforceIf(b5.Not())
+            model.Add(neighbor_sum == self.count + 8).OnlyEnforceIf([b5, s])
+            model.Add(neighbor_sum != self.count + 8).OnlyEnforceIf([b5.Not(), s])
 
-            model.AddBoolOr([b1, b2, b3, b4, b5])
-
-    def check(self, board: 'AbstractBoard') -> bool:
-        return True
-
-    def method_choose(self) -> int:
-        return 1
+            model.AddBoolOr([b1, b2, b3, b4, b5]).OnlyEnforceIf(s)

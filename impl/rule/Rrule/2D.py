@@ -12,7 +12,6 @@ from abs.board import AbstractBoard, AbstractPosition
 from utils.impl_obj import VALUE_QUESS, MINES_TAG
 
 from utils.tool import get_logger
-from utils.solver import get_model
 
 
 class Rule2D(AbstractClueRule):
@@ -27,9 +26,6 @@ class Rule2D(AbstractClueRule):
             board.set_value(pos, Value2D(pos, count=value))
             logger.debug(f"Set {pos} to 2D[{value}]")
         return board
-
-    def clue_class(self):
-        return Value2D
 
 
 class Value2D(AbstractClueValue):
@@ -77,9 +73,10 @@ class Value2D(AbstractClueValue):
             return True
         return False
 
-    def create_constraints(self, board: 'AbstractBoard'):
+    def create_constraints(self, board: 'AbstractBoard', switch):
         """创建CP-SAT约束: 周围雷数等于count"""
-        model = get_model()
+        model = board.get_model()
+        s = switch.get(model, self)
 
         # 收集周围格子的布尔变量
         neighbor_vars = []
@@ -90,12 +87,4 @@ class Value2D(AbstractClueValue):
 
         # 添加约束：周围雷数等于count
         if neighbor_vars:
-            model.Add(sum(neighbor_vars) == self.count)
-
-    def check(self, board: 'AbstractBoard') -> bool:
-        neighbor = [board.get_type(pos.up(1)) for pos in self.neighbor]
-        return (f_num := neighbor.count("F")) <= self.count <= f_num + neighbor.count("N")
-
-
-    def method_choose(self) -> int:
-        return 3
+            model.Add(sum(neighbor_vars) == self.count).OnlyEnforceIf(s)

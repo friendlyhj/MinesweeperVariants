@@ -9,7 +9,6 @@
 """
 from abs.Rrule import AbstractClueRule, AbstractClueValue
 from abs.board import AbstractBoard, AbstractPosition
-from utils.solver import get_model
 
 
 def MineStatus_1W(clue: list) -> list[int]:
@@ -81,9 +80,6 @@ class Rule1Wp(AbstractClueRule):
             board[pos] = obj
         return board
 
-    def clue_class(self):
-        return Value1Wp
-
 
 class Value1Wp(AbstractClueValue):
     def __init__(self, pos: 'AbstractPosition', code: bytes = b''):
@@ -97,17 +93,13 @@ class Value1Wp(AbstractClueValue):
         return self.pos.neighbors(2)
 
     @classmethod
-    def method_choose(cls) -> int:
-        return 1
-
-    @classmethod
     def type(cls) -> bytes:
         return Rule1Wp.name[0].encode("ascii")
 
     def code(self) -> bytes:
         return bytes([self.value])
 
-    def create_constraints(self, board: 'AbstractBoard'):
+    def create_constraints(self, board: 'AbstractBoard', switch):
 
         def get_values(_value: int, _length=3):
             if _length <= 0:
@@ -119,7 +111,8 @@ class Value1Wp(AbstractClueValue):
                     for j in get_values(i + 1, _length - 1):
                         yield [i + 1] + j
 
-        model = get_model()
+        model = board.get_model()
+        s = switch.get(model, self)
 
         var_list = board.batch([
             self.pos.right(), self.pos.right().down(),
@@ -155,6 +148,6 @@ class Value1Wp(AbstractClueValue):
         possible_list.pop(-1)
 
         if possible_list:
-            model.AddAllowedAssignments(var_list, possible_list)
+            model.AddAllowedAssignments(var_list, possible_list).OnlyEnforceIf(s)
         else:
-            model.Add(sum(var_list) == 0)
+            model.Add(sum(var_list) == 0).OnlyEnforceIf(s)

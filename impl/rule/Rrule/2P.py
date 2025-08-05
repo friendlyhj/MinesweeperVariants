@@ -7,12 +7,12 @@
 """
 [2P] 乘积 (Product)：线索表示距离最近的 2 个雷的距离之积
 """
-from typing import List, Dict
+from typing import Dict
 
 from abs.Rrule import AbstractClueValue, AbstractClueRule
 from abs.board import AbstractPosition, AbstractBoard
 from utils.image_create import get_text, get_image, get_row, get_col, get_dummy
-from utils.solver import get_model
+from utils.tool import get_logger
 
 
 def sqrt_form(n):
@@ -98,9 +98,6 @@ class Rule2P(AbstractClueRule):
             board.set_value(pos, obj)
         return board
 
-    def clue_class(self):
-        return Value2P
-
 
 class Value2P(AbstractClueValue):
     def __init__(self, pos: 'AbstractPosition', code: bytes = b''):
@@ -173,10 +170,6 @@ class Value2P(AbstractClueValue):
         return positions
 
     @classmethod
-    def method_choose(cls) -> int:
-        return 1
-
-    @classmethod
     def type(cls) -> bytes:
         return Rule2P.name[0].encode("ascii")
 
@@ -185,22 +178,24 @@ class Value2P(AbstractClueValue):
             return bytes([self.value // 255, self.value % 255])
         return bytes([self.value])
 
-    def create_constraints(self, board: 'AbstractBoard'):
-        model = get_model()
+    def create_constraints(self, board: 'AbstractBoard', switch):
+        model = board.get_model()
+        logger = get_logger()
+        s = switch.get(model, self)
 
         var_list = []
         for par_a, par_b in get_factor_pairs(self.value):
             var = model.NewBoolVar("[2P]")
             if par_a == par_b:
                 nei = self.pos.neighbors(par_a, par_a)
-                model.Add(sum(board.batch(nei, mode="variable", drop_none=True)) >= 2).OnlyEnforceIf(var)
+                model.Add(sum(board.batch(nei, mode="variable", drop_none=True)) >= 2).OnlyEnforceIf([var, s])
             else:
                 nei_a = self.pos.neighbors(par_a, par_a)
-                model.Add(sum(board.batch(nei_a, mode="variable", drop_none=True)) == 1).OnlyEnforceIf(var)
+                model.Add(sum(board.batch(nei_a, mode="variable", drop_none=True)) == 1).OnlyEnforceIf([var, s])
                 nei_b = self.pos.neighbors(par_b, par_b)
-                model.Add(sum(board.batch(nei_b, mode="variable", drop_none=True)) >= 1).OnlyEnforceIf(var)
+                model.Add(sum(board.batch(nei_b, mode="variable", drop_none=True)) >= 1).OnlyEnforceIf([var, s])
                 none_var = self.pos.neighbors(0, par_a - 1) + self.pos.neighbors(par_a + 1, par_b - 1)
-                model.Add(sum(board.batch(none_var, mode="variable", drop_none=True)) == 0).OnlyEnforceIf(var)
+                model.Add(sum(board.batch(none_var, mode="variable", drop_none=True)) == 0).OnlyEnforceIf([var, s])
             var_list.append(var)
-        model.AddBoolOr(var_list)
-
+        model.AddBoolOr(var_list).OnlyEnforceIf(s)
+        logger.trace(f"pos {self.pos} value[{self}] 添加了共{len(var_list)}情况")

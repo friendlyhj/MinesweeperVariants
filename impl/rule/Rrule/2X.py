@@ -14,7 +14,6 @@ from abs.board import AbstractBoard, AbstractPosition
 from utils.image_create import get_text, get_row
 
 from utils.tool import get_logger, get_random
-from utils.solver import get_model
 
 
 def put(pos: 'AbstractPosition', board: 'AbstractBoard'):

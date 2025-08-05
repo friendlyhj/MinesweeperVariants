@@ -8,7 +8,6 @@
 [1K2E']自指:如果字母X马步8格内有N个雷，则标有X=N的格子必定是雷。
 """
 from utils.impl_obj import VALUE_QUESS
-from utils.solver import get_model
 from utils.tool import get_random, get_logger
 
 from abs.Rrule import AbstractClueValue, AbstractClueRule
@@ -49,15 +48,13 @@ class Rule1K2Ep(AbstractClueRule):
             logger.debug(f"[2E'] put {letter}({value}) at {pos}")
         return board
 
-    def clue_class(self):
-        return Value1K2Ep
-
 
 class Value1K2Ep(AbstractClueValue):
     def __init__(self, pos: 'AbstractPosition', code: bytes = b''):
         super().__init__(pos)
         self.value = code[0]    # 实际为第几列的字母
         self.neighbors = pos.neighbors(5, 5)
+        self.pos = pos
 
     def __repr__(self) -> str:
         return f"{ALPHABET[self.value]}"
@@ -72,22 +69,13 @@ class Value1K2Ep(AbstractClueValue):
     def code(self) -> bytes:
         return bytes([self.value])
 
-    def deduce_cells(self, board: 'AbstractBoard') -> bool:
-        return False    # 懒得写了
-
-    def create_constraints(self, board: 'AbstractBoard'):
-        model = get_model()
+    def create_constraints(self, board: 'AbstractBoard', switch):
+        model = board.get_model()
+        s = switch.get(model, self)
         pos = board.get_pos(0, self.value)
         line = board.get_col_pos(pos)
         line = board.batch(line, mode="variable")
         sum_vers = sum(board.batch(self.neighbors, mode="variable", drop_none=True))
         for index in range(min(9, len(line))):
             var = board.get_variable(board.get_pos(index, self.value))
-            model.Add(sum_vers != index).OnlyEnforceIf(var.Not())
-
-    def check(self, board: 'AbstractBoard') -> bool:
-        return True     # 这个也懒得写了
-
-    @classmethod
-    def method_choose(cls) -> int:
-        return 1
+            model.Add(sum_vers != index).OnlyEnforceIf(var.Not()).OnlyEnforceIf(s)

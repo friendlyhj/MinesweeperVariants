@@ -11,7 +11,6 @@
 from abs.board import AbstractBoard, AbstractPosition
 from abs.Rrule import AbstractClueRule, AbstractClueValue
 from utils.impl_obj import VALUE_QUESS, VALUE_CROSS, VALUE_CIRCLE
-from utils.solver import get_model
 from utils.tool import get_random
 
 NAME_2Eq = "2E^"
@@ -19,9 +18,6 @@ NAME_2Eq = "2E^"
 
 class Rule2Eq(AbstractClueRule):
     name = ["2E^", "加密^", "Encrypted^"]
-    subrules = [
-        [True, "[2E^]每个数字与字母两两对应"]
-    ]
 
     def __init__(self, data=None, board: 'AbstractBoard' = None):
         super().__init__(data, board)
@@ -70,26 +66,22 @@ class Rule2Eq(AbstractClueRule):
     def clue_class(self):
         return Value2Eq
 
-    def create_constraints(self, board: 'AbstractBoard') -> bool:
-        if not self.subrules[0][0]:
-            return super().create_constraints(board)
-
-        model = get_model()
+    def create_constraints(self, board: 'AbstractBoard', switch):
+        model = board.get_model()
+        s = switch.get(model, self)
         bound = board.boundary(key=NAME_2Eq)
 
         row = board.get_row_pos(bound)
         for pos in row:
             line = board.get_col_pos(pos)
             var = board.batch(line, mode="variable")
-            model.Add(sum(var) == 2)
+            model.Add(sum(var) == 2).OnlyEnforceIf(s)
 
         col = board.get_col_pos(bound)
         for pos in col:
             line = board.get_row_pos(pos)
             var = board.batch(line, mode="variable")
-            model.Add(sum(var) == 2)
-
-        return super().create_constraints(board)
+            model.Add(sum(var) == 2).OnlyEnforceIf(s)
 
     def init_clear(self, board: 'AbstractBoard'):
         for pos, _ in board(key=NAME_2Eq):
@@ -100,6 +92,7 @@ class Value2Eq(AbstractClueValue):
     def __init__(self, pos: 'AbstractPosition', code: bytes = b''):
         self.value = code[0]
         self.neighbors = pos.neighbors(2)
+        self.pos = pos
 
     def __repr__(self) -> str:
         return "ABCDEFGHI"[self.value]
@@ -111,15 +104,12 @@ class Value2Eq(AbstractClueValue):
     def type(cls) -> bytes:
         return Rule2Eq.name[0].encode("ascii")
 
-    @classmethod
-    def method_choose(cls) -> int:
-        return 1
-
     def code(self) -> bytes:
         return bytes([self.value])
 
-    def create_constraints(self, board: 'AbstractBoard'):
-        model = get_model()
+    def create_constraints(self, board: 'AbstractBoard', switch):
+        model = board.get_model()
+        s = switch.get(model, self)
 
         line = board.batch(board.get_col_pos(
             board.get_pos(0, self.value, NAME_2Eq)
@@ -131,9 +121,9 @@ class Value2Eq(AbstractClueValue):
 
         for index in range(len(line)):
             tmp_var = model.NewBoolVar("tmp")
-            model.Add(sum(neighbors) != index).OnlyEnforceIf(line[index].Not())
-            model.Add(sum(neighbors) == index).OnlyEnforceIf([line[index], tmp_var])
+            model.Add(sum(neighbors) != index).OnlyEnforceIf([line[index].Not(), s])
+            model.Add(sum(neighbors) == index).OnlyEnforceIf([line[index], tmp_var, s])
             tmp_vars.append(tmp_var)
 
-        model.AddBoolOr(tmp_vars)
+        model.AddBoolOr(tmp_vars).OnlyEnforceIf(s)
 
