@@ -525,7 +525,10 @@ class GameSession:
                         bes_type = k[0].split("|", 1)[0]
                         name = k[0].split("|", 1)[1]
                         if bes_type == "RULE":
-                            result.append((name, k[1]))
+                            if switch.name_counter[k[0]] > 1:
+                                result.append((name, k[1] + 1))
+                            else:
+                                result.append((name, k[1]))
                         elif bes_type == "POS":
                             info = name.split("|", 2)
                             result.append(

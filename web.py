@@ -306,7 +306,7 @@ def generate_board():
         count["remains"] = None
     board_data["remains"] = count
     hypothesis_data["game"].thread_hint()
-    hypothesis_data["game"].thread_deduced()
+    # hypothesis_data["game"].thread_deduced()
     hypothesis_data["board"] = mask_board.clone()
     print("生成用时: ", time.time() - t)
     print("mode: ", mode, "u_mode", ultimate_mode)
@@ -378,17 +378,19 @@ def click():
                 if obj is None and board[pos] is None:
                     continue
                 if (
-                        not (obj is None or board[pos] is None) and
-                        obj.type() == board[pos].type() and
-                        obj.code() == board[pos].code() and
-                        obj.high_light(_board) == board[pos].high_light(board)
+                    not (obj is None or board[pos] is None) and
+                    obj.type() == board[pos].type() and
+                    obj.code() == board[pos].code() and
+                    obj.high_light(_board) == board[pos].high_light(board)
                 ):
                     continue
                 data = format_cell(_board, pos)
                 print(pos, obj, data)
                 refresh["cells"].append(data)
-        if not any(_board.has("N", key=key) for
-                    key in _board.get_interactive_keys()):
+        if not any(
+            _board.has("N", key=key) for
+            key in _board.get_interactive_keys()
+        ):
             refresh["gameover"] = True
             refresh["reason"] = "你过关!!!(震声)"
     print(game.board)
@@ -443,23 +445,20 @@ def hint_post():
         for b in _b_hint:
             if type(b) is tuple:
                 b_hint.append({
-                    "type": "rule",
-                    "name": b[0],
+                    "rule": b[0],
                     "index": b[1]
                 })
             elif isinstance(b, AbstractPosition):
                 b_hint.append({
-                    "type": "pos",
                     "x": b.x,
                     "y": b.y,
-                    "boardkey": b.board_key,
+                    "boardname": b.board_key,
                 })
         for t in _t_hint:
             t_hint.append({
-                "type": "pos",
                 "x": t.x,
                 "y": t.y,
-                "boardkey": t.board_key,
+                "boardname": t.board_key,
             })
         results.append({
             "condition": b_hint,
@@ -525,4 +524,5 @@ if __name__ == '__main__':
 
     # threading.Thread(target=lambda: webbrowser.open(f"http://localhost:{port}", new=2)).start()
     import waitress
+
     waitress.serve(app, host='0.0.0.0', port=port)
