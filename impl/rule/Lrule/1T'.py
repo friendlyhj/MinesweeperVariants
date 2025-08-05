@@ -11,23 +11,17 @@
 
 from abs.Lrule import AbstractMinesRule
 from abs.board import AbstractBoard
-from utils.solver import get_model
 from utils.tool import get_logger
 
 
 class Rule1Tp(AbstractMinesRule):
     name = ["1T'", "必三联"]
     doc = "雷必然处在横竖对角构成三连"
-    subrules = [
-        [True, "[1T']雷必三连"]
-    ]
 
-    def create_constraints(self, board: 'AbstractBoard'):
-        if not self.subrules[0][0]:
-            return
-
-        model = get_model()
+    def create_constraints(self, board: 'AbstractBoard', switch):
+        model = board.get_model()
         logger = get_logger()
+        s = switch.get(model, self)
 
         # 存储每个位置所属的三连组变量
         position_coverage = {pos: [] for pos, _ in board()}
@@ -49,12 +43,12 @@ class Rule1Tp(AbstractMinesRule):
 
                 # 检查所有位置是否在棋盘内
                 if all(board.is_valid(p) for p in positions):
-                    vars = [board.get_variable(p) for p in positions]
+                    var_list = [board.get_variable(p) for p in positions]
 
                     # 创建三连组变量：当且仅当三个位置都是雷时为真
                     b = model.NewBoolVar(f"triple_{pos}_{dx}_{dy}")
-                    model.AddBoolAnd(vars).OnlyEnforceIf(b)
-                    model.AddBoolOr([v.Not() for v in vars]).OnlyEnforceIf(b.Not())
+                    model.AddBoolAnd(var_list).OnlyEnforceIf([b, s])
+                    model.AddBoolOr([v.Not() for v in var_list]).OnlyEnforceIf([b.Not(), s])
 
                     # 记录此三连组覆盖的所有位置
                     for p in positions:
@@ -66,16 +60,9 @@ class Rule1Tp(AbstractMinesRule):
 
             if coverage_list:  # 确保该位置有三连组覆盖
                 # 雷 => 至少属于一个三连组
-                model.AddBoolOr(coverage_list).OnlyEnforceIf(var)
+                model.AddBoolOr(coverage_list).OnlyEnforceIf([var, s])
                 logger.debug(f"Pos {pos}:雷必须属于{len(coverage_list)}个三连组之一")
             else:
                 # 无三连组覆盖的位置不能是雷
-                model.Add(var == 0)
+                model.Add(var == 0).OnlyEnforceIf(s)
                 logger.warning(f"位置{pos}无三连组覆盖，强制为非雷")
-
-    def check(self, board: 'AbstractBoard') -> bool:
-        pass
-
-    @classmethod
-    def method_choose(cls) -> int:
-        return 1

@@ -11,7 +11,6 @@
 from abs.Rrule import AbstractClueRule, AbstractClueValue
 from abs.board import AbstractBoard, AbstractPosition, MASTER_BOARD
 from utils.impl_obj import VALUE_QUESS, VALUE_CROSS, VALUE_CIRCLE
-from utils.solver import get_model
 from utils.tool import get_logger, get_random
 
 ALPHABET = "ABCDEFGH"
@@ -92,9 +91,9 @@ class Value2Ep2I(AbstractClueValue):
     def high_light(self, board: 'AbstractBoard') -> list['AbstractPosition']:
         positions = []
         for pos, _ in board("NF", key=NAME_2I):
-            _pos = self.pos.deviation(pos.shift(-1, -1))
+            _pos = self.pos.deviation(pos.shift(1, -1))
             if board.in_bounds(_pos):
-                positions.append(pos)
+                positions.append(_pos)
         return positions
 
     @classmethod
@@ -108,11 +107,12 @@ class Value2Ep2I(AbstractClueValue):
     def code(self) -> bytes:
         return bytes([self.value])
 
-    def create_constraints(self, board: 'AbstractBoard'):
+    def create_constraints(self, board: 'AbstractBoard', switch):
         # 初始化日志
         logger = get_logger()
         # 初始化模型
-        model = get_model()
+        model = board.get_model()
+        s = switch.get(model, self)
         # 初始化位置对象 位于X列
         pos = board.get_pos(0, self.value)
         # 获取该列的所有位置
@@ -138,9 +138,9 @@ class Value2Ep2I(AbstractClueValue):
             # 初始化临时变量
             tmp = model.NewBoolVar(f"included_if_{self.pos}_{var_to_sum}")
             # 如果偏移变量为真 那么tmp为题板的值
-            model.Add(tmp == var_to_sum).OnlyEnforceIf(cond)
+            model.Add(tmp == var_to_sum).OnlyEnforceIf([cond, s])
             # 如果偏移变量为假 那么tmp为0
-            model.Add(tmp == 0).OnlyEnforceIf(cond.Not())
+            model.Add(tmp == 0).OnlyEnforceIf([cond.Not(), s])
             sum_vers.append(tmp)
             logger.trace(f"[2E'2I] new tempVar: {tmp} = if {cond} -> {var_to_sum}")
 
@@ -148,7 +148,7 @@ class Value2Ep2I(AbstractClueValue):
             # 获取该列的X=index的变量
             var = line_vars[index]
             # 如果变量为真 那么sum应该相对 反之亦然
-            model.Add(sum(sum_vers) != index).OnlyEnforceIf(var.Not())
+            model.Add(sum(sum_vers) != index).OnlyEnforceIf([var.Not(), s])
             logger.trace(f"[2E'2I] sum_tmp == {index} only if {var}")
 
 

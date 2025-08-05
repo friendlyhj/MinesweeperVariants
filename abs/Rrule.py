@@ -88,7 +88,7 @@ class ValueCross(AbstractClueValue):
         return "X"
 
     def compose(self, board, web) -> Dict:
-        return get_image("Cross")
+        return get_image("cross")
 
     @classmethod
     def type(cls) -> bytes:

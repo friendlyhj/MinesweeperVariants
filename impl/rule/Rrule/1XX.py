@@ -3,11 +3,12 @@
 """
 [1XX] 主教 (Bishop)：线索数表示斜向所有格子中的雷数
 """
+from typing import List
+
 from abs.Rrule import AbstractClueRule, AbstractClueValue
 from abs.board import AbstractBoard, AbstractPosition
 
 from utils.tool import get_logger
-from utils.solver import get_model
 from utils.impl_obj import VALUE_QUESS, MINES_TAG
 
 
@@ -79,14 +80,6 @@ class Value1XX(AbstractClueValue):
         else:
             # 直接初始化
             self.count = count
-        self.diagonal_positions = self._calculate_diagonal_positions()
-
-    def _calculate_diagonal_positions(self):
-        """计算与当前位置斜向的所有位置"""
-        positions = []
-        # 这里我们需要在使用时获取board的大小，所以暂时返回空列表
-        # 实际的位置计算会在具体方法中进行
-        return positions
 
     def _get_diagonal_positions(self, board: 'AbstractBoard'):
         """获取与给定位置斜向的所有位置"""
@@ -132,6 +125,9 @@ class Value1XX(AbstractClueValue):
     def __repr__(self):
         return f"{self.count}"
 
+    def high_light(self, board: 'AbstractBoard') -> List['AbstractPosition']:
+        return self._get_diagonal_positions(board)
+
     @classmethod
     def type(cls) -> bytes:
         return Rule1XX.name[0].encode("ascii")
@@ -169,9 +165,10 @@ class Value1XX(AbstractClueValue):
 
         return False
 
-    def create_constraints(self, board: 'AbstractBoard'):
+    def create_constraints(self, board: 'AbstractBoard', switch):
         """创建CP-SAT约束：斜向格子的雷数等于count"""
-        model = get_model()
+        model = board.get_model()
+        s = switch.get(model, self)
 
         # 收集斜向格子的布尔变量
         diagonal_positions = self._get_diagonal_positions(board)
@@ -184,16 +181,4 @@ class Value1XX(AbstractClueValue):
 
         # 添加约束：斜向格子的雷数等于count
         if neighbor_vars:
-            model.Add(sum(neighbor_vars) == self.count)
-
-    def check(self, board: 'AbstractBoard') -> bool:
-        diagonal_positions = self._get_diagonal_positions(board)
-        neighbor_types = [board.get_type(pos) for pos in diagonal_positions]
-        f_num = neighbor_types.count("F")
-        n_num = neighbor_types.count("N")
-
-        # 检查当前雷数是否在合理范围内
-        return f_num <= self.count <= f_num + n_num
-
-    def method_choose(self) -> int:
-        return 3
+            model.Add(sum(neighbor_vars) == self.count).OnlyEnforceIf(s)

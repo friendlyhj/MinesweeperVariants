@@ -10,20 +10,15 @@
 
 from abs.Lrule import AbstractMinesRule
 from abs.board import AbstractBoard
-from utils.solver import get_model
 
 
 class Rule2S(AbstractMinesRule):
     name = ["2S", "分段", "Segment"]
     doc = "每行有且仅有一组连续的雷"
-    subrules = [
-        [True, "[2S]分段"]
-    ]
 
-    def create_constraints(self, board: 'AbstractBoard'):
-        if not self.subrules[0][0]:
-            return
-        model = get_model()
+    def create_constraints(self, board: 'AbstractBoard', switch):
+        model = board.get_model()
+        s = switch.get(model, self)
         for key in board.get_interactive_keys():
             d_pos = board.boundary(key)
             for pos in board.get_col_pos(d_pos):
@@ -31,10 +26,7 @@ class Rule2S(AbstractMinesRule):
                 line_var = board.batch(line, mode="variable")
                 model.AddBoolOr(line_var)
                 for index, var in enumerate(line_var[:-1]):
-                    model.Add(sum(line_var[index + 1:]) == 0).OnlyEnforceIf([var, line_var[index + 1].Not()])
+                    model.Add(sum(line_var[index + 1:]) == 0).OnlyEnforceIf([var, line_var[index + 1].Not(), s])
                 for index, var in enumerate(line_var[1:]):
-                    model.Add(sum(line_var[:index+1]) == 0).OnlyEnforceIf([var, line_var[index].Not()])
+                    model.Add(sum(line_var[:index+1]) == 0).OnlyEnforceIf([var, line_var[index].Not(), s])
 
-    @classmethod
-    def method_choose(cls) -> int:
-        return 1

@@ -10,7 +10,6 @@
 from abs.Rrule import AbstractClueValue, AbstractClueRule
 from abs.board import AbstractPosition, AbstractBoard
 from utils.impl_obj import VALUE_CROSS, VALUE_CIRCLE
-from utils.solver import get_model
 from utils.tool import get_random, get_logger
 
 NAME_2Ip = "2I'"
@@ -24,9 +23,6 @@ class Rule2I(AbstractClueRule):
         super().__init__(board, data)
         board.generate_board(NAME_2Ip, (3, 3))
 
-    def clue_class(self):
-        return Value2I
-
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':
         def apply_offsets(_pos: AbstractPosition):
             nonlocal offsets
@@ -37,7 +33,7 @@ class Rule2I(AbstractClueRule):
 
         random = get_random()
         logger = get_logger()
-        pos = board.get_pos(1, 1, self.name)
+        pos = board.get_pos(1, 1, NAME_2Ip)
         board[pos] = Value2I_Quess(pos)
 
         pos_list = [pos for pos, _ in board("N", key=NAME_2Ip)]
@@ -78,14 +74,10 @@ class Value2I(AbstractClueValue):
     def high_light(self, board: 'AbstractBoard') -> list['AbstractPosition']:
         positions = []
         for pos, _ in board("NF", key=NAME_2Ip):
-            _pos = self.pos.deviation(pos.shift(-1, -1))
+            _pos = self.pos.deviation(pos.shift(1, -1))
             if board.in_bounds(_pos):
-                positions.append(pos)
+                positions.append(_pos)
         return positions
-
-    @classmethod
-    def method_choose(cls) -> int:
-        return 1
 
     @classmethod
     def type(cls) -> bytes:
@@ -94,8 +86,9 @@ class Value2I(AbstractClueValue):
     def code(self):
         return bytes([self.value])
 
-    def create_constraints(self, board: 'AbstractBoard'):
-        model = get_model()
+    def create_constraints(self, board: 'AbstractBoard', switch):
+        model = board.get_model()
+        s = switch.get(model, self)
         logger = get_logger()
 
         # 初始化对照表
@@ -116,13 +109,13 @@ class Value2I(AbstractClueValue):
             # 初始化临时变量
             tmp = model.NewBoolVar(f"included_if_{self.pos}_{var_to_sum}")
             # 如果偏移变量为真 那么tmp为题板的值
-            model.Add(tmp == var_to_sum).OnlyEnforceIf(cond)
+            model.Add(tmp == var_to_sum).OnlyEnforceIf([cond, s])
             # 如果偏移变量为假 那么tmp为0
-            model.Add(tmp == 0).OnlyEnforceIf(cond.Not())
+            model.Add(tmp == 0).OnlyEnforceIf([cond.Not(), s])
             sum_vers.append(tmp)
             logger.trace(f"[2E'2I] new tempVar: {tmp} = if {cond} -> {var_to_sum}")
 
-        model.Add(sum(sum_vers) == self.value)
+        model.Add(sum(sum_vers) == self.value).OnlyEnforceIf(s)
 
 
 class Value2I_Quess(AbstractClueValue):

@@ -11,7 +11,6 @@ from abs.Rrule import AbstractClueRule, AbstractClueValue
 from abs.board import AbstractBoard, AbstractPosition
 
 from utils.tool import get_logger, get_random
-from utils.solver import get_model
 
 
 class Rule2X(AbstractClueRule):
@@ -27,9 +26,6 @@ class Rule2X(AbstractClueRule):
             board.set_value(pos, Value2X(pos, bytes([r.choice([value1, value2])])))
             logger.debug(f"Set {pos} to 2X[{value1 * 10 + value2}]")
         return board
-
-    def clue_class(self):
-        return Value2X
 
 
 class Value2X(AbstractClueValue):
@@ -51,9 +47,10 @@ class Value2X(AbstractClueValue):
     def code(self) -> bytes:
         return bytes([self.value])
 
-    def create_constraints(self, board: 'AbstractBoard'):
+    def create_constraints(self, board: 'AbstractBoard', switch):
         """创建CP-SAT约束: 周围染色格雷数等于两个染色格的数量"""
-        model = get_model()
+        model = board.get_model()
+        s = switch.get(model, self)
 
         # 收集周围格子的布尔变量
         var_a_list = []
@@ -69,16 +66,6 @@ class Value2X(AbstractClueValue):
 
         var_a = model.NewBoolVar("[2X]")
         var_b = model.NewBoolVar("[2X]")
-        model.Add(sum(var_a_list) == self.value).OnlyEnforceIf(var_a)
-        model.Add(sum(var_b_list) == self.value).OnlyEnforceIf(var_b)
-        model.AddBoolOr([var_a, var_b])
-
-    def deduce_cells(self, board: 'AbstractBoard') -> bool:
-        return False
-
-    def check(self, board: 'AbstractBoard') -> bool:
-        return False
-
-    @classmethod
-    def method_choose(cls) -> int:
-        return 3
+        model.Add(sum(var_a_list) == self.value).OnlyEnforceIf([var_a, s])
+        model.Add(sum(var_b_list) == self.value).OnlyEnforceIf([var_b, s])
+        model.AddBoolOr([var_a, var_b]).OnlyEnforceIf(s)

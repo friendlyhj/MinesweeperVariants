@@ -13,7 +13,6 @@ from typing import List
 from abs.Rrule import AbstractClueRule, AbstractClueValue
 from abs.board import AbstractBoard, AbstractPosition, MASTER_BOARD
 from utils.impl_obj import VALUE_QUESS, MINES_TAG, VALUE_CIRCLE, VALUE_CROSS
-from utils.solver import get_model
 from utils.tool import get_random, get_logger
 from . import BOARD_NAME_4V
 
@@ -117,10 +116,6 @@ class Value4V2Ep2Ip(AbstractClueValue):
     def __init__(self, pos: 'AbstractPosition', code: bytes = b''):
         self.value = code[0]
         self.pos = pos
-
-    @classmethod
-    def method_choose(cls) -> int:
-        return 1
 
     @classmethod
     def type(cls) -> bytes:

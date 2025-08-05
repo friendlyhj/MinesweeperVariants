@@ -9,19 +9,17 @@
 [3E]演化: 每个3x1区域决定其中间下方1格是否为雷，演化被当前题板所有区域共享。
 """
 
-NAME_3E = ["3E_x", "3E_y"]
-
 from abs.Lrule import AbstractMinesRule
 from abs.board import AbstractBoard
 from utils.impl_obj import VALUE_QUESS, MINES_TAG
-from utils.solver import get_model
 from utils.tool import get_random
+
+NAME_3E = ["3E_x", "3E_y"]
 
 
 class Rule3E(AbstractMinesRule):
     name = ["3E", "迭代", "演化"]
     doc = "每个3x1区域决定其中间下方1格是否为雷，演化被当前题板所有区域共享。"
-    subrules = [[True, "[3E]"]]
 
     def __init__(self, board: AbstractBoard, data=None):
         super().__init__(board, data)
@@ -30,24 +28,16 @@ class Rule3E(AbstractMinesRule):
         board.set_config(NAME_3E[1], "VALUE", VALUE_QUESS)
         board.set_config(NAME_3E[1], "MINES", MINES_TAG)
 
-    def create_constraints(self, board: 'AbstractBoard'):
-        if not self.subrules[0][0]:
-            return
-        model = get_model()
-
-        for index, pos in enumerate(board.get_col_pos(
-                board.get_pos(0, 0, NAME_3E[0]))):
-            pos1, pos2, pos3 = board.get_row_pos(pos)
-            board.set_value(pos1, MINES_TAG if index & 4 else VALUE_QUESS)
-            board.set_value(pos2, MINES_TAG if index & 2 else VALUE_QUESS)
-            board.set_value(pos3, MINES_TAG if index & 1 else VALUE_QUESS)
+    def create_constraints(self, board: 'AbstractBoard', switch):
+        model = board.get_model()
+        s = switch.get(model, self)
 
         vals_list = []
 
         for i in range(8):
             x = model.NewIntVar(i, i, f"[3E]{i}_x")
             y = board.get_variable(board.get_pos(i, 0, NAME_3E[1]))
-            model.Add(x == i)
+            model.Add(x == i).OnlyEnforceIf(s)
             vals_list.append([x, y])
 
         for key in board.get_interactive_keys():
@@ -62,14 +52,24 @@ class Rule3E(AbstractMinesRule):
                         continue
                     for vals in vals_list:
                         cond = model.NewBoolVar(f"[3E]{bool_var_index}")
-                        model.Add(vals[0] == 4 * variables[0] + 2 * variables[1] + variables[2]).OnlyEnforceIf(cond)
-                        model.Add(vals[0] != 4 * variables[0] + 2 * variables[1] + variables[2]).OnlyEnforceIf(cond.Not())
-                        model.Add(y_variables == vals[1]).OnlyEnforceIf(cond)
+                        model.Add(
+                            vals[0] == 4 * variables[0] + 2 * variables[1] + variables[2]
+                        ).OnlyEnforceIf([cond, s])
+                        model.Add(
+                            vals[0] != 4 * variables[0] + 2 * variables[1] + variables[2]
+                        ).OnlyEnforceIf([cond.Not(), s])
+                        model.Add(y_variables == vals[1]).OnlyEnforceIf([cond, s])
                         bool_var_index += 1
 
     def init_board(self, board: 'AbstractBoard'):
+        for index, pos in enumerate(board.get_col_pos(
+                board.get_pos(0, 0, NAME_3E[0]))):
+            pos1, pos2, pos3 = board.get_row_pos(pos)
+            board.set_value(pos1, MINES_TAG if index & 4 else VALUE_QUESS)
+            board.set_value(pos2, MINES_TAG if index & 2 else VALUE_QUESS)
+            board.set_value(pos3, MINES_TAG if index & 1 else VALUE_QUESS)
         y_col = board.get_col_pos(board.boundary(key=NAME_3E[1]))
-        col = board.get_col_pos(board.boundary())
+        col = board.get_col_pos(board.boundary(key=NAME_3E[0]))
         for pos in col:
             row = board.get_row_pos(pos)
             for index in range(len(row) - 2):
@@ -105,7 +105,3 @@ class Rule3E(AbstractMinesRule):
 
         for pos, _ in board("F", key=NAME_3E[1]):
             board.set_value(pos, None)
-
-    @classmethod
-    def method_choose(cls) -> int:
-        return 1

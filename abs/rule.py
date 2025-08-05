@@ -16,12 +16,12 @@ if TYPE_CHECKING:
 
 class AbstractRule(ABC):
     # 规则名称
-    name: Union[Tuple[str], List[str], str] = None
+    name: Union[Tuple[str], List[str], str] = [""]
 
     def __init__(self, board: "AbstractBoard" = None, data=None) -> None:
         ...
 
-    def create_constraints(self, board: 'AbstractBoard', switch: 'Switch') -> bool:
+    def create_constraints(self, board: 'AbstractBoard', switch: 'Switch'):
         """
         基于当前线索对象向 CP-SAT 模型添加约束。
         此方法根据当前线索的位置与规则，分析题板上的变量布局，并在模型中添加等价的逻辑约束表达式。

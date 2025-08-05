@@ -11,7 +11,6 @@
 from abs.Rrule import AbstractClueRule, AbstractClueValue
 from abs.board import AbstractBoard, AbstractPosition, MASTER_BOARD
 from utils.impl_obj import VALUE_QUESS, MINES_TAG
-from utils.solver import get_model
 from utils.tool import get_random
 
 from . import BOARD_NAME_4V
@@ -64,12 +63,6 @@ class Rule4V(AbstractClueRule):
 
         return board
 
-    def clue_class(self):
-        return Value4V
-
-    def create_constraints(self, board: 'AbstractBoard') -> bool:
-        return super().create_constraints(board)
-
     def suggest_total(self, info: dict):
         ub = 0
         for key in info["interactive"]:
@@ -86,10 +79,7 @@ class Value4V(AbstractClueValue):
             _pos.board_key = key
             self.neighbors_list.append(_pos.neighbors(0, 2))
         self.value = code[0]
-
-    @classmethod
-    def method_choose(cls) -> int:
-        return 1
+        self.pos = pos
 
     @classmethod
     def type(cls) -> bytes:
@@ -101,8 +91,9 @@ class Value4V(AbstractClueValue):
     def high_light(self, board: 'AbstractBoard') -> list['AbstractPosition']:
         return self.neighbors_list[0] + self.neighbors_list[1]
 
-    def create_constraints(self, board: 'AbstractBoard'):
-        model = get_model()
+    def create_constraints(self, board: 'AbstractBoard', switch):
+        model = board.get_model()
+        s = switch.get(model, self)
 
         sum_var = []
         a = model.NewBoolVar(f"[{Rule4V.name}]tmp")
@@ -111,14 +102,14 @@ class Value4V(AbstractClueValue):
             var_list = board.batch(neighbor, mode="variable", drop_none=True)
             if var_list:
                 t = model.NewBoolVar(f"[{Rule4V.name}]tmp")
-                model.Add(sum(var_list) == self.value + 1).OnlyEnforceIf([t, a])
-                model.Add(sum(var_list) != self.value + 1).OnlyEnforceIf([t.Not(), a])
+                model.Add(sum(var_list) == self.value + 1).OnlyEnforceIf([t, a, s])
+                model.Add(sum(var_list) != self.value + 1).OnlyEnforceIf([t.Not(), a, s])
 
-                model.Add(sum(var_list) == self.value - 1).OnlyEnforceIf([t, b])
-                model.Add(sum(var_list) != self.value - 1).OnlyEnforceIf([t.Not(), b])
+                model.Add(sum(var_list) == self.value - 1).OnlyEnforceIf([t, b, s])
+                model.Add(sum(var_list) != self.value - 1).OnlyEnforceIf([t.Not(), b, s])
                 sum_var.append(t)
-        model.AddBoolOr(sum_var)
-        model.AddBoolOr([a, b])
+        model.AddBoolOr(sum_var).OnlyEnforceIf(s)
+        model.AddBoolOr([a, b]).OnlyEnforceIf(s)
 
     def code(self) -> bytes:
         return bytes([self.value])

@@ -8,7 +8,6 @@ from typing import Callable
 
 from abs.Rrule import AbstractClueRule, AbstractClueValue
 from abs.board import AbstractBoard, AbstractPosition
-from utils.solver import get_model
 
 
 class Rule1EX(AbstractClueRule):
@@ -53,9 +52,18 @@ class Value1EX(AbstractClueValue):
     def __repr__(self):
         return str(self.value)
 
-    @classmethod
-    def method_choose(cls) -> int:
-        return 1
+    def high_light(self, board: 'AbstractBoard') -> list['AbstractPosition']:
+        positions = []
+        for i in [
+            (1, 1), (1, -1),
+            (-1, 1), (-1, -1),
+        ]:
+            n = 0
+            while board.get_type(pos := self.pos.shift(i[0] * n, i[1] * n)) not in "F":
+                n += 1
+                positions.append(pos)
+        return positions
+
 
     @classmethod
     def type(cls) -> bytes:
@@ -64,7 +72,7 @@ class Value1EX(AbstractClueValue):
     def code(self) -> bytes:
         return bytes([self.value])
 
-    def create_constraints(self, board: 'AbstractBoard'):
+    def create_constraints(self, board: 'AbstractBoard', switch):
         def dfs(value: int, index=0, info: dict = None):
             if info is None:
                 info = {"T": [], "F": []}
@@ -110,7 +118,8 @@ class Value1EX(AbstractClueValue):
                     continue
                 info["T"].pop(-1)
 
-        model = get_model()
+        model = board.get_model()
+        s = switch.get(model, self)
         possible_list = []
 
         dfs(value=self.value)
@@ -124,4 +133,4 @@ class Value1EX(AbstractClueValue):
             tmp_list.append(tmp)
 
         if tmp_list:
-            model.AddBoolOr(tmp_list)
+            model.AddBoolOr(tmp_list).OnlyEnforceIf(s)

@@ -12,11 +12,10 @@ from abs.Rrule import AbstractClueRule, AbstractClueValue
 from abs.board import AbstractBoard, AbstractPosition
 
 from utils.tool import get_logger
-from utils.solver import get_model
 
 
 class Rule2A(AbstractClueRule):
-    name = ["2A", "面积", "Area"]
+    # name = ["2A", "面积", "Area"]
     doc = "线索表示四方向相邻雷区域的面积之和"
 
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':
@@ -57,6 +56,7 @@ class Value2A(AbstractClueValue):
         super().__init__(pos, code)
         self.value = code[0]
         self.neighbor = pos.neighbors(1)
+        self.pos = pos
 
     def __repr__(self) -> str:
         return f"{self.value}"
@@ -68,9 +68,10 @@ class Value2A(AbstractClueValue):
     def code(self) -> bytes:
         return bytes([self.value])
 
-    def create_constraints(self, board: 'AbstractBoard'):
+    def create_constraints(self, board: 'AbstractBoard', switch):
         # 跳过已有的线索格
-        model = get_model()
+        model = board.get_model()
+        s = switch.get(model, self)
         possible_list = set()
 
         def dfs(step=0, checked=None, valides=None):
@@ -126,13 +127,9 @@ class Value2A(AbstractClueValue):
             if vars_f:
                 model.AddBoolAnd(vars_f).OnlyEnforceIf(tmp)
             tmp_list.append(tmp)
-        model.AddBoolOr(tmp_list)
+        model.AddBoolOr(tmp_list).OnlyEnforceIf(s)
         # print(self.pos, self, len(tmp_list))
 
         # import sys
         # sys.exit(0)
         # print("done")
-
-    @classmethod
-    def method_choose(cls) -> int:
-        return 1

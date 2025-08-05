@@ -12,7 +12,6 @@ from typing import List
 from abs.board import AbstractBoard, AbstractPosition
 from abs.Rrule import AbstractClueRule, AbstractClueValue
 from utils.impl_obj import VALUE_QUESS, VALUE_CROSS, VALUE_CIRCLE
-from utils.solver import get_model
 from utils.tool import get_random
 
 NAME_2E = "2E"
@@ -21,9 +20,6 @@ NAME_2E = "2E"
 class Rule2E(AbstractClueRule):
     name = ["2E", "加密"]
     doc = "线索被字母所取代，每个字母对应一个线索，且每个线索对应一个字母"
-    subrules = [
-        [True, "[2E]每个字母对应一个线索，且每个线索对应一个字母"]
-    ]
 
     def __init__(self, data=None, board: 'AbstractBoard' = None):
         super().__init__(data, board)
@@ -53,29 +49,22 @@ class Rule2E(AbstractClueRule):
 
         return board
 
-    def clue_class(self):
-        return Value2E
-
-    def create_constraints(self, board: 'AbstractBoard') -> bool:
-        if not self.subrules[0][0]:
-            return super().create_constraints(board)
-
-        model = get_model()
+    def create_constraints(self, board: 'AbstractBoard', switch):
+        model = board.get_model()
+        s = switch.get(model, self)
         bound = board.boundary(key=NAME_2E)
 
         row = board.get_row_pos(bound)
         for pos in row:
             line = board.get_col_pos(pos)
             var = board.batch(line, mode="variable")
-            model.Add(sum(var) == 1)
+            model.Add(sum(var) == 1).OnlyEnforceIf(s)
 
         col = board.get_col_pos(bound)
         for pos in col:
             line = board.get_row_pos(pos)
             var = board.batch(line, mode="variable")
-            model.Add(sum(var) == 1)
-
-        return super().create_constraints(board)
+            model.Add(sum(var) == 1).OnlyEnforceIf(s)
 
     def init_clear(self, board: 'AbstractBoard'):
         for pos, _ in board(key=NAME_2E):
@@ -85,6 +74,7 @@ class Rule2E(AbstractClueRule):
 class Value2E(AbstractClueValue):
     def __init__(self, pos: 'AbstractPosition', code: bytes = b''):
         self.value = code[0]
+        self.pos = pos
         self.neighbors = pos.neighbors(2)
 
     def __repr__(self) -> str:
@@ -97,15 +87,12 @@ class Value2E(AbstractClueValue):
     def type(cls) -> bytes:
         return Rule2E.name[0].encode("ascii")
 
-    @classmethod
-    def method_choose(cls) -> int:
-        return 1
-
     def code(self) -> bytes:
         return bytes([self.value])
 
-    def create_constraints(self, board: 'AbstractBoard'):
-        model = get_model()
+    def create_constraints(self, board: 'AbstractBoard', switch):
+        model = board.get_model()
+        s = switch.get(model, self)
 
         line = board.batch(board.get_col_pos(
             board.get_pos(0, self.value, NAME_2E)
@@ -114,5 +101,5 @@ class Value2E(AbstractClueValue):
         neighbors = board.batch(self.neighbors, mode="variable", drop_none=True)
 
         for index in range(len(line)):
-            model.Add(sum(neighbors) == index).OnlyEnforceIf(line[index])
-            model.Add(sum(neighbors) != index).OnlyEnforceIf(line[index].Not())
+            model.Add(sum(neighbors) == index).OnlyEnforceIf(line[index]).OnlyEnforceIf(s)
+            model.Add(sum(neighbors) != index).OnlyEnforceIf(line[index].Not()).OnlyEnforceIf(s)

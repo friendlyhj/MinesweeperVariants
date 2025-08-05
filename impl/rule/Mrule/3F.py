@@ -12,16 +12,12 @@ from typing import List, Dict
 from abs.Mrule import AbstractMinesClueRule, AbstractMinesValue
 from abs.board import AbstractBoard, AbstractPosition
 from utils.image_create import get_text, get_col, get_dummy
-from utils.solver import get_model
 from utils.tool import get_logger
 
 
 class Rule3F(AbstractMinesClueRule):
     name = ["3F", "不是V"]
     doc = "雷线索表示附近八个格子内的非雷格数"
-
-    def mines_class(self):
-        return MinesValue3F
 
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':
         for pos, _ in board("F"):
@@ -35,6 +31,7 @@ class MinesValue3F(AbstractMinesValue):
     def __init__(self, pos: 'AbstractPosition', code: bytes = None):
         self.nei = pos.neighbors(2)
         self.value = code[0]
+        self.pos = pos
 
     def __repr__(self):
         return "["+str(self.value)+"]"
@@ -47,19 +44,19 @@ class MinesValue3F(AbstractMinesValue):
             get_dummy(height=0.175),
         )
 
-    @classmethod
-    def method_choose(cls) -> int:
-        return 1
+    def high_light(self, board: 'AbstractBoard') -> list['AbstractPosition']:
+        return self.nei
 
     @classmethod
     def type(cls) -> bytes:
         return Rule3F.name[0].encode("ascii")
 
-    def create_constraints(self, board: 'AbstractBoard'):
-        model = get_model()
+    def create_constraints(self, board: 'AbstractBoard', switch):
+        model = board.get_model()
+        s = switch.get(model, self)
         logger = get_logger()
         var_list = board.batch(self.nei, mode="variable", drop_none=True)
-        model.Add(sum(var_list) == (len(var_list) - self.value))
+        model.Add(sum(var_list) == (len(var_list) - self.value)).OnlyEnforceIf(s)
         logger.trace(f"[4F]{self.value}")
 
     def code(self) -> bytes:

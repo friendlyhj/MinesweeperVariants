@@ -9,20 +9,15 @@
 """
 from abs.Lrule import AbstractMinesRule
 from abs.board import AbstractBoard
-from utils.solver import get_model
-
-from collections import defaultdict
 
 
 class Rule2G(AbstractMinesRule):
     name = ["2G", "四连块", "Group"]
     doc = "所有四连通雷区域的面积为 4"
-    subrules = [[True, "四连块"]]
 
-    def create_constraints(self, board: AbstractBoard):
-        if not self.subrules[0][0]:
-            return
-        model = get_model()
+    def create_constraints(self, board: AbstractBoard, switch):
+        model = board.get_model()
+        s = switch.get(model, self)
 
         def dfs(_board: AbstractBoard, _valides: list, step=0, checked=None, _possible_list=None):
             if _possible_list is None:
@@ -72,14 +67,10 @@ class Rule2G(AbstractMinesRule):
                 vars_t = board.batch(vars_t, mode="variable")
                 vars_f = board.batch(vars_f, mode="variable")
                 tmp = model.NewBoolVar("tmp")
-                model.Add(sum(vars_t) == 0).OnlyEnforceIf(tmp)
-                model.AddBoolAnd(vars_f).OnlyEnforceIf(tmp)
+                model.Add(sum(vars_t) == 0).OnlyEnforceIf([tmp, s])
+                model.AddBoolAnd(vars_f).OnlyEnforceIf([tmp, s])
                 tmp_list.append(tmp)
-            model.AddBoolOr(tmp_list).OnlyEnforceIf(var)
-
-    @classmethod
-    def method_choose(cls) -> int:
-        return 1
+            model.AddBoolOr(tmp_list).OnlyEnforceIf([var, s])
 
     def suggest_total(self, info: dict):
 

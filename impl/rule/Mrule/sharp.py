@@ -14,7 +14,6 @@ from utils.tool import get_random
 
 
 class RuleSharp(AbstractMinesClueRule):
-
     name = "F#"
     subrules = []
 
@@ -38,15 +37,18 @@ class RuleSharp(AbstractMinesClueRule):
                 board.set_value(pos, get_random().choice(values))
         return board
 
-    def mines_class(self):
-        return None
-
-    def create_constraints(self, board: 'AbstractBoard') -> bool:
-        strict = True
+    def suggest_total(self, info: dict):
         for rule in self.rules:
-            strict = strict and rule.create_constraints(board)
-        return strict
+            rule.suggest_total(info)
+
+    def init_board(self, board: 'AbstractBoard'):
+        for rule in self.rules:
+            rule.init_board(board)
 
     def init_clear(self, board: 'AbstractBoard'):
         for rule in self.rules:
             rule.init_clear(board)
+
+    def create_constraints(self, board: 'AbstractBoard', switch):
+        for rule in self.rules:
+            rule.create_constraints(board, switch)

@@ -7,13 +7,12 @@
 """
 [1W] 数墙 (Wall)：线索表示 3x3 范围内每组连续雷的长度
 """
-from typing import List, Dict
+from typing import Dict
 
 from abs.Rrule import AbstractClueRule, AbstractClueValue
 from abs.board import AbstractPosition, AbstractBoard
 from utils.image_create import get_text, get_row, get_col
 from utils.image_create import get_dummy
-from utils.solver import get_model
 from utils.tool import get_logger
 
 
@@ -97,7 +96,8 @@ def MineStatus_1W(clue: list) -> list:
 
 
 class Rule1W(AbstractClueRule):
-    name = "1W"
+    name = ["1W", "Wall", "数墙"]
+    doc = "线索表示 3x3 范围内每组连续雷的长度"
 
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':
         logger = get_logger()
@@ -124,9 +124,6 @@ class Rule1W(AbstractClueRule):
             logger.debug(f"[1W]set {obj} to {pos}")
 
         return board
-
-    def clue_class(self):
-        return Value1W
 
 
 class Value1W(AbstractClueValue):
@@ -193,18 +190,15 @@ class Value1W(AbstractClueValue):
             return get_text("")
 
     @classmethod
-    def method_choose(cls) -> int:
-        return 1
-
-    @classmethod
     def type(cls) -> bytes:
-        return Rule1W.name.encode("ascii")
+        return Rule1W.name[0].encode("ascii")
 
     def code(self) -> bytes:
         return encode(self.values)
 
-    def create_constraints(self, board: 'AbstractBoard'):
-        model = get_model()
+    def create_constraints(self, board: 'AbstractBoard', switch):
+        model = board.get_model()
+        s = switch.get(model, self)
 
         var_list = board.batch([
             self.pos.right(), self.pos.right().down(),
@@ -233,4 +227,7 @@ class Value1W(AbstractClueValue):
             var_list = [var for var in var_list if var is not None]
         possible_list.pop(-1)
 
-        model.AddAllowedAssignments(var_list, possible_list)
+        if possible_list:
+            model.AddAllowedAssignments(var_list, possible_list).OnlyEnforceIf(s)
+        else:
+            model.Add(sum(var_list) == 0).OnlyEnforceIf(s)

@@ -3,11 +3,12 @@
 """
 [1X+] 城堡 (Castle)：线索数表示与其同行或同列的所有格子中的雷数
 """
+from typing import List
+
 from abs.Rrule import AbstractClueRule, AbstractClueValue
 from abs.board import AbstractBoard, AbstractPosition
 
 from utils.tool import get_logger
-from utils.solver import get_model
 from utils.impl_obj import VALUE_QUESS, MINES_TAG
 
 
@@ -46,9 +47,6 @@ class Rule1XPlus(AbstractClueRule):
 
         return positions
 
-    def clue_class(self):
-        return Value1XPlus
-
 
 class Value1XPlus(AbstractClueValue):
     def __init__(self, pos: AbstractPosition, count: int = 0, code: bytes = None):
@@ -59,14 +57,6 @@ class Value1XPlus(AbstractClueValue):
         else:
             # 直接初始化
             self.count = count
-        self.row_col_positions = self._calculate_row_col_positions()
-
-    def _calculate_row_col_positions(self):
-        """计算与当前位置同行或同列的所有位置"""
-        positions = []
-        # 这里我们需要在使用时获取board的大小，所以暂时返回空列表
-        # 实际的位置计算会在具体方法中进行
-        return positions
 
     def _get_row_col_positions(self, board: 'AbstractBoard'):
         """获取与给定位置同行或同列的所有位置"""
@@ -88,6 +78,9 @@ class Value1XPlus(AbstractClueValue):
                 positions.append(other_pos)
 
         return positions
+
+    def high_light(self, board: 'AbstractBoard') -> List['AbstractPosition']:
+        return self._get_row_col_positions(board)
 
     def __repr__(self):
         return f"{self.count}"
@@ -129,9 +122,10 @@ class Value1XPlus(AbstractClueValue):
 
         return False
 
-    def create_constraints(self, board: 'AbstractBoard'):
+    def create_constraints(self, board: 'AbstractBoard', switch):
         """创建CP-SAT约束：同行或同列的雷数等于count"""
-        model = get_model()
+        model = board.get_model()
+        s = switch.get(model, self)
 
         # 收集同行或同列格子的布尔变量
         row_col_positions = self._get_row_col_positions(board)
@@ -144,16 +138,4 @@ class Value1XPlus(AbstractClueValue):
 
         # 添加约束：同行或同列的雷数等于count
         if neighbor_vars:
-            model.Add(sum(neighbor_vars) == self.count)
-
-    def check(self, board: 'AbstractBoard') -> bool:
-        row_col_positions = self._get_row_col_positions(board)
-        neighbor_types = [board.get_type(pos) for pos in row_col_positions]
-        f_num = neighbor_types.count("F")
-        n_num = neighbor_types.count("N")
-
-        # 检查当前雷数是否在合理范围内
-        return f_num <= self.count <= f_num + n_num
-
-    def method_choose(self) -> int:
-        return 3
+            model.Add(sum(neighbor_vars) == self.count).OnlyEnforceIf(s)

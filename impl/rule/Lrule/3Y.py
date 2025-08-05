@@ -13,7 +13,6 @@ from abs.Lrule import AbstractMinesRule
 from abs.board import AbstractBoard, AbstractPosition
 from impl.rule.Lrule.connect import connect
 from utils.impl_obj import get_total
-from utils.solver import get_model
 
 
 def block(a_pos: AbstractPosition, board: AbstractBoard) -> List[AbstractPosition]:
@@ -28,32 +27,28 @@ def block(a_pos: AbstractPosition, board: AbstractBoard) -> List[AbstractPositio
 class Rule3Y(AbstractMinesRule):
     name = ["3Y", "阴阳", "Yin-Yang"]
     doc = "所有雷四连通，所有非雷四连通，不存在2*2的雷或非雷"
-    subrules = [[True, "3Y"]]
 
-    @classmethod
-    def method_choose(cls) -> int:
-        return 1
-
-    def create_constraints(self, board: 'AbstractBoard'):
-        if not self.subrules[0][0]:
-            return
-        model = get_model()
+    def create_constraints(self, board: 'AbstractBoard', switch):
+        model = board.get_model()
+        s = switch.get(model, self)
 
         positions_vars = [(pos, var) for pos, var in board("always", mode="variable")]
 
         connect(
             model,
             board,
-            ub=(len(positions_vars) - get_total()) // 2 + 1,
+            ub=len(positions_vars),
             connect_value=0,
-            nei_value=1
+            nei_value=1,
+            switch=s
         )
         connect(
             model,
             board,
-            ub=get_total() // 2 + 1,
+            ub=len(positions_vars),
             connect_value=1,
-            nei_value=1
+            nei_value=1,
+            switch=s
         )
 
         # 大定式
@@ -62,10 +57,10 @@ class Rule3Y(AbstractMinesRule):
             if not pos_list:
                 continue
             a, b, c, d = board.batch(pos_list, mode="variable")
-            model.AddBoolOr([a.Not(), b, c, d.Not()])  # 排除 1010
-            model.AddBoolOr([a, b.Not(), c.Not(), d])  # 排除 0101
-            model.AddBoolOr([a, b, c, d])  # 排除 0000
-            model.AddBoolOr([a.Not(), b.Not(), c.Not(), d.Not()])  # 排除 1111
+            model.AddBoolOr([a.Not(), b, c, d.Not()]).OnlyEnforceIf(s)  # 排除 1010
+            model.AddBoolOr([a, b.Not(), c.Not(), d]).OnlyEnforceIf(s)  # 排除 0101
+            model.AddBoolOr([a, b, c, d]).OnlyEnforceIf(s)  # 排除 0000
+            model.AddBoolOr([a.Not(), b.Not(), c.Not(), d.Not()]).OnlyEnforceIf(s)  # 排除 1111
 
     def suggest_total(self, info: dict):
         ub = 0

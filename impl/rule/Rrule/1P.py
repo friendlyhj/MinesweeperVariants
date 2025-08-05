@@ -11,9 +11,6 @@ from typing import List, Dict
 
 from abs.Rrule import AbstractClueRule, AbstractClueValue
 from abs.board import AbstractPosition, AbstractBoard
-from utils.image_create import get_text, get_row, get_col
-from utils.image_create import get_dummy
-from utils.solver import get_model
 from utils.tool import get_logger
 
 
@@ -101,18 +98,15 @@ class Value1P(AbstractClueValue):
         return self.pos.neighbors(2)
 
     @classmethod
-    def method_choose(cls) -> int:
-        return 1
-
-    @classmethod
     def type(cls) -> bytes:
         return Rule1P.name[0].encode("ascii")
 
     def code(self) -> bytes:
         return bytes([self.value])
 
-    def create_constraints(self, board: 'AbstractBoard'):
-        model = get_model()
+    def create_constraints(self, board: 'AbstractBoard', switch):
+        model = board.get_model()
+        s = switch.get(model, self)
 
         var_list = board.batch([
             self.pos.right(), self.pos.right().down(),
@@ -141,4 +135,4 @@ class Value1P(AbstractClueValue):
             var_list = [var for var in var_list if var is not None]
         possible_list.pop(-1)
 
-        model.AddAllowedAssignments(var_list, possible_list)
+        model.AddAllowedAssignments(var_list, possible_list).OnlyEnforceIf(s)

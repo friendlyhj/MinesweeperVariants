@@ -158,10 +158,12 @@ class GameSession:
         第二步: 现在整个题板都遍历完了一遍 看起来已经是删无可删了 那么就
         """
         board = self.answer_board.clone()
-        for pos, _ in board("F"):
-            board.set_value(pos, None)
+        for rule in (self.summon.mines_rules.rules
+                     + [self.summon.clue_rule,
+                        self.summon.mines_clue_rule]):
+            rule.init_clear(board)
         clues = [i for i in board("CF")]
-        print(board.show_board(), clues)
+        print("game init:", board.show_board(), clues)
         get_random().shuffle(clues)
         r_flag = True
         while clues:
@@ -217,9 +219,13 @@ class GameSession:
             elif obj_type == "F":
                 board[pos] = MINES_TAG
 
-        chord_positions = self._deduced(board, [])
+        chord_positions = self._deduced(board, [
+            self.summon.mines_clue_rule
+            if self.board.get_type(clue_pos) == "F" else
+            self.summon.clue_rule,
+        ])
 
-        self.logger.trace(f"chord pos: {clue_pos}, {self.board[clue_pos]}")
+        self.logger.trace(f"chord pos: {clue_pos}, {self.board[clue_pos]}, {chord_positions}")
 
         return chord_positions
 
@@ -314,6 +320,7 @@ class GameSession:
         """
         if self.last_deduced[0] == self.board:
             return self.last_deduced[1]
+        t = time.time()
         deduced = []
         board = self.board.clone()
         for pos in self.last_deduced[1]:
@@ -324,7 +331,7 @@ class GameSession:
             elif self.answer_board.get_type(pos) == "C":
                 board[pos] = VALUE_TAG
             deduced.append(pos)
-        all_rules = self.summon.mines_rules.rules
+        all_rules = self.summon.mines_rules.rules[:]
         all_rules += [self.summon.clue_rule, self.summon.mines_clue_rule]
         deduced += self._deduced(board, all_rules)
 
@@ -332,8 +339,29 @@ class GameSession:
         self.last_deduced[0] = self.board.clone()
 
         self.logger.trace(f"last_deduced {str(self.last_deduced[1])}")
+        self.logger.trace(f"deduced used time {time.time() - t}")
 
         return deduced
+
+    def hint(self):
+        if self.last_hint[0] == self.board:
+            return self.last_hint[1]
+
+        board = self.board.clone()
+        deduced = self.deduced()
+        if not deduced:
+            self.step()
+            if not self.deduced():
+                self.drop_r = False
+            self.step()
+            return {}
+
+        t = time.time()
+        hint = self._hint(board)
+        self.logger.trace(f"all_hint {hint}")
+        self.logger.trace(f"hint used_time {time.time() - t}")
+
+        return hint
 
     def _deduced(self, board, all_rules):
         self.logger.trace("构建新模型")
@@ -374,14 +402,15 @@ class GameSession:
 
         with ThreadPoolExecutor(max_workers=CONFIG["workes_number"]) as executor:
             # 提交任务
-            for pos, _ in board("N"):
-                fut = executor.submit(
-                    deduced_by_csp,
-                    board,
-                    self.answer_board,
-                    pos
-                )
-                future_to_param[fut] = pos  # 记录参数以便出错追踪
+            for key in board.get_board_keys():
+                for pos, _ in board("N", key=key):
+                    fut = executor.submit(
+                        deduced_by_csp,
+                        board,
+                        self.answer_board,
+                        pos
+                    )
+                    future_to_param[fut] = pos  # 记录参数以便出错追踪
 
             # 收集结果
             for fut in as_completed(future_to_param):
@@ -401,28 +430,17 @@ class GameSession:
 
         return results
 
-    def hint(self) -> dict[tuple, list[AbstractPosition]]:
+    def _hint(self, board) -> dict[tuple, list[AbstractPosition]]:
         """
         返回每一类推理依据及其能推出的位置
         """
-        if self.last_hint[0] == self.board:
-            return self.last_hint[1]
-
-        t = time.time()
-
         deduced = self.deduced()
-        if not deduced:
-            self.step()
-            if not self.deduced():
-                self.drop_r = False
-            self.step()
-            return {}
-
+        get_random().shuffle(deduced)
         future_to_param = {}
         results = {}
         with ThreadPoolExecutor(max_workers=CONFIG["workes_number"]) as executor:
             # 提交任务
-            for pos, obj in self.board("CF"):
+            for pos, obj in board("CF"):
                 fut = executor.submit(
                     self.chord_clue,
                     pos
@@ -440,18 +458,17 @@ class GameSession:
                 except Exception as exc:
                     raise exc
         if results:
-            self.logger.trace(f"all hints: {results}")
-            self.logger.trace(f"used time: {time.time() - t}")
             self.last_hint[1] = results
-            self.last_hint[0] = self.board.clone()
+            self.last_hint[0] = board.clone()
             return results
 
         self.logger.trace("构建新模型")
-        self.board.clear_variable()
-        model = self.board.get_model()
+        board.clear_variable()
+        model = board.get_model()
         switch = Switch()
 
-        all_rules = self.summon.mines_rules.rules
+        all_rules = self.summon.mines_rules.rules[:]
+        all_rules += [self.summon.clue_rule, self.summon.mines_clue_rule]
 
         # 2.获取所有规则约束
         for rule in all_rules:
@@ -459,20 +476,20 @@ class GameSession:
                 continue
             if self.drop_r and isinstance(rule, Rule0R):
                 continue
-            rule.create_constraints(self.board, switch)
+            rule.create_constraints(board, switch)
 
-        for key in self.board.get_board_keys():
-            for pos, obj in self.board(key=key):
+        for key in board.get_board_keys():
+            for pos, obj in board(key=key):
                 if obj is None:
                     continue
-                obj.create_constraints(self.board, switch)
+                obj.create_constraints(board, switch)
 
         # 3.获取所有变量并赋值已解完的部分
-        for key in self.board.get_board_keys():
-            for _, var in self.board("C", mode="variable", key=key):
+        for key in board.get_board_keys():
+            for _, var in board("C", mode="variable", key=key):
                 model.Add(var == 0)
                 self.logger.trace(f"var: {var} == 0")
-            for _, var in self.board("F", mode="variable", key=key):
+            for _, var in board("F", mode="variable", key=key):
                 model.Add(var == 1)
                 self.logger.trace(f"var: {var} == 1")
 
@@ -485,7 +502,7 @@ class GameSession:
             # 提交任务
             for pos in deduced:
                 fut = executor.submit(
-                    hint_by_csp, self.board,
+                    hint_by_csp, board,
                     self.answer_board,
                     switch, pos, upper_bound
                 )
@@ -512,7 +529,7 @@ class GameSession:
                         elif bes_type == "POS":
                             info = name.split("|", 2)
                             result.append(
-                                self.board.get_pos(
+                                board.get_pos(
                                     int(info[0]),
                                     int(info[1]),
                                     info[2]
@@ -524,10 +541,7 @@ class GameSession:
                 except Exception as exc:
                     raise exc
 
-        self.logger.trace(f"all hints: {results}")
-        self.logger.trace(f"used time: {time.time() - t}")
-
-        self.last_hint[0] = self.board.clone()
+        self.last_hint[0] = board.clone()
         self.last_hint[1] = results
 
         return results
@@ -583,15 +597,16 @@ class GameSession:
 
 def main():
     get_logger(log_lv="TRACE")
-    get_random(new=True, seed=8894987)
+    # get_random(new=True, seed=8894987)
     # get_random(seed=5474554)
     size = (5, 5)
-    rules = ["1A", "*1M"]
+    rules = ["*3T"]
     s = Summon(size, -1, rules)
     g = GameSession(s, ULTIMATE, False, ULTIMATE_R)
-    g.board = s.create_puzzle()
-    g.answer_board = s.answer_board
-    # g.create_board()
+    # g.board = s.create_puzzle()
+    # g.answer_board = s.answer_board
+    g.answer_board = s.summon_board()
+    g.create_board()
     # for p, i in g.board("C"):
     #     g.chord_clue(p)
     # g.drop_r = True
@@ -602,13 +617,13 @@ def main():
     print("=" * 20)
     print(g.board)
     print("=" * 20)
-    print(f"deduced: {d}")
-    # print(h := g.hint())
-    # print("=" * 20)
-    # print(g.board)
-    # print("=" * 20)
-    # for b, t in h.items():
-    #     print(b, "->", t)
+    # print(f"deduced: {d}")
+    print(h := g.hint())
+    print("=" * 20)
+    print(g.board)
+    print("=" * 20)
+    for b, t in h.items():
+        print(b, "->", t)
     # g.create_board()
     # while "N" in g.board:
     #     print(g.hint())

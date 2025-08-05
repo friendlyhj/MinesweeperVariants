@@ -10,12 +10,12 @@ from abs.Rrule import AbstractClueRule, AbstractClueValue
 from abs.board import AbstractBoard, AbstractPosition
 from utils.image_create import get_image, get_text, get_row, get_col, get_dummy
 from utils.impl_obj import MINES_TAG, VALUE_QUESS
-from utils.solver import get_model
 from utils.tool import get_random, get_logger
 
 
 class Rule1X_(AbstractClueRule):
-    name = "1X-"
+    name = ["1X-", "残缺十字", "Pawn"]
+    doc = "线索表示朝向一个方向的两个格子中的雷数，线索会标注出方向"
 
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':
         logger = get_logger()
@@ -46,9 +46,6 @@ class Rule1X_(AbstractClueRule):
             logger.debug(f"Set {pos} to 1X-[{mine_count}] direction {direction}")
 
         return board
-
-    def clue_class(self):
-        return Value1X_
 
 
 class Value1X_(AbstractClueValue):
@@ -89,30 +86,29 @@ class Value1X_(AbstractClueValue):
     def code(self) -> bytes:
         return bytes([self.count, self.direction])
 
-    def compose(self, board) -> List[Dict]:
+    def high_light(self, board: 'AbstractBoard') -> List['AbstractPosition']:
+        return self.target_positions
+
+    def compose(self, board, web) -> Dict:
         """生成可视化组件"""
         direction_images = ['up', 'right', 'down', 'left']
 
         if self.direction in [0, 2]:  # 上或下
             if self.count == 1:
-                return [
-                    get_row(
+                return get_row(
                         get_dummy(width=0.175),
                         get_text("1"),
                         get_image(direction_images[self.direction]),
                         get_dummy(width=0.175),
                     )
-                ]
-            return [
-                get_row(
+
+            return get_row(
                     get_text(str(self.count)),
                     get_image(direction_images[self.direction]),
                     spacing=-0.1,
                 )
-            ]
         else:  # 左或右
-            return [
-                get_col(
+            return get_col(
                     get_dummy(height=0.1),
                     get_image(
                         direction_images[self.direction],
@@ -123,7 +119,6 @@ class Value1X_(AbstractClueValue):
                     get_text(str(self.count)),
                     get_dummy(height=0.2)
                 )
-            ]
 
     def deduce_cells(self, board: 'AbstractBoard') -> bool:
         """逻辑推理"""
@@ -162,9 +157,10 @@ class Value1X_(AbstractClueValue):
 
         return False
 
-    def create_constraints(self, board: 'AbstractBoard'):
+    def create_constraints(self, board: 'AbstractBoard', switch):
         """创建CP-SAT约束"""
-        model = get_model()
+        model = board.get_model()
+        s = switch.get(model, self)
 
         # 收集有效目标格子的变量
         target_vars = []
@@ -175,20 +171,4 @@ class Value1X_(AbstractClueValue):
 
         # 添加约束：目标格子中的雷数等于count
         if target_vars:
-            model.Add(sum(target_vars) == self.count)
-
-    def check(self, board: 'AbstractBoard') -> bool:
-        """检查当前状态是否满足约束"""
-        valid_targets = [pos for pos in self.target_positions if board.in_bounds(pos)]
-        if not valid_targets:
-            return True
-
-        target_types = [board.get_type(pos) for pos in valid_targets]
-        f_num = target_types.count("F")
-        n_num = target_types.count("N")
-
-        # 检查是否可能满足约束
-        return f_num <= self.count <= f_num + n_num
-
-    def method_choose(self) -> int:
-        return 3
+            model.Add(sum(target_vars) == self.count).OnlyEnforceIf(s)

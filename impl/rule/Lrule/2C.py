@@ -11,7 +11,6 @@ from typing import List
 
 from abs.Lrule import AbstractMinesRule
 from abs.board import AbstractBoard, AbstractPosition
-from utils.solver import get_model
 from .connect import connect
 
 
@@ -27,25 +26,18 @@ def block(a_pos: AbstractPosition, board: AbstractBoard) -> List[AbstractPositio
 class Rule2C(AbstractMinesRule):
     name = ["2C", "连方", "Connected"]
     doc = "(1) 所有四连通雷区域为矩形；(2) 所有雷区域对角相邻"
-    subrules = [
-        [True, "[2C]雷区必须是矩形"],
-        [True, "[2C]雷区必须联通"]
-    ]
 
-    def create_constraints(self, board: 'AbstractBoard'):
-        model = get_model()
-        if self.subrules[0][0]:
-            for pos, _ in board():
-                var_list = board.batch(block(pos, board), mode="variable")
-                if not var_list:
-                    continue
-                model.Add(sum(var_list) != 3)
-        if self.subrules[1][0]:
-            connect(
-                model,
-                board
-            )
-
-    @classmethod
-    def method_choose(cls) -> int:
-        return 1
+    def create_constraints(self, board: 'AbstractBoard', switch):
+        model = board.get_model()
+        s1 = switch.get(model, self)
+        s2 = switch.get(model, self)
+        for pos, _ in board():
+            var_list = board.batch(block(pos, board), mode="variable")
+            if not var_list:
+                continue
+            model.Add(sum(var_list) != 3).OnlyEnforceIf(s1)
+        connect(
+            model,
+            board,
+            s2
+        )

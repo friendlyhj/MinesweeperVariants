@@ -9,20 +9,15 @@
 """
 from abs.Lrule import AbstractMinesRule
 from abs.board import AbstractBoard
-from utils.solver import get_model
 
 
 class Rule2Z(AbstractMinesRule):
     name = "2Z", "零和", "Zero-Sum"
     doc = "每行的染色格与非染色格的雷数相等"
-    subrules = [
-        [True, "[2Z]零和"]
-    ]
 
-    def create_constraints(self, board: 'AbstractBoard'):
-        if not self.subrules[0][0]:
-            return
-        model = get_model()
+    def create_constraints(self, board: 'AbstractBoard', switch):
+        model = board.get_model()
+        s = switch.get(model, self)
         for key in board.get_interactive_keys():
             bound = board.boundary(key=key)
             for _pos in board.get_col_pos(bound):
@@ -36,8 +31,4 @@ class Rule2Z(AbstractMinesRule):
                         vars_a.append(var)
                     else:
                         vars_b.append(var)
-                model.Add(sum(vars_a) == sum(vars_b))
-
-    @classmethod
-    def method_choose(cls) -> int:
-        return 1
+                model.Add(sum(vars_a) == sum(vars_b)).OnlyEnforceIf(s)

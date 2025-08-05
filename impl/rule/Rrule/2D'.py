@@ -11,12 +11,11 @@ from abs.Rrule import AbstractClueRule, AbstractClueValue
 from abs.board import AbstractBoard, AbstractPosition
 
 from utils.tool import get_logger, get_random
-from utils.solver import get_model
 
 
 class Rule2Dp(AbstractClueRule):
     name = ["2D'", "四向偏移"]
-    doc = "线索表示四方向任意偏移一格为中心的3x3区域内的总雷数"
+    doc = "线索表示四方向任意偏移一格为中心的3x3区域内的总雷数(全局统一)"
 
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':
         random = get_random()
@@ -55,12 +54,10 @@ class Value2Dp(AbstractClueValue):
     def code(self) -> bytes:
         return bytes([self.count])
 
-    def deduce_cells(self, board: 'AbstractBoard') -> bool:
-        return False
-
-    def create_constraints(self, board: 'AbstractBoard'):
+    def create_constraints(self, board: 'AbstractBoard', switch):
         """创建CP-SAT约束: 周围雷数等于count"""
-        model = get_model()
+        model = board.get_model()
+        s = switch.get(model, self)
 
         # 收集周围格子的布尔变量
         neighbors_vars = []
@@ -75,7 +72,4 @@ class Value2Dp(AbstractClueValue):
             model.Add(sum(neighbor_vars) != self.count).OnlyEnforceIf(b.Not())
             var_list.append(b)
 
-        model.AddBoolOr(var_list)
-
-    def method_choose(self) -> int:
-        return 1
+        model.AddBoolOr(var_list).OnlyEnforceIf(s)

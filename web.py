@@ -50,6 +50,7 @@ def format_cell(_board, pos, hint=0):
                     child_style = init_component(child).get("style", "")
                     if "flex-grow" not in child_style:
                         child_style += " flex-grow: 1;"
+                    child["style"] = child_style
             else:
                 # 水平布局：主轴水平方向，交叉轴居中
                 style += "flex-direction: row;"
@@ -58,8 +59,9 @@ def format_cell(_board, pos, hint=0):
                     child_style = init_component(child).get("style", "")
                     if "flex-grow" not in child_style:
                         child_style += " flex-grow: 1;"
+                    child["style"] = child_style
             style += " align-items: center; justify-content: center; gap: 5%;"
-            style += " width: 100%; height: 100%;"
+            style += " width: 100%; height: 100%; flex-grow: 1;"
             return {
                 "type": "container",
                 "value": [init_component(i) for i in data["children"]],
@@ -68,9 +70,9 @@ def format_cell(_board, pos, hint=0):
 
         elif data["type"] == "text":
             # 文本项：使用 flex 布局填充可用空间，添加溢出处理
-            style = f"fill: var({primary_color}); text-align: center;"
+            style = f"color: var({primary_color}); text-align: center;"
             style += " display: flex; justify-content: center; align-items: center;"
-            style += " flex: 1; min-width: 0; max-width: 100;"  # 关键：允许内容收缩
+            style += " flex: 1; min-width: 0; max-width: 100%;"  # 关键：允许内容收缩
             style += " overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"
 
             return {
@@ -85,7 +87,7 @@ def format_cell(_board, pos, hint=0):
             return {
                 "type": "assets",
                 "value": path,
-                "style": f"fill: var({primary_color}); flex: 1; min-width: 0;"
+                "style": f"fill: rgb(from var({primary_color}) r g b / 100%); flex: 1; min-width: 0;"
             }
 
         elif data["type"] == "placeholder":
@@ -128,8 +130,7 @@ def format_cell(_board, pos, hint=0):
             "children": [obj.compose(_board, True)]
         })
     if dye:
-        # TODO 将(255, 255, 255) 改为 --foreground-color
-        cell_data["style"] += " background-color: rgb(from var(--foreground-color) r g b / 40%);"
+        cell_data["style"] += " background-color: rgb(from var(--foreground-color) r g b / 29%);"
     if hint == 1:
         cell_data["style"] += " background-color: rgb(from var(--hint2-color) r g b / 40%);"
     if hint == 2:
@@ -185,10 +186,7 @@ def format_board(_board):
     count = 0
     for key in _board.get_board_keys():
         board_data["boards"][key] = _board.get_config(key, "size")
-        for pos, obj in _board():
-            # continue
-            # if obj is None:
-            #     continue
+        for pos, obj in _board(key=key):
             board_data["cells"].append(
                 format_cell(_board, pos))
             count += 1
@@ -209,7 +207,8 @@ def generate_board():
     global hypothesis_data
     from utils.tool import get_random
     get_random(new=True)
-    # get_random(new=True, seed=5021061)
+    # get_random(new=True, seed=1145141919810)
+    get_random(new=True, seed=4096695)
     t = time.time()
     answer_board = None
     mask_board = None
@@ -219,7 +218,9 @@ def generate_board():
     ultimate_mode = request.args.get("u_mode", "+A")
     total = int(request.args.get("total", -1))
     dye = request.args.get("dye", "")
+    # dye = "@c"
     gamemode = request.args.get("mode", "EXPERT")
+    print("rule: ", rules)
     mode = 1
     match gamemode:
         case "NORMAL":
@@ -258,7 +259,11 @@ def generate_board():
         size = [int(i) for i in request.args.get("size", None).split("x")]
 
     hypothesis_data["summon"] = Summon(
-        size, total, rules, not used_r, dye
+        size=size,
+        total=total,
+        rules=rules,
+        drop_r=not used_r,
+        dye=dye
     )
     hypothesis_data["game"] = Game(
         summon=hypothesis_data["summon"],
@@ -272,10 +277,10 @@ def generate_board():
     else:
         # print(2)
         if mode < 3:
-            hypothesis_data["game"].answer_board = hypothesis_data["summon"].summon_board()
+            answer_board = hypothesis_data["summon"].summon_board()
+            hypothesis_data["game"].answer_board = answer_board
             mask_board = hypothesis_data["game"].create_board()
             print(123456)
-            answer_board = hypothesis_data["game"].answer_board
             print(answer_board)
         else:
             mask_board = hypothesis_data["summon"].create_puzzle()
@@ -368,8 +373,8 @@ def click():
             refresh["reason"] = "你标记了一个错误的雷"
         refresh["gameover"] = True
     else:
-        if "N" in _board:
-            for pos, obj in _board():
+        for key in _board.get_board_keys():
+            for pos, obj in _board(key=key):
                 if obj is None and board[pos] is None:
                     continue
                 if (
@@ -382,7 +387,8 @@ def click():
                 data = format_cell(_board, pos)
                 print(pos, obj, data)
                 refresh["cells"].append(data)
-        else:
+        if not any(_board.has("N", key=key) for
+                    key in _board.get_interactive_keys()):
             refresh["gameover"] = True
             refresh["reason"] = "你过关!!!(震声)"
     print(game.board)
@@ -395,6 +401,7 @@ def click():
     #     print(game.last_hint[1])
     # hypothesis_data["game"].deduced(wait=False)
     a_board = hypothesis_data["game"].answer_board
+    _board = board if _board is None else _board
     count = dict()
     count["total"] = len([_ for pos, _ in a_board("F")])
     count["unknown"] = len([_ for _ in _board("N")])
@@ -512,7 +519,7 @@ def reset():
 
 
 if __name__ == '__main__':
-    # get_logger(log_lv="TRACE")
+    get_logger(log_lv="TRACE")
     port = int(sys.argv[1] if len(sys.argv) == 2 else "5050")
     # 允许所有来源跨域，或根据需要设置 origins=["*"]
 
