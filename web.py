@@ -187,7 +187,7 @@ def format_board(_board: AbstractBoard):
     for key in _board.get_board_keys():
         board_data["boards"][key] = {
             "size": _board.get_config(key, "size"),
-            "position:": [_board.get_board_keys().index(key), 0],
+            "position": [_board.get_board_keys().index(key), 0],
             "showLabel": _board.get_config(key, "row_col")
             # TODO X=N, poslabel
         }
@@ -507,7 +507,7 @@ def get_rule_list():
     }
 
 
-@app.route('/api/reset', methods=['POST'])
+@app.route('/api/reset', methods=['POST, GET'])
 def reset():
     global hypothesis_data
     game: Game = hypothesis_data["game"]
