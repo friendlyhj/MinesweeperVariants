@@ -507,7 +507,7 @@ def get_rule_list():
     }
 
 
-@app.route('/api/reset', methods=['POST, GET'])
+@app.route('/api/reset', methods=['POST', 'GET'])
 def reset():
     global hypothesis_data
     game: Game = hypothesis_data["game"]
