@@ -303,26 +303,13 @@ def generate_board():
     # print(answer_board.show_board())
     # hypothesis_data["game"].deduced(wait=False)
     hypothesis_data["rules"] = rules[:]
-    board_data = format_board(mask_board)
-    board_data["rules"] = hypothesis_data["rules"]
-    board_data["reason"] = error_str
-    board_data["success"] = error_str is not None
-    count = dict()
-    count["total"] = len([_ for pos, _ in answer_board("F")])
-    count["unknown"] = len([_ for _ in mask_board("N")])
-    if not hypothesis_data["game"].drop_r:
-        count["known"] = len([_ for pos, _ in answer_board("F")])
-        count["remains"] = len([_ for pos, _ in answer_board("F") if mask_board.get_type(pos) == "N"])
-    else:
-        count["known"] = None
-        count["remains"] = None
-    board_data["remains"] = count
+    data = {
+        "reason": error_str,
+        "success": error_str is not None
+    }
     hypothesis_data["game"].thread_hint()
     # hypothesis_data["game"].thread_deduced()
-    hypothesis_data["board"] = mask_board.clone()
-    print("生成用时: ", time.time() - t)
-    print("mode: ", mode, "u_mode", ultimate_mode)
-    return jsonify(board_data)
+    return jsonify(data), 200
 
 
 @app.route('/api/metadata')
