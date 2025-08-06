@@ -311,7 +311,7 @@ def generate_board():
                 answer_board = hypothesis_data["summon"].summon_board()
                 hypothesis_data["game"].answer_board = answer_board
                 mask_board = hypothesis_data["game"].create_board()
-                hypothesis_data["board"] = mask_board
+                hypothesis_data["board"] = mask_board.clone()
             except Exception as e:
                 error_str = str(e)
         else:
@@ -583,7 +583,9 @@ def get_rule_list():
 def reset():
     global hypothesis_data
     game: Game = hypothesis_data["game"]
-    mask_board = hypothesis_data["board"]
+    mask_board = hypothesis_data["board"].clone()
+    print("reset start")
+    print(mask_board)
     if mask_board is None:
         print("board is None")
         return {}, 500
