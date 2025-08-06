@@ -444,7 +444,7 @@ def click():
         refresh["win"] = False
     else:
         if game.mode == ULTIMATE:
-            if pos.board_key in board.get_interacive_keys():
+            if pos.board_key in board.get_interactive_keys():
                 if data["button"] == "left":
                     refresh["u_hint"]["flagcount"] -= 1
                 elif data["button"] == "right":
