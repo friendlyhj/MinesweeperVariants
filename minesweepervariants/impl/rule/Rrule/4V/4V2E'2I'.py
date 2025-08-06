@@ -94,9 +94,6 @@ class Rule4V2Ep2Ip(AbstractClueRule):
                 board.set_value(_pos, obj)
         return board
 
-    def clue_class(self):
-        return Value4V2Ep2Ip
-
     def suggest_total(self, info: dict):
         ub = 0
         for key in info["interactive"]:

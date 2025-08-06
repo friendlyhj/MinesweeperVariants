@@ -4,6 +4,7 @@
 # @Time    : 2025/07/03 00:27
 # @Author  : Wu_RH
 # @FileName: game.py
+import queue
 import threading
 import time
 from pathlib import Path
@@ -15,6 +16,8 @@ from ortools.sat.python import cp_model
 
 from abs.Lrule import Rule0R
 from concurrent.futures import ThreadPoolExecutor, as_completed
+
+from abs.Mrule import AbstractMinesValue
 from abs.Rrule import AbstractClueValue
 from abs.board import AbstractBoard
 from abs.board import AbstractPosition
@@ -43,6 +46,24 @@ ULTIMATE_P = 16
 
 
 class ValueAsterisk(AbstractClueValue):
+    def __init__(self, pos: 'AbstractPosition', code: bytes = b''):
+        pass
+
+    def __repr__(self) -> str:
+        return "*"
+
+    @classmethod
+    def type(cls) -> bytes:
+        return b"*"
+
+    def code(self) -> bytes:
+        return b""
+
+    def high_light(self, board: 'AbstractBoard') -> List['AbstractPosition'] | None:
+        return []
+
+
+class MinesAsterisk(AbstractMinesValue):
     def __init__(self, pos: 'AbstractPosition', code: bytes = b''):
         pass
 
@@ -113,32 +134,8 @@ class GameSession:
         self.last_hint = [None, {}]
         self.deducedManger = Manger(self.deduced)
         self.hintManger = Manger(self.hint)
-        print("init: drop_r", self.drop_r)
-
-    def solve_current_board(
-        self, board_state,
-        drop_r: bool,
-        bool_mode: bool = True,
-        answer_board: AbstractBoard = None,
-        model: cp_model.CpModel = None
-    ) -> int:
-        # CSP 解算器包装函数
-        e = None
-        for _ in range(5):
-            try:
-                return solver_by_csp(
-                    self.summon.mines_rules,
-                    self.summon.clue_rule,
-                    self.summon.mines_clue_rule,
-                    board_state,
-                    drop_r=drop_r,
-                    bool_mode=bool_mode,
-                    answer_board=answer_board,
-                    model=model
-                )
-            except Exception as e:
-                print(e)
-        raise e
+        self.deduced_queue = queue.Queue(maxsize=1)
+        self.hint_queue = queue.Queue(maxsize=1)
 
     def unbelievable(self, pos, action: int):
         """
@@ -223,7 +220,10 @@ class GameSession:
                     board.set_value(pos, None)
                     break
                 board.set_value(pos, clue)
-        self.board = board
+        if r_flag and self.drop_r:
+            self.board = self.create_board()
+        else:
+            self.board = board
         return board
 
     def chord_clue(self, clue_pos: AbstractPosition) -> list[AbstractPosition]:
@@ -351,48 +351,60 @@ class GameSession:
         """
         if self.last_deduced[0] == self.board:
             return self.last_deduced[1]
-        t = time.time()
-        deduced = []
-        board = self.board.clone()
-        for pos in self.last_deduced[1]:
-            if board.get_type(pos) != "N":
-                continue
-            if self.answer_board.get_type(pos) == "F":
-                board[pos] = MINES_TAG
-            elif self.answer_board.get_type(pos) == "C":
-                board[pos] = VALUE_TAG
-            deduced.append(pos)
-        all_rules = self.summon.mines_rules.rules[:]
-        all_rules += [self.summon.clue_rule, self.summon.mines_clue_rule]
-        deduced += self._deduced(board, all_rules)
+        self.deduced_queue.put("process")  # 请求处理权
+        try:
+            t = time.time()
+            deduced = []
+            board = self.board.clone()
+            for pos in self.last_deduced[1]:
+                if board.get_type(pos) != "N":
+                    continue
+                if self.answer_board.get_type(pos) == "F":
+                    board[pos] = MINES_TAG
+                elif self.answer_board.get_type(pos) == "C":
+                    board[pos] = VALUE_TAG
+                deduced.append(pos)
+            all_rules = self.summon.mines_rules.rules[:]
+            all_rules += [self.summon.clue_rule, self.summon.mines_clue_rule]
+            deduced += self._deduced(board, all_rules)
 
-        self.last_deduced[1] = deduced
-        self.last_deduced[0] = self.board.clone()
+            self.last_deduced[1] = deduced
+            self.last_deduced[0] = self.board.clone()
 
-        self.logger.trace(f"last_deduced {str(self.last_deduced[1])}")
-        self.logger.trace(f"deduced used time {time.time() - t}")
+            self.logger.debug(f"last_deduced {str(self.last_deduced[1])}")
+            self.logger.debug(f"deduced used time {time.time() - t}")
 
-        return deduced
+            return deduced
+        finally:
+            self.deduced_queue.get()
+            self.deduced_queue.task_done()
 
     def hint(self):
         if self.last_hint[0] == self.board:
             return self.last_hint[1]
 
-        board = self.board.clone()
         deduced = self.deduced()
         if not deduced:
             self.step()
             if not self.deduced():
                 self.drop_r = False
+            self.last_deduced[0] = None
+            self.last_hint[0] = None
             self.step()
             return {}
 
-        t = time.time()
-        hint = self._hint(board)
-        self.logger.debug(f"all_hint {hint}")
-        self.logger.debug(f"hint used_time {time.time() - t}")
+        self.hint_queue.put("process")  # 请求处理权
+        try:
+            board = self.board.clone()
+            t = time.time()
+            hint = self._hint(board)
+            self.logger.debug(f"all_hint {hint}")
+            self.logger.debug(f"hint used_time {time.time() - t}")
 
-        return hint
+            return hint
+        finally:
+            self.hint_queue.get()
+            self.hint_queue.task_done()
 
     def _deduced(self, board, all_rules):
         self.logger.trace("构建新模型")
@@ -512,6 +524,8 @@ class GameSession:
         for key in board.get_board_keys():
             for pos, obj in board(key=key):
                 if obj is None:
+                    continue
+                if obj.invalid(board):
                     continue
                 obj.create_constraints(board, switch)
 
