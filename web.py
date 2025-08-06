@@ -368,7 +368,7 @@ def metadata():
         board_data["mode"] = "PUZZLE"
     else:
         board_data["mode"] = "UNKNOWN"
-    board_data["seed"] = get_seed()
+    board_data["seed"] = str(get_seed())
     return jsonify(board_data)
 
 
@@ -386,7 +386,13 @@ def click():
     print(data)
     # print(hypothesis_data)
     game: Game = hypothesis_data["game"]
-    # print(game.deduced())
+    if game.mode == ULTIMATE:
+        deduced = game.deduced()
+        refresh["u_hint"] = {
+            "flagcount":  len([None for _pos in deduced if game.answer_board.get_type(_pos) == "F"]),
+            "emptycount": len([None for _pos in deduced if game.answer_board.get_type(_pos) == "C"]),
+            "markcount": len([None for _pos in deduced if _pos.board_key not in game.board.get_interactive_keys()])
+        }
     # print(game.board.show_board())
     board = game.board.clone()
     pos = board.get_pos(data["x"], data["y"], data["boardName"])
@@ -413,7 +419,7 @@ def click():
             refresh["reason"] = "你标记了一个错误的雷"
             unbelievable = game.unbelievable(pos, 1)
         if unbelievable is None:
-            raise ValueError
+            return {}, 500
         print(unbelievable)
         refresh["mines"] = [
             {"x": _pos.x, "y": _pos.y,
@@ -423,6 +429,14 @@ def click():
         refresh["gameover"] = True
         refresh["win"] = False
     else:
+        if game.mode == ULTIMATE:
+            if pos.board_key in board.get_interacive_keys():
+                if data["button"] == "left":
+                    refresh["u_hint"]["flagcount"] -= 1
+                elif data["button"] == "right":
+                    refresh["u_hint"]["emptycount"] -= 1
+            else:
+                refresh["u_hint"]["markcount"] -= 1
         for key in _board.get_board_keys():
             for pos, obj in _board(key=key):
                 if obj is None and board[pos] is None:
