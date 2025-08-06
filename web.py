@@ -329,6 +329,7 @@ def generate_board():
         "success": error_str is not None
     }
     hypothesis_data["game"].thread_hint()
+    hypothesis_data["data"] = {}
     hypothesis_data["data"]["noFails"] = True
     hypothesis_data["data"]["noHint"] = True
     # hypothesis_data["game"].thread_deduced()
