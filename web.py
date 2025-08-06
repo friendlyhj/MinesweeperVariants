@@ -276,21 +276,26 @@ def generate_board():
         drop_r=not used_r,
         ultimate_mode=u_mode
     )
+    error_str = None
     if code:
         hypothesis_data["game"].answer_board = answer_board
         hypothesis_data["game"].board = mask_board
     else:
         # print(2)
         if mode < 3:
-            answer_board = hypothesis_data["summon"].summon_board()
-            hypothesis_data["game"].answer_board = answer_board
-            mask_board = hypothesis_data["game"].create_board()
-            print(123456)
-            print(answer_board)
+            try:
+                answer_board = hypothesis_data["summon"].summon_board()
+                hypothesis_data["game"].answer_board = answer_board
+                mask_board = hypothesis_data["game"].create_board()
+            except Exception as e:
+                error_str = str(e)
         else:
-            mask_board = hypothesis_data["summon"].create_puzzle()
-            hypothesis_data["game"].answer_board = hypothesis_data["summon"].answer_board
-            answer_board = hypothesis_data["summon"].answer_board
+            try:
+                mask_board = hypothesis_data["summon"].create_puzzle()
+                hypothesis_data["game"].answer_board = hypothesis_data["summon"].answer_board
+                answer_board = hypothesis_data["summon"].answer_board
+            except Exception as e:
+                error_str = str(e)
     if dye:
         rules += [f"@{dye}"]
         # answer_board = hypothesis_data["game"].answer_board
@@ -300,6 +305,8 @@ def generate_board():
     hypothesis_data["rules"] = rules[:]
     board_data = format_board(mask_board)
     board_data["rules"] = hypothesis_data["rules"]
+    board_data["reason"] = error_str
+    board_data["success"] = error_str is not None
     count = dict()
     count["total"] = len([_ for pos, _ in answer_board("F")])
     count["unknown"] = len([_ for _ in mask_board("N")])
@@ -515,28 +522,16 @@ def reset():
     if mask_board is None:
         print("board is None")
         return {}, 500
-    answer_board = game.answer_board
     game.board = mask_board
     if game.mode == ULTIMATE:
         if not game.ultimate_mode & ULTIMATE_R:
             game.drop_r = False
-    board_data = format_board(mask_board)
-    count = dict()
-    count["total"] = len([_ for pos, _ in answer_board("F")])
-    count["unknown"] = len([_ for _ in mask_board("N")])
-    if not game.drop_r:
-        count["known"] = len([_ for pos, _ in answer_board("F")])
-        count["remains"] = len([_ for pos, _ in answer_board("F") if mask_board.get_type(pos) == "N"])
-    else:
-        count["known"] = None
-        count["remains"] = None
-    board_data["rules"] = hypothesis_data["rules"]
-    board_data["count"] = count
-    return jsonify(board_data)
+    print("rest end")
+    return '', 200
 
 
 if __name__ == '__main__':
-    # get_logger(log_lv="TRACE")
+    get_logger(log_lv="DEBUG")
     port = int(sys.argv[1] if len(sys.argv) == 2 else "5050")
     # 允许所有来源跨域，或根据需要设置 origins=["*"]
 

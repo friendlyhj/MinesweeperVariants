@@ -389,8 +389,8 @@ class GameSession:
 
         t = time.time()
         hint = self._hint(board)
-        self.logger.trace(f"all_hint {hint}")
-        self.logger.trace(f"hint used_time {time.time() - t}")
+        self.logger.debug(f"all_hint {hint}")
+        self.logger.debug(f"hint used_time {time.time() - t}")
 
         return hint
 
