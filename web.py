@@ -587,7 +587,7 @@ def reset():
 
 
 if __name__ == '__main__':
-    get_logger(log_lv="DEBUG")
+    get_logger(log_lv="ERROR")
     port = int(sys.argv[1] if len(sys.argv) == 2 else "5050")
     # 允许所有来源跨域，或根据需要设置 origins=["*"]
 
