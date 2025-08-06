@@ -13,7 +13,6 @@ from typing import List
 
 from .. import Abstract3DMinesRule
 from abs.board import AbstractPosition, AbstractBoard
-from utils.solver import get_model
 
 
 def block(a_pos: AbstractPosition, board: AbstractBoard) -> List[AbstractPosition]:
@@ -37,15 +36,10 @@ def block(a_pos: AbstractPosition, board: AbstractBoard) -> List[AbstractPositio
 class Rule1Q(Abstract3DMinesRule):
     name = ["3D1Q", "3DQ", "三维无方"]
     doc = "每个2x2x2区域内都至少有2个雷"
-    subrules = [
-        [True, "[3D1Q]"]
-    ]
 
-    def create_constraints(self, board: 'AbstractBoard'):
-        if not self.subrules[0][0]:
-            return
-
-        model = get_model()
+    def create_constraints(self, board: 'AbstractBoard', switch):
+        model = board.get_model()
+        s = switch.get(model, self)
 
         a_pos = board.boundary()
         for b_pos in board.get_col_pos(a_pos):
@@ -53,8 +47,4 @@ class Rule1Q(Abstract3DMinesRule):
                 if not (pos_block := block(i_pos, board)):
                     continue
                 var_list = [board.get_variable(pos) for pos in pos_block]
-                model.Add(sum(var_list) > 1)
-
-    @classmethod
-    def method_choose(cls) -> int:
-        return 1
+                model.Add(sum(var_list) > 1).OnlyEnforceIf(s)

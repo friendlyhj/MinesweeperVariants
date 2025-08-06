@@ -10,18 +10,15 @@
 
 from .. import Abstract3DMinesRule
 from abs.board import AbstractBoard
-from utils.solver import get_model
 
 
 class Rule2F(Abstract3DMinesRule):
     name = ["3D2F", "三维花田"]
     doc = "染色格中的雷周围六格内恰好有1个雷"
-    subrules = [[True, "[3D2F]"]]
 
-    def create_constraints(self, board: 'AbstractBoard'):
-        if not self.subrules[0][0]:
-            return
-        model = get_model()
+    def create_constraints(self, board: 'AbstractBoard', switch):
+        model = board.get_model()
+        s = switch.get(model, self)
         for pos, dye in board(mode="dye"):
             if not dye:
                 continue
@@ -35,8 +32,4 @@ class Rule2F(Abstract3DMinesRule):
             val = board.get_variable(pos)
             # val 为1时，vals中必须有且仅有一个1
             # 约束：val=1 => sum(vals) == 1
-            model.Add(sum_vals == 1).OnlyEnforceIf(val)
-
-    @classmethod
-    def method_choose(cls) -> int:
-        return 1
+            model.Add(sum_vals == 1).OnlyEnforceIf([val, s])

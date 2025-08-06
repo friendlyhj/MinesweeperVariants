@@ -15,7 +15,6 @@ from typing import List
 
 from .. import Abstract3DMinesRule
 from abs.board import AbstractPosition, AbstractBoard
-from utils.solver import get_model
 
 
 def get_vertical_column(board: AbstractBoard, pos: AbstractPosition) -> List[AbstractPosition]:
@@ -79,53 +78,46 @@ class Rule3DW(Abstract3DMinesRule):
     doc = """所有层的同一行列中有且只有一格有雷, 且所有雷的水平邻居中每一个的上下偏移一格以内的范围内必定有雷.
 1. 对于任意x,y, 存在唯一z使得(x,y,z)有雷
 2. 若(x0,y0,z0)有雷, 则{(x, y, z)| |x - x0| <= 1, |y - y0| <= 1, |z - z0| <= 1}中的雷格数为其2D邻格个数+1"""
-    subrules = [
-        [True, "[3DW]垂直唯一性"],
-        [True, "[3DW]邻域雷数"]
-    ]
 
     def suggest_total(self, info: dict):
         # 建议合适的雷数
         size = next(iter(info["size"].values()))
         total_cells = size[0] * size[1]
-        info["hard_fns"].append(lambda model, total: model.Add(total <= int(total_cells)))
+        info["hard_fns"].append(lambda model, total: model.Add(total == int(total_cells)))
         info["soft_fn"](total_cells, 3)
 
-    def create_constraints(self, board: 'AbstractBoard'):
-        model = get_model()
+    def create_constraints(self, board: 'AbstractBoard', switch):
+        model = board.get_model()
+        s1 = switch.get(model, self)
+        s2 = switch.get(model, self)
 
-        if self.subrules[0][0]:
-            boundary = board.boundary()
-            for col_pos in board.get_col_pos(boundary):
-                for pos in board.get_row_pos(col_pos):
-                    # 获取该(x,y)位置在所有层的垂直柱
-                    column_positions = get_vertical_column(board, pos)
-                    if column_positions:
-                        var_list = [board.get_variable(p) for p in column_positions]
-                        # 每个垂直柱中有且只有一个雷
-                        model.Add(sum(var_list) == 1)
+        boundary = board.boundary()
+        for col_pos in board.get_col_pos(boundary):
+            for pos in board.get_row_pos(col_pos):
+                # 获取该(x,y)位置在所有层的垂直柱
+                column_positions = get_vertical_column(board, pos)
+                if column_positions:
+                    var_list = [board.get_variable(p) for p in column_positions]
+                    # 每个垂直柱中有且只有一个雷
+                    model.Add(sum(var_list) == 1).OnlyEnforceIf(s1)
 
-        if self.subrules[1][0]:
-            boundary = board.boundary()
-            for col_pos in board.get_col_pos(boundary):
-                for pos in board.get_row_pos(col_pos):
-                    # 对每一层的每个位置检查
-                    for key in board.get_interactive_keys():
-                        center_pos = pos.clone()
-                        center_pos.board_key = key
-                        if not board.in_bounds(center_pos):
-                            continue
+        boundary = board.boundary()
+        for col_pos in board.get_col_pos(boundary):
+            for pos in board.get_row_pos(col_pos):
+                # 对每一层的每个位置检查
+                for key in board.get_interactive_keys():
+                    center_pos = pos.clone()
+                    center_pos.board_key = key
+                    if not board.in_bounds(center_pos):
+                        continue
 
-                        # 获取3x3x3邻域
-                        neighbors = get_3d_neighbors(board, center_pos)
+                    # 获取3x3x3邻域
+                    neighbors = get_3d_neighbors(board, center_pos)
 
-                        neighbors2d = [neighbor for neighbor in center_pos.neighbors(2) if board.in_bounds(neighbor)]
+                    neighbors2d = [neighbor for neighbor in center_pos.neighbors(2) if board.in_bounds(neighbor)]
 
-                        center_var = board.get_variable(center_pos)
-                        neighbor_vars = [board.get_variable(neighbor) for neighbor in neighbors]
+                    center_var = board.get_variable(center_pos)
+                    neighbor_vars = [board.get_variable(neighbor) for neighbor in neighbors]
 
-                        model.Add(sum(neighbor_vars) == len(neighbors2d)+1).OnlyEnforceIf(center_var)
+                    model.Add(sum(neighbor_vars) == len(neighbors2d)+1).OnlyEnforceIf([center_var, s2])
 
-    @classmethod
-    def method_choose(cls) -> int:
-        return 1

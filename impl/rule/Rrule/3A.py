@@ -380,6 +380,6 @@ class Value3A(AbstractClueValue):
         if len(var_list) == 0:
             # 无解
             var = model.NewBoolVar(f"[3A]Error")
-            model.Add(var == 1)
-            model.Add(var == 0)
+            model.Add(var == 1).OnlyEnforceIf(s)
+            model.Add(var == 0).OnlyEnforceIf(s)
         model.Add(sum(var_list) == 1).OnlyEnforceIf(s)

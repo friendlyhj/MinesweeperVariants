@@ -7,8 +7,9 @@
 """
 [3D1X] 三维十字 (Cross)：线索表示半径为 2 的十字范围内的雷数(上下左右前后)
 """
+from typing import List
+
 from abs.board import AbstractPosition, AbstractBoard
-from utils.solver import get_model
 from .. import Abstract3DClueRule
 from abs.Rrule import AbstractClueValue
 
@@ -44,9 +45,10 @@ class Value3D1X(AbstractClueValue):
     def __repr__(self) -> str:
         return str(self.value)
 
-    @classmethod
-    def method_choose(cls) -> int:
-        return 1
+    def high_light(self, board: 'AbstractBoard') -> List['AbstractPosition'] | None:
+        nei = Rule3D1X.pos_neighbors(board, self.pos, 1)
+        nei += Rule3D1X.pos_neighbors(board, self.pos, 4, 4)
+        return nei
 
     @classmethod
     def type(cls) -> bytes:
@@ -55,12 +57,13 @@ class Value3D1X(AbstractClueValue):
     def code(self) -> bytes:
         return bytes([self.value])
 
-    def create_constraints(self, board: 'AbstractBoard'):
-        model = get_model()
+    def create_constraints(self, board: 'AbstractBoard', switch):
+        model = board.get_model()
+        s = switch.get(model, self)
 
         nei = Rule3D1X.pos_neighbors(board, self.pos, 1)
         nei += Rule3D1X.pos_neighbors(board, self.pos, 4, 4)
 
         nei_vars = board.batch(nei, mode="variable", drop_none=True)
 
-        model.Add(sum(nei_vars) == self.value)
+        model.Add(sum(nei_vars) == self.value).OnlyEnforceIf(s)

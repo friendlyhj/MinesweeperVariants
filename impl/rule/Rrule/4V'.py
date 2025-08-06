@@ -7,13 +7,12 @@
 """
 [4V']2X'plusplus: 线索表示数字是三个题板中相同位置的其中某两个范围中心3*3区域的雷总数
 """
-from typing import Union, List, Dict
+from typing import Dict
 
 from abs.Rrule import AbstractClueRule, AbstractClueValue
 from abs.board import AbstractBoard, AbstractPosition, MASTER_BOARD
 from utils.image_create import get_text, get_row
 from utils.impl_obj import VALUE_QUESS, MINES_TAG
-from utils.solver import get_model
 from utils.tool import get_random
 
 NAME_4Vp = ["4Va", "4Vb"]
@@ -22,7 +21,6 @@ NAME_4Vp = ["4Va", "4Vb"]
 class Rule4Vp(AbstractClueRule):
     name = ["4V'", "映射'"]
     doc = "线索表示数字是三个题板中相同位置的其中某两个范围中心3*3区域的雷总数"
-    size = 2
 
     def __init__(self, board: "AbstractBoard" = None, data=None) -> None:
         super().__init__(board, data)
@@ -57,9 +55,6 @@ class Rule4Vp(AbstractClueRule):
 
     def clue_class(self):
         return Value4Vp
-
-    def create_constraints(self, board: 'AbstractBoard') -> bool:
-        return super().create_constraints(board)
 
 
 class Value4Vp(AbstractClueValue):
@@ -100,8 +95,9 @@ class Value4Vp(AbstractClueValue):
             text_b
         )
 
-    def create_constraints(self, board: 'AbstractBoard'):
-        model = get_model()
+    def create_constraints(self, board: 'AbstractBoard', switch):
+        model = board.get_model()
+        s = switch.get(model, self)
 
         # 收集三组邻居的有效位置
         groups = []
@@ -126,32 +122,32 @@ class Value4Vp(AbstractClueValue):
         b_group = model.NewIntVar(0, num_groups - 1, f"[{Rule4Vp.name}]b_group")
 
         # 确保选择的组不同
-        model.Add(a_group != b_group)
+        model.Add(a_group != b_group).OnlyEnforceIf(s)
 
         # 为每个组创建指示变量
         group_flags = []
         for i, group in enumerate(groups):
             # 创建指示变量：当前组是否被选为值A的组
             is_a_group = model.NewBoolVar(f"is_a_group_{i}")
-            model.Add(a_group == i).OnlyEnforceIf(is_a_group)
-            model.Add(a_group != i).OnlyEnforceIf(is_a_group.Not())
+            model.Add(a_group == i).OnlyEnforceIf([is_a_group, s])
+            model.Add(a_group != i).OnlyEnforceIf([is_a_group.Not(), s])
 
             # 创建指示变量：当前组是否被选为值B的组
             is_b_group = model.NewBoolVar(f"is_b_group_{i}")
-            model.Add(b_group == i).OnlyEnforceIf(is_b_group)
-            model.Add(b_group != i).OnlyEnforceIf(is_b_group.Not())
+            model.Add(b_group == i).OnlyEnforceIf([is_b_group, s])
+            model.Add(b_group != i).OnlyEnforceIf([is_b_group.Not(), s])
 
             # 添加约束：如果被选为值A的组，则必须等于值A
-            model.Add(group["sum"] == self.value_a).OnlyEnforceIf(is_a_group)
+            model.Add(group["sum"] == self.value_a).OnlyEnforceIf([is_a_group, s])
 
             # 添加约束：如果被选为值B的组，则必须等于值B
-            model.Add(group["sum"] == self.value_b).OnlyEnforceIf(is_b_group)
+            model.Add(group["sum"] == self.value_b).OnlyEnforceIf([is_b_group, s])
 
             group_flags.append((is_a_group, is_b_group))
 
         # 确保恰好一组被选为值A，一组被选为值B
-        model.Add(sum([a for a, _ in group_flags]) == 1)
-        model.Add(sum([b for _, b in group_flags]) == 1)
+        model.Add(sum([a for a, _ in group_flags]) == 1).OnlyEnforceIf(s)
+        model.Add(sum([b for _, b in group_flags]) == 1).OnlyEnforceIf(s)
 
         # 第三组没有约束（可以任意值）
 

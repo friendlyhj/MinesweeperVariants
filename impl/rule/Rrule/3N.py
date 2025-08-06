@@ -2,12 +2,11 @@
 """
 [3N] 范数 (Norm)：线索(a_p)表示距离自己lp范数最近的雷的lp范数大小为a。(p=0,1,2,00)
 """
-from typing import List, Dict, Literal
+from typing import  Dict, Literal
 
 from abs.Rrule import AbstractClueValue, AbstractClueRule
 from abs.board import AbstractPosition, AbstractBoard
 from utils.image_create import get_text, get_image, get_row, get_col, get_dummy
-from utils.solver import get_model
 from utils.tool import get_random
 
 P = Literal[0, 1, 2] | Literal['00']
@@ -194,10 +193,6 @@ class BaseValue3N(AbstractClueValue):
             raise ValueError("Unsupported root type")
 
     @classmethod
-    def method_choose(cls) -> int:
-        return 1
-
-    @classmethod
     def type(cls) -> bytes:
         return cls.name.encode('ascii')
 
@@ -208,8 +203,9 @@ class BaseValue3N(AbstractClueValue):
             p_val = int(self.p)
         return bytes([self.n[0], self.n[1], p_val])
 
-    def create_constraints(self, board: 'AbstractBoard'):
-        model = get_model()
+    def create_constraints(self, board: 'AbstractBoard', switch):
+        model = board.get_model()
+        s = switch.get(model, self)
 
         # 为当前线索位置创建约束
         # 确保存在一个雷，其lp范数等于线索值
@@ -227,7 +223,7 @@ class BaseValue3N(AbstractClueValue):
                 if pos_norm == self.n:
                     # 创建一个布尔变量表示这个雷是最近的
                     is_closest = model.NewBoolVar(f"[3N]_{self.pos}_{mine_pos}")
-                    model.Add(mine_var == 1).OnlyEnforceIf(is_closest)
+                    model.Add(mine_var == 1).OnlyEnforceIf([is_closest, s])
 
                     # 确保没有更近的雷
                     for other_pos, other_var in board(mode="variable"):
@@ -239,13 +235,13 @@ class BaseValue3N(AbstractClueValue):
                             # 如果有更近的雷，则当前雷不能是最近的
                             if (other_norm[0] < pos_norm[0] or
                                     (other_norm[0] == pos_norm[0] and other_norm[1] < pos_norm[1])):
-                                model.Add(other_var == 0).OnlyEnforceIf(is_closest)
+                                model.Add(other_var == 0).OnlyEnforceIf([is_closest, s])
 
                     constraint_vars.append(is_closest)
 
         # 至少有一个雷满足条件
         if constraint_vars:
-            model.AddBoolOr(constraint_vars)
+            model.AddBoolOr(constraint_vars).OnlyEnforceIf(s)
 
 
 class Value3N0(BaseValue3N):
