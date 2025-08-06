@@ -80,6 +80,15 @@ class AbstractValue(ABC):
         """
         ...
 
+    def invalid(self, board: 'AbstractBoard'):
+        if self.high_light(board) is not None:
+            for _pos in self.high_light(board):
+                if board.get_type(_pos) == "N":
+                    return False
+        else:
+            return False
+        return True
+
     @classmethod
     @abstractmethod
     def type(cls) -> bytes:
@@ -111,13 +120,13 @@ class AbstractValue(ABC):
         """
         ...
 
-    def high_light(self, board: 'AbstractBoard') -> List['AbstractPosition']:
+    def high_light(self, board: 'AbstractBoard') -> List['AbstractPosition'] | None:
         """
         输入一个题板 随后返回所有应该显示的高光位置(web)
         :param board: 题板
         :return: 位置列表
         """
-        return []
+        return None
 
     def deduce_cells(self, board: 'AbstractBoard') -> Union[bool, None]:
         """

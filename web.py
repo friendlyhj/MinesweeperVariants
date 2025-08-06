@@ -71,7 +71,8 @@ def format_cell(_board, pos, hint=0):
 
         elif data["type"] == "text":
             # 文本项：使用 flex 布局填充可用空间，添加溢出处理
-            style = f"color: var({primary_color}); text-align: center;"
+            style = (f"color: rgb(from var({primary_color}) r g b / "
+                     f"{50 if invalid else 100}%); text-align: center;")
             style += " display: flex; justify-content: center; align-items: center;"
             style += " flex: 1; min-width: 0; max-width: 100%;"  # 关键：允许内容收缩
             style += " overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"
@@ -88,7 +89,8 @@ def format_cell(_board, pos, hint=0):
             return {
                 "type": "assets",
                 "value": path,
-                "style": f"fill: rgb(from var({primary_color}) r g b / 100%); flex: 1; min-width: 0;"
+                "style": f"fill: rgb(from var({primary_color}) r g b / "
+                         f"{50 if invalid else 100}%); flex: 1; min-width: 0;"
             }
 
         elif data["type"] == "placeholder":
@@ -110,6 +112,7 @@ def format_cell(_board, pos, hint=0):
     obj = _board[pos]
     dye = _board.get_dyed(pos)
     primary_color = "--flag-color" if _board.get_type(pos) == "F" else "--foreground-color"
+    invalid = False if obj is None else obj.invalid(_board)
     if obj is None:
         if hint == 2:
             cell_data = init_component({
@@ -150,15 +153,16 @@ def format_cell(_board, pos, hint=0):
     #         }]
     hightlight = {pos.board_key: [[pos.x, pos.y]]}
     if obj is not None:
-        for h_pos in set(h_pos for h_pos in obj.high_light(_board) if _board.in_bounds(h_pos)):
-            # hightlight.append({
-            #     "x": h_pos.x,
-            #     "y": h_pos.y,
-            #     "boardname": h_pos.board_key,
-            # })
-            if h_pos.board_key not in hightlight:
-                hightlight[h_pos.board_key] = []
-            hightlight[h_pos.board_key].append([h_pos.x, h_pos.y])
+        if obj.high_light(_board) is not None:
+            for h_pos in set(h_pos for h_pos in obj.high_light(_board) if _board.in_bounds(h_pos)):
+                # hightlight.append({
+                #     "x": h_pos.x,
+                #     "y": h_pos.y,
+                #     "boardname": h_pos.board_key,
+                # })
+                if h_pos.board_key not in hightlight:
+                    hightlight[h_pos.board_key] = []
+                hightlight[h_pos.board_key].append([h_pos.x, h_pos.y])
     cell_data = {
         "type": "" if obj is None else obj.type().decode("ascii"),
         "position": {
@@ -292,7 +296,8 @@ def generate_board():
             try:
                 answer_board = hypothesis_data["summon"].summon_board()
                 hypothesis_data["game"].answer_board = answer_board
-                # mask_board = hypothesis_data["game"].create_board()
+                mask_board = hypothesis_data["game"].create_board()
+                hypothesis_data["board"] = mask_board
             except Exception as e:
                 error_str = str(e)
         else:
@@ -316,13 +321,14 @@ def generate_board():
     }
     hypothesis_data["game"].thread_hint()
     # hypothesis_data["game"].thread_deduced()
+    print(data)
     return jsonify(data), 200
 
 
 @app.route('/api/metadata')
 def metadata():
     if "game" not in hypothesis_data:
-        return '', 500
+        return {}, 200
     game = hypothesis_data["game"]
     board = game.board
     a_board = game.answer_board
@@ -425,7 +431,8 @@ def click():
                     not (obj is None or board[pos] is None) and
                     obj.type() == board[pos].type() and
                     obj.code() == board[pos].code() and
-                    obj.high_light(_board) == board[pos].high_light(board)
+                    obj.high_light(_board) == board[pos].high_light(board) and
+                    obj.invalid(_board) == board[pos].invalid(board)
                 ):
                     continue
                 data = format_cell(_board, pos)

@@ -7,7 +7,7 @@
 import threading
 import time
 from pathlib import Path
-from typing import Union, Callable
+from typing import Union, Callable, List
 import itertools as it
 
 import yaml
@@ -56,9 +56,8 @@ class ValueAsterisk(AbstractClueValue):
     def code(self) -> bytes:
         return b""
 
-    @classmethod
-    def method_choose(cls) -> int:
-        return 3
+    def high_light(self, board: 'AbstractBoard') -> List['AbstractPosition'] | None:
+        return []
 
 
 VALUE_TAG = ValueAsterisk(POSITION_TAG)

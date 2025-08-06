@@ -75,6 +75,9 @@ class ValueQuess(AbstractClueValue):
     def code(self) -> bytes:
         return b""
 
+    def high_light(self, board: 'AbstractBoard') -> List['AbstractPosition'] | None:
+        return []
+
 
 class ValueCross(AbstractClueValue):
     """
