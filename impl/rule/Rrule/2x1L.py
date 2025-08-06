@@ -13,7 +13,6 @@ from abs.Rrule import AbstractClueRule, AbstractClueValue
 from abs.board import AbstractBoard, AbstractPosition
 
 from utils.tool import get_logger, get_random
-from utils.solver import get_model
 
 
 class Rule1Lo(AbstractClueRule):
@@ -40,9 +39,6 @@ class Rule1Lo(AbstractClueRule):
             logger.debug(f"Set {pos} to 1L^[{value}]")
         return board
 
-    def clue_class(self):
-        return Value1Lo
-
 
 class Value1Lo(AbstractClueValue):
     def __init__(self, pos: AbstractPosition, count: int = 0, code: bytes = None):
@@ -68,9 +64,10 @@ class Value1Lo(AbstractClueValue):
     def code(self) -> bytes:
         return bytes([self.count])
 
-    def create_constraints(self, board: 'AbstractBoard'):
+    def create_constraints(self, board: 'AbstractBoard', switch):
         """创建CP-SAT约束：周围雷数等于count"""
-        model = get_model()
+        model = board.get_model()
+        s = switch.get(model, self)
 
         # 收集周围格子的布尔变量
         neighbor_vars = []
@@ -88,16 +85,13 @@ class Value1Lo(AbstractClueValue):
             b3 = model.NewBoolVar("sum_eq_count_minus_2")
 
             # 将布尔变量与表达式绑定
-            model.Add(neighbor_sum == self.count + 2).OnlyEnforceIf(b1)
-            model.Add(neighbor_sum != self.count + 2).OnlyEnforceIf(b1.Not())
+            model.Add(neighbor_sum == self.count + 2).OnlyEnforceIf([b1, s])
+            model.Add(neighbor_sum != self.count + 2).OnlyEnforceIf([b1.Not(), s])
 
-            model.Add(neighbor_sum == self.count).OnlyEnforceIf(b2)
-            model.Add(neighbor_sum != self.count).OnlyEnforceIf(b2.Not())
+            model.Add(neighbor_sum == self.count).OnlyEnforceIf([b2, s])
+            model.Add(neighbor_sum != self.count).OnlyEnforceIf([b2.Not(), s])
 
-            model.Add(neighbor_sum == self.count - 2).OnlyEnforceIf(b3)
-            model.Add(neighbor_sum != self.count - 2).OnlyEnforceIf(b3.Not())
+            model.Add(neighbor_sum == self.count - 2).OnlyEnforceIf([b3, s])
+            model.Add(neighbor_sum != self.count - 2).OnlyEnforceIf([b3.Not(), s])
 
-            model.AddBoolOr([b1, b2, b3])
-
-    def method_choose(self) -> int:
-        return 1
+            model.AddBoolOr([b1, b2, b3]).OnlyEnforceIf(s)

@@ -281,14 +281,19 @@ def generate_board():
         size = mask_board.get_config(master_key, "size")
     else:
         size = [int(i) for i in request.args.get("size", None).split("x")]
-
-    hypothesis_data["summon"] = Summon(
-        size=size,
-        total=total,
-        rules=rules,
-        drop_r=not used_r,
-        dye=dye
-    )
+    try:
+        hypothesis_data["summon"] = Summon(
+            size=size,
+            total=total,
+            rules=rules,
+            drop_r=not used_r,
+            dye=dye
+        )
+    except Exception as e:
+        return {
+            "reason": str(e),
+            "success": False
+        }
     hypothesis_data["game"] = Game(
         summon=hypothesis_data["summon"],
         mode=mode,
@@ -357,6 +362,8 @@ def metadata():
         count["remains"] = None
     board_data["rules"] = hypothesis_data["rules"]
     board_data["count"] = count
+    board_data["noFails"] = hypothesis_data["data"]["noFails"]
+    board_data["noHint"] = hypothesis_data["data"]["noHint"]
     board_data["u_mode"] = []
     gamemode = game.mode
     u_gamemode = game.ultimate_mode
@@ -494,6 +501,8 @@ def click():
         count["known"] = None
         count["remains"] = None
     refresh["count"] = count
+    refresh["noFails"] = hypothesis_data["data"]["noFails"]
+    refresh["noHint"] = hypothesis_data["data"]["noHint"]
     print("refresh: " + str(refresh))
     return refresh, 200
 

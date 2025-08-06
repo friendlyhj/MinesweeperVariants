@@ -7,18 +7,13 @@
 """
 [3S] 贝壳：线索代表相邻的8个格子中， 中间偏上5格范围和中间偏下5格范围里的雷数(顺序不确定)
 """
-from typing import List, Dict
+from typing import Dict
 
 from abs.Rrule import AbstractClueRule, AbstractClueValue
 from abs.board import AbstractBoard, AbstractPosition
 from utils.image_create import get_text, get_row
 
 from utils.tool import get_logger, get_random
-from utils.solver import get_model
-
-
-def put(pos: 'AbstractPosition', board: 'AbstractBoard'):
-    clue = board.get_value(pos)
 
 
 class Rule3S(AbstractClueRule):
@@ -27,27 +22,23 @@ class Rule3S(AbstractClueRule):
 
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':
         logger = get_logger()
-        r = get_random()
         for pos, _ in board("N"):
             value1 = 0
             value2 = 0
             # 方向判断
             if board.get_type(pos.left(1)) == "F": value1 += 1; value2 += 1
             if board.get_type(pos.right(1)) == "F": value1 += 1; value2 += 1
-            if board.get_type(pos.up(1)) ==  "F": value1 += 1
-            if board.get_type(pos.up(1).left(1)) ==  "F": value1 += 1
-            if board.get_type(pos.up(1).right(1)) ==  "F": value1 += 1
-            if board.get_type(pos.down(1)) ==  "F": value2 += 1
-            if board.get_type(pos.down(1).left(1)) ==  "F": value2 += 1
-            if board.get_type(pos.down(1).right(1)) ==  "F": value2 += 1
-            #
+            if board.get_type(pos.up(1)) == "F": value1 += 1
+            if board.get_type(pos.up(1).left(1)) == "F": value1 += 1
+            if board.get_type(pos.up(1).right(1)) == "F": value1 += 1
+            if board.get_type(pos.down(1)) == "F": value2 += 1
+            if board.get_type(pos.down(1).left(1)) == "F": value2 += 1
+            if board.get_type(pos.down(1).right(1)) == "F": value2 += 1
+
             if value1 > value2: value1, value2 = value2, value1
             board.set_value(pos, Value3S(pos, count=value1 * 10 + value2))
             logger.debug(f"Set {pos} to 3S[{value1 * 10 + value2}]")
         return board
-
-    def clue_class(self):
-        return Value3S
 
 
 class Value3S(AbstractClueValue):
@@ -83,9 +74,10 @@ class Value3S(AbstractClueValue):
     def code(self) -> bytes:
         return bytes([self.count])
 
-    def create_constraints(self, board: 'AbstractBoard'):
+    def create_constraints(self, board: 'AbstractBoard', switch):
         """创建CP-SAT约束: 符合Shell"""
-        model = get_model()
+        model = board.get_model()
+        s = switch.get(model, self)
 
         # 收集周围格子的布尔变量
         neighbor_vars1 = []
@@ -102,17 +94,7 @@ class Value3S(AbstractClueValue):
         if neighbor_vars1 or neighbor_vars2:
             # 定义变量
             t = model.NewBoolVar('t')
-            model.Add(sum(neighbor_vars1) == self.count // 10).OnlyEnforceIf(t)
-            model.Add(sum(neighbor_vars2) == self.count % 10).OnlyEnforceIf(t)
-            model.Add(sum(neighbor_vars1) == self.count % 10).OnlyEnforceIf(t.Not())
-            model.Add(sum(neighbor_vars2) == self.count // 10).OnlyEnforceIf(t.Not())
-
-    def deduce_cells(self, board: 'AbstractBoard') -> bool:
-        return False
-
-    def check(self, board: 'AbstractBoard') -> bool:
-        return False
-
-    @classmethod
-    def method_choose(cls) -> int:
-        return 3
+            model.Add(sum(neighbor_vars1) == self.count // 10).OnlyEnforceIf([t, s])
+            model.Add(sum(neighbor_vars2) == self.count % 10).OnlyEnforceIf([t, s])
+            model.Add(sum(neighbor_vars1) == self.count % 10).OnlyEnforceIf([t.Not(), s])
+            model.Add(sum(neighbor_vars2) == self.count // 10).OnlyEnforceIf([t.Not(), s])
