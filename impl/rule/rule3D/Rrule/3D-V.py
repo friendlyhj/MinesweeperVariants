@@ -7,6 +7,7 @@
 """
 [3DV]3D扫雷：每个数字标明周围26格内雷的数量。
 """
+from typing import List
 
 from .. import Abstract3DClueRule
 
@@ -14,7 +15,6 @@ from abs.Rrule import AbstractClueValue
 from abs.board import AbstractBoard, AbstractPosition
 
 from utils.tool import get_logger
-from utils.solver import get_model
 from utils.impl_obj import VALUE_QUESS, MINES_TAG
 
 
@@ -58,6 +58,16 @@ class ValueV(AbstractClueValue):
     def __repr__(self):
         return f"{self.count}"
 
+    def high_light(self, board: 'AbstractBoard') -> List['AbstractPosition']:
+        if self.neighbor:
+            return self.neighbor
+        self.neighbor = []
+        for _pos in [self.pos, Rule3DV.up(board, self.pos), Rule3DV.down(board, self.pos)]:
+            if _pos is None:
+                continue
+            self.neighbor.extend(_pos.neighbors(0, 2))
+        return self.neighbor
+
     @classmethod
     def type(cls) -> bytes:
         return b'3DV'
@@ -99,9 +109,10 @@ class ValueV(AbstractClueValue):
             return True
         return False
 
-    def create_constraints(self, board: 'AbstractBoard'):
+    def create_constraints(self, board: 'AbstractBoard', switch):
         """创建CP-SAT约束: 周围雷数等于count"""
-        model = get_model()
+        model = board.get_model()
+        s = switch.get(model, self)
 
         self.neighbor = []
         for _pos in [self.pos, Rule3DV.up(board, self.pos), Rule3DV.down(board, self.pos)]:
@@ -118,12 +129,5 @@ class ValueV(AbstractClueValue):
 
         # 添加约束：周围雷数等于count
         if neighbor_vars:
-            model.Add(sum(neighbor_vars) == self.count)
+            model.Add(sum(neighbor_vars) == self.count).OnlyEnforceIf(s)
             get_logger().trace(f"[V] Value[{self.pos}: {self.count}] add: {neighbor_vars} == {self.count}")
-
-    def check(self, board: 'AbstractBoard') -> bool:
-        neighbor = [board.get_type(pos) for pos in self.neighbor]
-        return (f_num := neighbor.count("F")) <= self.count <= f_num + neighbor.count("N")
-
-    def method_choose(self) -> int:
-        return 3
