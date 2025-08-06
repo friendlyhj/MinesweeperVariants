@@ -39,6 +39,7 @@ ULTIMATE_A = 1
 ULTIMATE_F = 2
 ULTIMATE_S = 4
 ULTIMATE_R = 8
+ULTIMATE_P = 16
 
 
 class ValueAsterisk(AbstractClueValue):

@@ -22,9 +22,10 @@ from impl.impl_obj import decode_board
 from flask import Flask
 import os
 from impl.summon.game import NORMAL, EXPERT, ULTIMATE, PUZZLE
-from impl.summon.game import ULTIMATE_R, ULTIMATE_S, ULTIMATE_F, ULTIMATE_A
+from impl.summon.game import ULTIMATE_R, ULTIMATE_S, ULTIMATE_F, ULTIMATE_A, ULTIMATE_P
 from datetime import datetime, timedelta
 
+from utils.impl_obj import get_seed
 from utils.tool import get_logger
 
 # 添加项目路径到系统路径
@@ -223,6 +224,9 @@ def generate_board():
     ultimate_mode = request.args.get("u_mode", "+A")
     total = int(request.args.get("total", -1))
     dye = request.args.get("dye", "")
+    seed = request.args.get("seed", None)
+    if seed is not None:
+        get_random(new=True, seed=int(seed))
     # dye = "@c"
     gamemode = request.args.get("mode", "EXPERT")
     print("rule: ", rules)
@@ -245,6 +249,8 @@ def generate_board():
         u_mode |= ULTIMATE_S
     if "+R" in ultimate_mode:
         u_mode |= ULTIMATE_R
+    if "+!" in ultimate_mode:
+        u_mode |= ULTIMATE_P
 
     # print(mode)
     # print(123456)
@@ -286,14 +292,15 @@ def generate_board():
             try:
                 answer_board = hypothesis_data["summon"].summon_board()
                 hypothesis_data["game"].answer_board = answer_board
-                mask_board = hypothesis_data["game"].create_board()
+                # mask_board = hypothesis_data["game"].create_board()
             except Exception as e:
                 error_str = str(e)
         else:
             try:
                 mask_board = hypothesis_data["summon"].create_puzzle()
-                hypothesis_data["game"].answer_board = hypothesis_data["summon"].answer_board
                 answer_board = hypothesis_data["summon"].answer_board
+                hypothesis_data["game"].answer_board = answer_board
+                hypothesis_data["game"].board = mask_board
             except Exception as e:
                 error_str = str(e)
     if dye:
@@ -314,23 +321,49 @@ def generate_board():
 
 @app.route('/api/metadata')
 def metadata():
-    if "game" in hypothesis_data:
-        board = hypothesis_data["game"].board
-        a_board = hypothesis_data["game"].answer_board
-        board_data = format_board(board)
-        count = dict()
-        count["total"] = len([_ for pos, _ in a_board("F")])
-        count["unknown"] = len([_ for _ in board("N")])
-        if not hypothesis_data["game"].drop_r:
-            count["known"] = len([_ for pos, _ in a_board("F")])
-            count["remains"] = len([_ for pos, _ in a_board("F") if board.get_type(pos) == "N"])
-        else:
-            count["known"] = None
-            count["remains"] = None
-        board_data["rules"] = hypothesis_data["rules"]
-        board_data["count"] = count
-        return jsonify(board_data)
-    return {}
+    if "game" not in hypothesis_data:
+        return '', 500
+    game = hypothesis_data["game"]
+    board = game.board
+    a_board = game.answer_board
+    board_data = format_board(board)
+    count = dict()
+    count["total"] = len([_ for pos, _ in a_board("F")])
+    count["unknown"] = len([_ for _ in board("N")])
+    if not hypothesis_data["game"].drop_r:
+        count["known"] = len([_ for pos, _ in a_board("F")])
+        count["remains"] = len([_ for pos, _ in a_board("F") if board.get_type(pos) == "N"])
+    else:
+        count["known"] = None
+        count["remains"] = None
+    board_data["rules"] = hypothesis_data["rules"]
+    board_data["count"] = count
+    board_data["u_mode"] = []
+    gamemode = game.mode
+    u_gamemode = game.ultimate_mode
+    if gamemode == NORMAL:
+        board_data["mode"] = "NORMAL"
+    elif gamemode == EXPERT:
+        board_data["mode"] = "EXPERT"
+    elif gamemode == ULTIMATE:
+        board_data["mode"] = "ULTIMATE"
+        board_data["u_mode"] = []
+        if u_gamemode & ULTIMATE_A:
+            board_data["u_mode"].append("+A")
+        if u_gamemode & ULTIMATE_F:
+            board_data["u_mode"].append("+F")
+        if u_gamemode & ULTIMATE_S:
+            board_data["u_mode"].append("+S")
+        if u_gamemode & ULTIMATE_R:
+            board_data["u_mode"].append("+R")
+        if u_gamemode & ULTIMATE_P:
+            board_data["u_mode"].append("+!")
+    elif gamemode == PUZZLE:
+        board_data["mode"] = "PUZZLE"
+    else:
+        board_data["mode"] = "UNKNOWN"
+    board_data["seed"] = get_seed()
+    return jsonify(board_data)
 
 
 @app.route('/api/click', methods=['POST', 'GET'])
