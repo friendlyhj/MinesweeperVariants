@@ -4,6 +4,7 @@
 # @Time    : 2025/07/30 08:15
 # @Author  : Wu_RH
 # @FileName: app.py.py
+import hashlib
 import threading
 import time
 from pathlib import Path
@@ -207,6 +208,14 @@ def format_board(_board: AbstractBoard):
     return board_data
 
 
+def hash_str(s):
+    try:
+        return int(s)
+    except ValueError:
+        h = hashlib.sha256(s.encode('utf-8')).hexdigest()
+        return int(h[:4], 16)
+
+
 @app.route('/')
 def root():
     return redirect("https://koolshow.github.io/MinesweeperVariants-Vue/")
@@ -230,7 +239,7 @@ def generate_board():
     dye = request.args.get("dye", "")
     seed = request.args.get("seed", None)
     if seed is not None:
-        get_random(new=True, seed=int(seed))
+        get_random(new=True, seed=hash_str(seed))
     # dye = "@c"
     gamemode = request.args.get("mode", "EXPERT")
     print("rule: ", rules)
@@ -320,7 +329,11 @@ def generate_board():
         "success": error_str is not None
     }
     hypothesis_data["game"].thread_hint()
+    hypothesis_data["data"] = {}
+    hypothesis_data["data"]["noFails"] = True
+    hypothesis_data["data"]["noHint"] = True
     # hypothesis_data["game"].thread_deduced()
+    print(f"生成用时: {time.time() - t}s")
     print(data)
     return jsonify(data), 200
 
@@ -420,6 +433,7 @@ def click():
             unbelievable = game.unbelievable(pos, 1)
         if unbelievable is None:
             return {}, 500
+        hypothesis_data["data"]["noFails"] = False
         print(unbelievable)
         refresh["mines"] = [
             {"x": _pos.x, "y": _pos.y,
@@ -430,7 +444,7 @@ def click():
         refresh["win"] = False
     else:
         if game.mode == ULTIMATE:
-            if pos.board_key in board.get_interacive_keys():
+            if pos.board_key in board.get_interactive_keys():
                 if data["button"] == "left":
                     refresh["u_hint"]["flagcount"] -= 1
                 elif data["button"] == "right":
@@ -488,6 +502,7 @@ def click():
 def hint_post():
     global hypothesis_data
     game = hypothesis_data["game"]
+    hypothesis_data["data"]["noHint"] = False
     print("hint start")
     hint_list = game.hint()
     for hint in hint_list.items():
