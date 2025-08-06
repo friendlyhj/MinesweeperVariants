@@ -329,7 +329,10 @@ def generate_board():
         "success": error_str is not None
     }
     hypothesis_data["game"].thread_hint()
+    hypothesis_data["data"]["noFails"] = True
+    hypothesis_data["data"]["noHint"] = True
     # hypothesis_data["game"].thread_deduced()
+    print(f"生成用时: {time.time() - t}s")
     print(data)
     return jsonify(data), 200
 
@@ -429,6 +432,7 @@ def click():
             unbelievable = game.unbelievable(pos, 1)
         if unbelievable is None:
             return {}, 500
+        hypothesis_data["data"]["noFails"] = False
         print(unbelievable)
         refresh["mines"] = [
             {"x": _pos.x, "y": _pos.y,
@@ -497,6 +501,7 @@ def click():
 def hint_post():
     global hypothesis_data
     game = hypothesis_data["game"]
+    hypothesis_data["data"]["noHint"] = False
     print("hint start")
     hint_list = game.hint()
     for hint in hint_list.items():
