@@ -276,7 +276,7 @@ def generate_board():
         drop_r=not used_r,
         ultimate_mode=u_mode
     )
-    error_str = None
+    error_str = ""
     if code:
         hypothesis_data["game"].answer_board = answer_board
         hypothesis_data["game"].board = mask_board
