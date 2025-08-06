@@ -11,7 +11,6 @@ from typing import List
 
 from abs.Rrule import AbstractClueRule, AbstractClueValue
 from abs.board import AbstractBoard, AbstractPosition
-from utils.solver import get_model
 from utils.tool import get_logger
 
 
@@ -79,9 +78,6 @@ class Rule3B(AbstractClueRule):
             logger.debug(f"Set {pos} [3B]{obj}")
         return board
 
-    def clue_class(self):
-        return Value3B
-
 
 class Value3B(AbstractClueValue):
     def __init__(self, pos: 'AbstractPosition', code: bytes = b''):
@@ -105,8 +101,9 @@ class Value3B(AbstractClueValue):
     def code(self) -> bytes:
         return self.__code
 
-    def create_constraints(self, board: 'AbstractBoard'):
-        model = get_model()
+    def create_constraints(self, board: 'AbstractBoard', switch):
+        model = board.get_model()
+        s = switch.get(model, self)
 
         col = board.get_col_pos(self.pos)
         row = board.get_row_pos(self.pos)
@@ -114,15 +111,8 @@ class Value3B(AbstractClueValue):
         row = board.batch(row, mode="variable")
         for index in range(len(self.bools)):
             if self.bools[index]:
-                model.AddBoolOr([col[index].Not(), row[index].Not()])
-                model.AddBoolOr([col[index], row[index]])
+                model.AddBoolOr([col[index].Not(), row[index].Not()]).OnlyEnforceIf(s)
+                model.AddBoolOr([col[index], row[index]]).OnlyEnforceIf(s)
             else:
-                model.AddBoolOr([col[index].Not(), row[index]])
-                model.AddBoolOr([col[index], row[index].Not()])
-
-    def check(self, board: 'AbstractBoard') -> bool:
-        pass
-
-    @classmethod
-    def method_choose(cls) -> int:
-        return 1
+                model.AddBoolOr([col[index].Not(), row[index]]).OnlyEnforceIf(s)
+                model.AddBoolOr([col[index], row[index].Not()]).OnlyEnforceIf(s)
