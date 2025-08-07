@@ -9,7 +9,7 @@
 """
 from ....abs.Lrule import AbstractMinesRule
 
-from ...connect import connect
+from .connect import connect
 
 
 class Rule1S(AbstractMinesRule):

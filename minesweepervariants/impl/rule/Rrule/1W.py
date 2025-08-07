@@ -11,9 +11,9 @@ from typing import Dict
 
 from ....abs.Rrule import AbstractClueRule, AbstractClueValue
 from ....abs.board import AbstractPosition, AbstractBoard
-from ...utils.image_create import get_text, get_row, get_col
-from ...utils.image_create import get_dummy
-from ...utils.tool import get_logger
+from ....utils.image_create import get_text, get_row, get_col
+from ....utils.image_create import get_dummy
+from ....utils.tool import get_logger
 
 
 def decode(code: bytes):

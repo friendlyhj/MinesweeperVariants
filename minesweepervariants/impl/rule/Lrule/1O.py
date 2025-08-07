@@ -11,7 +11,7 @@ from typing import List
 
 from ....abs.Lrule import AbstractMinesRule
 from ....abs.board import AbstractBoard, AbstractPosition
-from ...connect import connect
+from .connect import connect
 
 
 def block(a_pos: AbstractPosition, board: AbstractBoard) -> List[AbstractPosition]:

@@ -10,7 +10,7 @@
 
 from ....abs.Mrule import AbstractMinesClueRule
 from ....abs.board import AbstractBoard
-from ...utils.tool import get_random
+from ....utils.tool import get_random
 
 
 class RuleSharp(AbstractMinesClueRule):

@@ -10,7 +10,7 @@
 from ....abs.Rrule import AbstractClueRule, AbstractClueValue
 from ....abs.board import AbstractBoard, AbstractPosition
 
-from ...utils.tool import get_logger, get_random
+from ....utils.tool import get_logger, get_random
 
 
 class Rule2X(AbstractClueRule):

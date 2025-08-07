@@ -12,7 +12,7 @@ from typing import List
 
 from ....abs.Rrule import AbstractClueValue, AbstractClueRule
 from ....abs.board import AbstractBoard, AbstractPosition
-from ...utils.tool import get_logger, get_random
+from ....utils.tool import get_logger, get_random
 
 
 def block(a_pos: AbstractPosition, board: AbstractBoard) -> List[AbstractPosition]:

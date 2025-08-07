@@ -9,9 +9,9 @@
 """
 from ....abs.Rrule import AbstractClueRule, AbstractClueValue
 from ....abs.board import AbstractBoard, AbstractPosition
-from ...utils.impl_obj import VALUE_QUESS, MINES_TAG
+from ....utils.impl_obj import VALUE_QUESS, MINES_TAG
 
-from ...utils.tool import get_logger
+from ....utils.tool import get_logger
 
 
 class Rule2D(AbstractClueRule):

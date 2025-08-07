@@ -9,9 +9,9 @@
 """
 from ....abs.Lrule import AbstractMinesRule
 from ....abs.board import AbstractBoard
-from ...utils.impl_obj import get_total
+from ....utils.impl_obj import get_total
 
-from ...connect import connect
+from .connect import connect
 
 
 class Rule1C(AbstractMinesRule):

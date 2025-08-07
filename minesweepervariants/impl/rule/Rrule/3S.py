@@ -11,9 +11,9 @@ from typing import Dict
 
 from ....abs.Rrule import AbstractClueRule, AbstractClueValue
 from ....abs.board import AbstractBoard, AbstractPosition
-from ...utils.image_create import get_text, get_row
+from ....utils.image_create import get_text, get_row
 
-from ...utils.tool import get_logger, get_random
+from ....utils.tool import get_logger, get_random
 
 
 class Rule3S(AbstractClueRule):

@@ -8,12 +8,12 @@
 [4V1L]2X'plus: 线索表示数字是两个题板中相同位置的其中一个范围中心3*3区域的雷总数 线索均比真实值大1或小1
 """
 
-from ....abs.Rrule import AbstractClueRule, AbstractClueValue
-from ....abs.board import AbstractBoard, AbstractPosition, MASTER_BOARD
-from ...utils.impl_obj import VALUE_QUESS, MINES_TAG
-from ...utils.tool import get_random
+from .....abs.Rrule import AbstractClueRule, AbstractClueValue
+from .....abs.board import AbstractBoard, AbstractPosition, MASTER_BOARD
+from .....utils.impl_obj import VALUE_QUESS, MINES_TAG
+from .....utils.tool import get_random
 
-from ... import BOARD_NAME_4V
+from . import BOARD_NAME_4V
 
 
 class Rule4V(AbstractClueRule):

@@ -10,7 +10,7 @@
 
 from ....abs.Rrule import AbstractClueRule, ValueQuess
 from ....abs.board import AbstractBoard
-from ...utils.impl_obj import VALUE_QUESS
+from ....utils.impl_obj import VALUE_QUESS
 
 
 class RuleQuess(AbstractClueRule):

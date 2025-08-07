@@ -11,7 +11,7 @@ from typing import Callable, List, Dict
 
 from ....abs.Rrule import AbstractClueRule, AbstractClueValue
 from ....abs.board import AbstractBoard, AbstractPosition
-from ...utils.image_create import get_row, get_image, get_text, get_col, get_dummy
+from ....utils.image_create import get_row, get_image, get_text, get_col, get_dummy
 
 
 class Rule1E(AbstractClueRule):

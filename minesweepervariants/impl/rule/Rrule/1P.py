@@ -11,7 +11,7 @@ from typing import List, Dict
 
 from ....abs.Rrule import AbstractClueRule, AbstractClueValue
 from ....abs.board import AbstractPosition, AbstractBoard
-from ...utils.tool import get_logger
+from ....utils.tool import get_logger
 
 
 def MineStatus_1P(clue: int) -> list[int]:

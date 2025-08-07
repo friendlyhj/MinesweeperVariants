@@ -9,8 +9,8 @@
 """
 from ....abs.Rrule import AbstractClueValue, AbstractClueRule
 from ....abs.board import AbstractPosition, AbstractBoard
-from ...utils.impl_obj import VALUE_CROSS, VALUE_CIRCLE
-from ...utils.tool import get_random, get_logger
+from ....utils.impl_obj import VALUE_CROSS, VALUE_CIRCLE
+from ....utils.tool import get_random, get_logger
 
 NAME_2Ip = "2I'"
 

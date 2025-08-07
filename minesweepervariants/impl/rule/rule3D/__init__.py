@@ -12,7 +12,7 @@ from ....abs.Lrule import AbstractMinesRule
 from ....abs.Mrule import AbstractMinesClueRule
 from ....abs.Rrule import AbstractClueRule
 from ....abs.board import AbstractBoard, AbstractPosition
-from ...utils.impl_obj import VALUE_QUESS, MINES_TAG
+from ....utils.impl_obj import VALUE_QUESS, MINES_TAG
 
 
 class Abstract3DRule:

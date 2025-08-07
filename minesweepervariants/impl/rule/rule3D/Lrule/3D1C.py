@@ -9,10 +9,10 @@
 """
 from .... import Abstract3DMinesRule
 from ....abs.board import AbstractBoard
-from ...utils.impl_obj import get_total
-from ...utils.solver import get_model
+from ....utils.impl_obj import get_total
+from ....utils.solver import get_model
 
-from ...connect import connect
+from .connect import connect
 
 
 class Rule1C(Abstract3DMinesRule):

@@ -12,8 +12,8 @@ from typing import List
 from ....abs.Rrule import AbstractClueRule, AbstractClueValue
 from ....abs.board import AbstractBoard, AbstractPosition
 
-from ...utils.tool import get_logger
-from ...utils.impl_obj import VALUE_QUESS, MINES_TAG
+from ....utils.tool import get_logger
+from ....utils.impl_obj import VALUE_QUESS, MINES_TAG
 
 
 class Rule1K(AbstractClueRule):

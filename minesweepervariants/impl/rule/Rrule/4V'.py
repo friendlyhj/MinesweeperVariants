@@ -11,9 +11,9 @@ from typing import Dict
 
 from ....abs.Rrule import AbstractClueRule, AbstractClueValue
 from ....abs.board import AbstractBoard, AbstractPosition, MASTER_BOARD
-from ...utils.image_create import get_text, get_row
-from ...utils.impl_obj import VALUE_QUESS, MINES_TAG
-from ...utils.tool import get_random
+from ....utils.image_create import get_text, get_row
+from ....utils.impl_obj import VALUE_QUESS, MINES_TAG
+from ....utils.tool import get_random
 
 NAME_4Vp = ["4Va", "4Vb"]
 

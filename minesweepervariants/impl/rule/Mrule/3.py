@@ -11,9 +11,9 @@ from typing import Dict
 
 from ....abs.Mrule import AbstractMinesClueRule, AbstractMinesValue
 from ....abs.board import AbstractPosition, AbstractBoard
-from ...utils.image_create import get_dummy, get_image, get_col, get_row
-from ...utils.image_create import get_text as _get_text
-from ...utils.tool import get_random
+from ....utils.image_create import get_dummy, get_image, get_col, get_row
+from ....utils.image_create import get_text as _get_text
+from ....utils.tool import get_random
 
 
 def get_text(

@@ -8,9 +8,9 @@
 [1K1C] 马步八连通 (Knight-Connected)：雷区域马步连通
 """
 from ....abs.Lrule import AbstractMinesRule
-from ...utils.impl_obj import get_total
+from ....utils.impl_obj import get_total
 
-from ...connect import connect
+from .connect import connect
 
 
 class Rule1C(AbstractMinesRule):

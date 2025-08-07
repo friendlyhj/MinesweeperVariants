@@ -9,10 +9,10 @@
 """
 from typing import List
 
-from ....abs.board import AbstractBoard, AbstractPosition
-from ....abs.Rrule import AbstractClueRule, AbstractClueValue
-from ...utils.impl_obj import VALUE_QUESS, VALUE_CROSS, VALUE_CIRCLE
-from ...utils.tool import get_random
+from .....abs.board import AbstractBoard, AbstractPosition
+from .....abs.Rrule import AbstractClueRule, AbstractClueValue
+from .....utils.impl_obj import VALUE_QUESS, VALUE_CROSS, VALUE_CIRCLE
+from .....utils.tool import get_random
 
 NAME_2E = "2E"
 

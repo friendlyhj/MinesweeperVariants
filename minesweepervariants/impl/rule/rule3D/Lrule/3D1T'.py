@@ -11,7 +11,7 @@
 
 from .... import Abstract3DMinesRule
 from ....abs.board import AbstractBoard
-from ...utils.tool import get_logger
+from ....utils.tool import get_logger
 
 
 class Rule3D1Tp(Abstract3DMinesRule):

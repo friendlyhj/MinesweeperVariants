@@ -11,8 +11,8 @@ from typing import Dict
 
 from ....abs.Rrule import AbstractClueValue, AbstractClueRule
 from ....abs.board import AbstractPosition, AbstractBoard
-from ...utils.image_create import get_text, get_image, get_row, get_col, get_dummy
-from ...utils.tool import get_logger
+from ....utils.image_create import get_text, get_image, get_row, get_col, get_dummy
+from ....utils.tool import get_logger
 
 
 def sqrt_form(n):

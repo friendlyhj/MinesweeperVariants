@@ -11,7 +11,7 @@ from typing import List
 
 from ....abs.Rrule import AbstractClueRule, AbstractClueValue
 from ....abs.board import AbstractBoard, AbstractPosition
-from ...utils.tool import get_logger
+from ....utils.tool import get_logger
 
 
 def encode_bools_7bit(bools: list[bool]) -> bytes:

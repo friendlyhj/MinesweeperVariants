@@ -9,7 +9,7 @@
 """
 from ....abs.Rrule import AbstractClueRule
 from ....abs.board import AbstractBoard
-from ...utils.tool import get_random
+from ....utils.tool import get_random
 
 
 class RuleSharp(AbstractClueRule):

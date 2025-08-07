@@ -7,8 +7,8 @@
 """
 [2E'']互指: 如果线索X周围有N个雷 则另一个题板的X=N的格子必定为雷
 """
-from ...utils.impl_obj import VALUE_QUESS, MINES_TAG
-from ...utils.tool import get_random, get_logger
+from ....utils.impl_obj import VALUE_QUESS, MINES_TAG
+from ....utils.tool import get_random, get_logger
 
 from ....abs.Rrule import AbstractClueValue, AbstractClueRule
 from ....abs.board import AbstractBoard, AbstractPosition, MASTER_BOARD
