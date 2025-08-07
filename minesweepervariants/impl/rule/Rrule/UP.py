@@ -8,6 +8,7 @@
 [UP]唯一路径(Unique Path): 线索格表示从这个格开始只能往右或下走，到达右下角的方法数。
 """
 import math
+from typing import List
 
 from minesweepervariants.abs.Rrule import AbstractClueRule, AbstractClueValue
 from minesweepervariants.abs.board import AbstractBoard, AbstractPosition
@@ -74,6 +75,18 @@ class ValueUP(AbstractClueValue):
 
     def __repr__(self):
         return str(self.value)
+
+    def high_light(self, board: 'AbstractBoard', pos=None) -> List['AbstractPosition'] | None:
+        if pos is None:
+            pos = self.pos
+        if board.get_type(pos) != "C":
+            return [pos]
+        positions = {pos}
+        for _pos in self.high_light(board, pos.down()):
+            positions.add(_pos)
+        for _pos in self.high_light(board, pos.right()):
+            positions.add(_pos)
+        return list(positions)
 
     @classmethod
     def type(cls) -> bytes:
