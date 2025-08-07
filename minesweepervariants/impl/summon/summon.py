@@ -24,11 +24,11 @@ from abs.board import AbstractBoard, AbstractPosition
 from impl.impl_obj import get_rule, get_board
 
 default_path = Path("config/base_puzzle_config.yaml")
-CONFIG = {}
+CONFIG = {'delimiter': ":"}
 if default_path.exists():
     with open(default_path, "r", encoding="utf-8") as f:
-        CONFIG = yaml.safe_load(f)
-
+        CONFIG.update(yaml.safe_load(f))
+print(f"加载配置文件: {default_path} 成功, 配置内容: {CONFIG}")
 
 class GenerateError(Exception):
     pass
@@ -78,7 +78,6 @@ class Summon:
             rule = get_rule(rule_id)(board=self.board, data=data)
             if rule is None:
                 self.logger.error("键入了一个未知的规则")
-                sys.exit(1)
             elif isinstance(rule, AbstractClueRule):
                 clue_rules.append(rule)
             elif isinstance(rule, AbstractMinesRule):

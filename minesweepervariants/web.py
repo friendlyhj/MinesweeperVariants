@@ -8,6 +8,7 @@ import hashlib
 import threading
 import time
 from pathlib import Path
+import traceback
 from typing import Union
 
 from flask import jsonify, request, redirect
@@ -313,7 +314,7 @@ def generate_board():
                 mask_board = hypothesis_data["game"].create_board()
                 hypothesis_data["board"] = mask_board.clone()
             except Exception as e:
-                error_str = str(e)
+                error_str = traceback.format_exc()
         else:
             try:
                 mask_board = hypothesis_data["summon"].create_puzzle()
@@ -321,7 +322,7 @@ def generate_board():
                 hypothesis_data["game"].answer_board = answer_board
                 hypothesis_data["game"].board = mask_board
             except Exception as e:
-                error_str = str(e)
+                error_str = traceback.format_exc()
     if dye:
         rules += [f"@{dye}"]
         # answer_board = hypothesis_data["game"].answer_board
@@ -345,11 +346,14 @@ def generate_board():
 
 @app.route('/api/metadata')
 def metadata():
-    if "game" not in hypothesis_data:
+    if "game" not in hypothesis_data \
+        or hypothesis_data["game"].board is None \
+        or hypothesis_data["game"].answer_board is None:
         return {}, 200
     game = hypothesis_data["game"]
     board = game.board
     a_board = game.answer_board
+
     board_data = format_board(board)
     count = dict()
     count["total"] = len([_ for pos, _ in a_board("F")])
