@@ -9,9 +9,9 @@
 """
 from typing import List
 
-from ....abs.board import AbstractPosition, AbstractBoard
-from .... import Abstract3DClueRule
-from ....abs.Rrule import AbstractClueValue
+from .....abs.board import AbstractPosition, AbstractBoard
+from .. import Abstract3DClueRule
+from .....abs.Rrule import AbstractClueValue
 
 
 class Rule3D1X(Abstract3DClueRule):

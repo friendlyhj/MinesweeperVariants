@@ -13,8 +13,8 @@
 
 from typing import List
 
-from .... import Abstract3DMinesRule
-from ....abs.board import AbstractPosition, AbstractBoard
+from .. import Abstract3DMinesRule
+from .....abs.board import AbstractPosition, AbstractBoard
 
 
 def get_vertical_column(board: AbstractBoard, pos: AbstractPosition) -> List[AbstractPosition]:

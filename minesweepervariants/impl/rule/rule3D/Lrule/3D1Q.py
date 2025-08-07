@@ -11,8 +11,8 @@
 
 from typing import List
 
-from .... import Abstract3DMinesRule
-from ....abs.board import AbstractPosition, AbstractBoard
+from .. import Abstract3DMinesRule
+from .....abs.board import AbstractPosition, AbstractBoard
 
 
 def block(a_pos: AbstractPosition, board: AbstractBoard) -> List[AbstractPosition]:

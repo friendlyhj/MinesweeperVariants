@@ -9,9 +9,9 @@
 [3D1T']必三连: 雷必然处在横竖对角构成三连
 """
 
-from .... import Abstract3DMinesRule
-from ....abs.board import AbstractBoard
-from ....utils.tool import get_logger
+from .. import Abstract3DMinesRule
+from .....abs.board import AbstractBoard
+from .....utils.tool import get_logger
 
 
 class Rule3D1Tp(Abstract3DMinesRule):

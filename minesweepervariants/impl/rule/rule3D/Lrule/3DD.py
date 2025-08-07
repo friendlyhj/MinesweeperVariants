@@ -3,8 +3,8 @@
 [3DD] 蛆 (Dual)：所有雷均形成1x2x1、2x1x1或1x1x2的三维矩形，即每个雷恰好有一个六连通相邻的雷
 """
 
-from .... import Abstract3DMinesRule
-from ....abs.board import AbstractBoard
+from .. import Abstract3DMinesRule
+from .....abs.board import AbstractBoard
 
 
 class Rule3DD(Abstract3DMinesRule):  # type: ignore

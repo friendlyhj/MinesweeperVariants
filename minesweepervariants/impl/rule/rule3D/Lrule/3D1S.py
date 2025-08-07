@@ -7,8 +7,7 @@
 """
 [3D1S] 三维蛇 (Snake)：所有雷构成一条蛇。蛇是一条宽度为 1 的六连通路径，不存在分叉、环、交叉
 """
-from .... import Abstract3DMinesRule
-from ....utils.solver import get_model
+from .. import Abstract3DMinesRule
 
 from .connect import connect
 

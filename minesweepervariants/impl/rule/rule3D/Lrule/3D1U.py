@@ -3,8 +3,8 @@
 [3D1U] 三维一元 (Unary)：所有雷不能与其他雷相邻
 (3维一元?那你这一维多少元)
 """
-from ....abs.board import AbstractBoard
-from .... import Abstract3DMinesRule
+from .....abs.board import AbstractBoard
+from .. import Abstract3DMinesRule
 
 
 class Rule3D1U(Abstract3DMinesRule):

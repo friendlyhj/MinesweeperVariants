@@ -9,8 +9,8 @@
 [3D2T]无三连: (1)雷不能在横竖上下向构成三连, (2)非雷不能在横竖上下向构成三连
 """
 
-from .... import Abstract3DMinesRule
-from ....abs.board import AbstractBoard
+from .. import Abstract3DMinesRule
+from .....abs.board import AbstractBoard
 
 
 class Rule2T(Abstract3DMinesRule):

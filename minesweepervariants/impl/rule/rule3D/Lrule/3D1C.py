@@ -7,10 +7,10 @@
 """
 [3D1C] 三维八连通 (Connected)：雷区域二十六连通
 """
-from .... import Abstract3DMinesRule
-from ....abs.board import AbstractBoard
-from ....utils.impl_obj import get_total
-from ....utils.solver import get_model
+from .. import Abstract3DMinesRule
+from .....abs.board import AbstractBoard
+from .....utils.impl_obj import get_total
+
 
 from .connect import connect
 
