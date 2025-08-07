@@ -21,7 +21,7 @@ from ...utils.tool import get_random, get_logger
 from ...abs.Lrule import MinesRules, AbstractMinesRule
 from ...abs.board import AbstractBoard, AbstractPosition
 
-from ...impl.impl_obj import get_rule, get_board
+from ..impl_obj import get_rule, get_board
 
 default_path = Path("config/base_puzzle_config.yaml")
 CONFIG = {'delimiter': ":"}

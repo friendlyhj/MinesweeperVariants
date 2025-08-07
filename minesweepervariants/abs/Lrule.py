@@ -10,7 +10,7 @@ from abc import abstractmethod
 
 from ..utils.impl_obj import get_total
 from ..utils.tool import get_logger
-from ..abs.rule import AbstractRule
+from .rule import AbstractRule
 
 if TYPE_CHECKING:
     from ..board import AbstractBoard

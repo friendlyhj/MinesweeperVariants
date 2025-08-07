@@ -23,7 +23,7 @@ from ...abs.Mrule import AbstractMinesClueRule
 from ...abs.Rrule import AbstractClueRule
 from ...abs.board import AbstractBoard, AbstractPosition
 from ...abs.Lrule import MinesRules, Rule0R
-from ...impl.impl_obj import ModelGenerateError
+from ..impl_obj import ModelGenerateError
 
 
 # ==== 获取默认值 ====

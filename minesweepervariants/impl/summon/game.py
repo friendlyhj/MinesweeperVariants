@@ -21,8 +21,8 @@ from ...abs.Mrule import AbstractMinesValue
 from ...abs.Rrule import AbstractClueValue
 from ...abs.board import AbstractBoard
 from ...abs.board import AbstractPosition
-from ...impl.summon import Summon
-from ...impl.summon.solver import solver_by_csp, hint_by_csp, Switch, deduced_by_csp, solver_board
+from . import Summon
+from .solver import solver_by_csp, hint_by_csp, Switch, deduced_by_csp, solver_board
 from ...utils.impl_obj import MINES_TAG, VALUE_QUESS, POSITION_TAG
 from ...utils.tool import get_logger, get_random
 

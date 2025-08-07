@@ -10,7 +10,7 @@ from typing import List, Union, TYPE_CHECKING, Dict, Tuple
 
 
 if TYPE_CHECKING:
-    from ..abs.board import AbstractBoard, AbstractPosition
+    from ..board import AbstractBoard, AbstractPosition
     from ..impl.summon.solver import Switch
 
 

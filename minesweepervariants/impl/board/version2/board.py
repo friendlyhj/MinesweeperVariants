@@ -24,7 +24,7 @@ if TYPE_CHECKING:
 
 
 def get_value(pos=None, code=None):
-    from ..impl.impl_obj import get_value
+    from ..impl_obj import get_value
     return get_value(pos, code)
 
 

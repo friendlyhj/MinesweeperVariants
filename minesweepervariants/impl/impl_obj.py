@@ -18,8 +18,8 @@ from ..abs.Lrule import AbstractMinesRule
 from ..abs.Mrule import AbstractMinesClueRule, AbstractMinesValue
 from ..abs.Rrule import AbstractClueRule, AbstractClueValue
 
-from ..impl.board import version1, version2
-from ..impl import rule
+from .board import version1, version2
+from . import rule
 
 TOTAL = -1
 hypothesis_board = [version2, version1]
