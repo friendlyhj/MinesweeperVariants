@@ -6,8 +6,8 @@
 """
 from typing import Callable
 
-from abs.Rrule import AbstractClueRule, AbstractClueValue
-from abs.board import AbstractBoard, AbstractPosition
+from ....abs.Rrule import AbstractClueRule, AbstractClueValue
+from ....abs.board import AbstractBoard, AbstractPosition
 
 
 class Rule1EQ(AbstractClueRule):

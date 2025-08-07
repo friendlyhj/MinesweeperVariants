@@ -8,10 +8,10 @@
 [2M']多雷: 每个下方是雷的雷被视为两个(总雷数不受限制)
 """
 
-from abs.board import AbstractBoard, AbstractPosition
-from abs.Rrule import AbstractClueRule, AbstractClueValue
-from utils.tool import get_logger
-from utils.impl_obj import VALUE_QUESS, MINES_TAG
+from ....abs.board import AbstractBoard, AbstractPosition
+from ....abs.Rrule import AbstractClueRule, AbstractClueValue
+from ...utils.tool import get_logger
+from ...utils.impl_obj import VALUE_QUESS, MINES_TAG
 
 
 class Rule1M(AbstractClueRule):

@@ -8,11 +8,11 @@ import heapq
 from abc import ABC
 from typing import List, Optional
 
-from abs.Lrule import AbstractMinesRule
-from abs.Mrule import AbstractMinesClueRule
-from abs.Rrule import AbstractClueRule
-from abs.board import AbstractBoard, AbstractPosition
-from utils.impl_obj import VALUE_QUESS, MINES_TAG
+from ....abs.Lrule import AbstractMinesRule
+from ....abs.Mrule import AbstractMinesClueRule
+from ....abs.Rrule import AbstractClueRule
+from ....abs.board import AbstractBoard, AbstractPosition
+from ...utils.impl_obj import VALUE_QUESS, MINES_TAG
 
 
 class Abstract3DRule:
@@ -206,5 +206,3 @@ class Abstract3DMinesClueRule(AbstractMinesClueRule, ABC, Abstract3DRule):
     def __init__(self, board: AbstractBoard, data: str = None):
         Abstract3DRule.__init__(self, board, data)
         super().__init__(board, data)
-
-

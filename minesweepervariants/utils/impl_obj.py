@@ -5,11 +5,11 @@
 # @Author  : Wu_RH
 # @FileName: impl_obj.py
 
-from utils import tool
+from ..utils import tool
 
-from abs.board import PositionTag
-from abs.Mrule import MinesTag, ValueCircle
-from abs.Rrule import ValueQuess, ValueCross
+from ..abs.board import PositionTag
+from ..abs.Mrule import MinesTag, ValueCircle
+from ..abs.Rrule import ValueQuess, ValueCross
 
 POSITION_TAG = PositionTag()
 MINES_TAG = MinesTag(POSITION_TAG)

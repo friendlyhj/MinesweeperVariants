@@ -7,10 +7,10 @@
 """
 [2L'] 误差' (Liar')：每行每列恰有一个非误差线索。误差线索的值比真实值大 1 或小 1 [副版规则]
 """
-from abs.Rrule import AbstractClueRule, AbstractClueValue
-from abs.board import AbstractBoard, AbstractPosition
-from utils.impl_obj import VALUE_CIRCLE, VALUE_CROSS
-from utils.tool import get_random, get_logger
+from ....abs.Rrule import AbstractClueRule, AbstractClueValue
+from ....abs.board import AbstractBoard, AbstractPosition
+from ...utils.impl_obj import VALUE_CIRCLE, VALUE_CROSS
+from ...utils.tool import get_random, get_logger
 
 NAME_2L = "2L"
 

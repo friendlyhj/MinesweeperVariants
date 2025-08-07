@@ -8,9 +8,9 @@
 [?]标准线索: 线索表示该格是一个非雷
 """
 
-from abs.Rrule import AbstractClueRule, ValueQuess
-from abs.board import AbstractBoard
-from utils.impl_obj import VALUE_QUESS
+from ....abs.Rrule import AbstractClueRule, ValueQuess
+from ....abs.board import AbstractBoard
+from ...utils.impl_obj import VALUE_QUESS
 
 
 class RuleQuess(AbstractClueRule):
@@ -35,7 +35,3 @@ class RuleQuess(AbstractClueRule):
                 if obj is not VALUE_QUESS:
                     continue
                 board.set_value(pos, None)
-
-
-
-

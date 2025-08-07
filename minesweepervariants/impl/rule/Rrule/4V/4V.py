@@ -9,12 +9,12 @@
 """
 from typing import List
 
-from abs.Rrule import AbstractClueRule, AbstractClueValue
-from abs.board import AbstractBoard, AbstractPosition, MASTER_BOARD
-from utils.impl_obj import VALUE_QUESS, MINES_TAG
-from utils.tool import get_random
+from ....abs.Rrule import AbstractClueRule, AbstractClueValue
+from ....abs.board import AbstractBoard, AbstractPosition, MASTER_BOARD
+from ...utils.impl_obj import VALUE_QUESS, MINES_TAG
+from ...utils.tool import get_random
 
-from . import BOARD_NAME_4V
+from ... import BOARD_NAME_4V
 
 
 class Rule4V(AbstractClueRule):

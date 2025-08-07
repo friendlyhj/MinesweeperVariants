@@ -7,11 +7,11 @@
 """
 [1K2E']自指:如果字母X马步8格内有N个雷，则标有X=N的格子必定是雷。
 """
-from utils.impl_obj import VALUE_QUESS
-from utils.tool import get_random, get_logger
+from ...utils.impl_obj import VALUE_QUESS
+from ...utils.tool import get_random, get_logger
 
-from abs.Rrule import AbstractClueValue, AbstractClueRule
-from abs.board import AbstractBoard, AbstractPosition, MASTER_BOARD
+from ....abs.Rrule import AbstractClueValue, AbstractClueRule
+from ....abs.board import AbstractBoard, AbstractPosition, MASTER_BOARD
 
 ALPHABET = "ABCDEFGHI"
 

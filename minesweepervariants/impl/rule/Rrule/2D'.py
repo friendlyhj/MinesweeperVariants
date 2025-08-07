@@ -7,10 +7,10 @@
 """
 [2D']偏移: 线索表示四方向任意偏移一格为中心的3x3区域内的总雷数
 """
-from abs.Rrule import AbstractClueRule, AbstractClueValue
-from abs.board import AbstractBoard, AbstractPosition
+from ....abs.Rrule import AbstractClueRule, AbstractClueValue
+from ....abs.board import AbstractBoard, AbstractPosition
 
-from utils.tool import get_logger, get_random
+from ...utils.tool import get_logger, get_random
 
 
 class Rule2Dp(AbstractClueRule):

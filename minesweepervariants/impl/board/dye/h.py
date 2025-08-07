@@ -5,7 +5,7 @@
 # @Author  : Wu_RH
 # @FileName: h.py
 
-from utils.tool import get_random
+from ....utils.tool import get_random
 from . import AbstractDye
 
 

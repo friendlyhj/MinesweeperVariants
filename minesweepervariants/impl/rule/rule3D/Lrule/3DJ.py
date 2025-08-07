@@ -4,8 +4,8 @@
 [3DJ] 枣糕(Jujubecake)：所有非雷格均形成1x2x1、2x1x1或1x1x2的三维矩形，即每个非雷格恰好有一个六连通相邻的非雷格...洞里全是什么啊!!!
 """
 
-from .. import Abstract3DMinesRule
-from abs.board import AbstractBoard
+from .... import Abstract3DMinesRule
+from ....abs.board import AbstractBoard
 
 
 class Rule3DJ(Abstract3DMinesRule):  # type: ignore

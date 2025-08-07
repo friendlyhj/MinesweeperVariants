@@ -7,8 +7,8 @@
 """
 [BM]多雷平衡(扫联会2)：每行每列的“多雷雷值”相同。(线索格不一定是多雷规则)
 """
-from abs.Lrule import AbstractMinesRule
-from abs.board import AbstractBoard
+from ....abs.Lrule import AbstractMinesRule
+from ....abs.board import AbstractBoard
 
 
 class RuleBM(AbstractMinesRule):

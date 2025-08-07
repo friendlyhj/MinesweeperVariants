@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
-# 
+#
 # @Time    : 2025/06/16 09:20
 # @Author  : xxx
 # @FileName: 2A.py
@@ -8,10 +8,10 @@
 [2A]面积: 线索表示四方向相邻雷区域的面积之和
 (注:如果出现大数字则速率极度底下)
 """
-from abs.Rrule import AbstractClueRule, AbstractClueValue
-from abs.board import AbstractBoard, AbstractPosition
+from ....abs.Rrule import AbstractClueRule, AbstractClueValue
+from ....abs.board import AbstractBoard, AbstractPosition
 
-from utils.tool import get_logger
+from ...utils.tool import get_logger
 
 
 class Rule2A(AbstractClueRule):

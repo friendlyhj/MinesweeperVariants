@@ -7,8 +7,8 @@
 """
 [2B] 桥 (Bridge)：所有雷构成若干组桥。桥是从题版左边界八连通连接（水平或斜角连接）到右边界，宽度为 1、长度与题版宽度相等的一条路径
 """
-from abs.Lrule import AbstractMinesRule
-from abs.board import AbstractBoard
+from ....abs.Lrule import AbstractMinesRule
+from ....abs.board import AbstractBoard
 
 
 class Rule2B(AbstractMinesRule):

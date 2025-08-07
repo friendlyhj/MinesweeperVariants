@@ -8,12 +8,12 @@
 # 雷线索由于未实装 等待版本大更新
 
 from typing import TYPE_CHECKING, List, Union, Dict
-from abs.rule import AbstractRule, AbstractValue
-from utils.image_create import get_image, get_col, get_dummy, get_text
+from ..abs.rule import AbstractRule, AbstractValue
+from ..utils.image_create import get_image, get_col, get_dummy, get_text
 from abc import abstractmethod, ABC
 
 if TYPE_CHECKING:
-    from .board import AbstractPosition, AbstractBoard
+    from ..board import AbstractPosition, AbstractBoard
 
 
 class AbstractMinesClueRule(AbstractRule, ABC):
@@ -120,5 +120,3 @@ class ValueCircle(AbstractMinesValue):
     @classmethod
     def type(cls) -> bytes:
         return b"O"
-
-

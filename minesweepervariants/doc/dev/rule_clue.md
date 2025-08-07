@@ -236,12 +236,12 @@ data值可以在运行命令的时候使用`|`分割来传入data值
 ```python
 class RuleTest:
   def suggest_total_mines(self, info):
-    
+
       # 定义硬约束函数，追加到 info 的硬约束列表
       def hard_constraint(m, total):
           m.AddModuloEquality(0, total, 3)
       info["hard_fns"].append(hard_constraint)
-  
+
       # 调用软约束函数，传入目标值和优先级
       info["soft_fn"](40, 0)
 ```
@@ -474,8 +474,8 @@ impl/rule/Rrule/
 所有标记为“T”的格子代表非雷.(这说的什么废话)
 """
 
-from abs.Rrule import AbstractClueRule, AbstractClueValue
-from utils.solver import get_model
+from .abs.Rrule import AbstractClueRule, AbstractClueValue
+from .utils.solver import get_model
 
 class RuleT(AbstractClueRule):
     name = "T"

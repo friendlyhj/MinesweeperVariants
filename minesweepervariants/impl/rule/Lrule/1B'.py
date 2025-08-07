@@ -9,8 +9,8 @@
 # [1B']失衡: 每行每列雷数均不相同
 # """
 
-from abs.Lrule import AbstractMinesRule
-from abs.board import AbstractBoard
+from ....abs.Lrule import AbstractMinesRule
+from ....abs.board import AbstractBoard
 
 
 class Rule1B(AbstractMinesRule):

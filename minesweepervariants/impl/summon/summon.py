@@ -12,16 +12,16 @@ from typing import Union
 import yaml
 from ortools.sat.python import cp_model
 
-from abs.Mrule import AbstractMinesClueRule
-from abs.Rrule import AbstractClueRule
-from utils.impl_obj import set_total, VALUE_QUESS, MINES_TAG
+from ...abs.Mrule import AbstractMinesClueRule
+from ...abs.Rrule import AbstractClueRule
+from ...utils.impl_obj import set_total, VALUE_QUESS, MINES_TAG
 from .solver import solver_by_csp, solver_model, Switch
-from utils.tool import get_random, get_logger
+from ...utils.tool import get_random, get_logger
 
-from abs.Lrule import MinesRules, AbstractMinesRule
-from abs.board import AbstractBoard, AbstractPosition
+from ...abs.Lrule import MinesRules, AbstractMinesRule
+from ...abs.board import AbstractBoard, AbstractPosition
 
-from impl.impl_obj import get_rule, get_board
+from ...impl.impl_obj import get_rule, get_board
 
 default_path = Path("config/base_puzzle_config.yaml")
 CONFIG = {'delimiter': ":"}

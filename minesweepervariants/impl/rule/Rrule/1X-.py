@@ -6,11 +6,11 @@
 """
 from typing import List, Dict
 
-from abs.Rrule import AbstractClueRule, AbstractClueValue
-from abs.board import AbstractBoard, AbstractPosition
-from utils.image_create import get_image, get_text, get_row, get_col, get_dummy
-from utils.impl_obj import MINES_TAG, VALUE_QUESS
-from utils.tool import get_random, get_logger
+from ....abs.Rrule import AbstractClueRule, AbstractClueValue
+from ....abs.board import AbstractBoard, AbstractPosition
+from ...utils.image_create import get_image, get_text, get_row, get_col, get_dummy
+from ...utils.impl_obj import MINES_TAG, VALUE_QUESS
+from ...utils.tool import get_random, get_logger
 
 
 class Rule1X_(AbstractClueRule):

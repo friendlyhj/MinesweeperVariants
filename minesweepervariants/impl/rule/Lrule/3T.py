@@ -8,8 +8,8 @@
 [3T]无三连:任意三个雷不能等距排布
 """
 
-from abs.Lrule import AbstractMinesRule
-from abs.board import AbstractBoard
+from ....abs.Lrule import AbstractMinesRule
+from ....abs.board import AbstractBoard
 
 
 class Rule1T(AbstractMinesRule):

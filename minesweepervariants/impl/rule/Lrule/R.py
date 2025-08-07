@@ -9,7 +9,7 @@
 [R]总雷数: 题板内的雷数量为一个整数
 """
 
-from abs.Lrule import Rule0R
+from ....abs.Lrule import Rule0R
 
 
 class RuleR(Rule0R):

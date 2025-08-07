@@ -10,10 +10,10 @@ import time
 from pathlib import Path
 import yaml
 
-from impl.summon import Summon
-from utils.image_create import draw_board
-from utils.impl_obj import get_seed
-from utils.tool import get_logger, get_random
+from .impl.summon import Summon
+from .utils.image_create import draw_board
+from .utils.impl_obj import get_seed
+from .utils.tool import get_logger, get_random
 
 
 base_path = Path("config/base_puzzle_config.yaml")

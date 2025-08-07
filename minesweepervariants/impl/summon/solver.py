@@ -12,18 +12,18 @@ from pathlib import Path
 import yaml
 from ortools.sat.python.cp_model import IntVar
 
-from abs.rule import AbstractRule, AbstractValue
+from ...abs.rule import AbstractRule, AbstractValue
 from ortools.sat.python import cp_model
 from collections import defaultdict
 from typing import Dict, List, Tuple, Union, Optional, Any
 
-from utils.tool import get_logger
+from ...utils.tool import get_logger
 
-from abs.Mrule import AbstractMinesClueRule
-from abs.Rrule import AbstractClueRule
-from abs.board import AbstractBoard, AbstractPosition
-from abs.Lrule import MinesRules, Rule0R
-from impl.impl_obj import ModelGenerateError
+from ...abs.Mrule import AbstractMinesClueRule
+from ...abs.Rrule import AbstractClueRule
+from ...abs.board import AbstractBoard, AbstractPosition
+from ...abs.Lrule import MinesRules, Rule0R
+from ...impl.impl_obj import ModelGenerateError
 
 
 # ==== 获取默认值 ====

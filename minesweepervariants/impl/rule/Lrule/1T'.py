@@ -9,9 +9,9 @@
 [1T']必三连: 雷必然处在横竖对角构成三连
 """
 
-from abs.Lrule import AbstractMinesRule
-from abs.board import AbstractBoard
-from utils.tool import get_logger
+from ....abs.Lrule import AbstractMinesRule
+from ....abs.board import AbstractBoard
+from ...utils.tool import get_logger
 
 
 class Rule1Tp(AbstractMinesRule):

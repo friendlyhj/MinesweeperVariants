@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
-# 
+#
 # @Time    : 2025/06/10 15:13
 # @Author  : xxx
 # @FileName: 1K.py
@@ -9,11 +9,11 @@
 """
 from typing import List
 
-from abs.Rrule import AbstractClueRule, AbstractClueValue
-from abs.board import AbstractBoard, AbstractPosition
+from ....abs.Rrule import AbstractClueRule, AbstractClueValue
+from ....abs.board import AbstractBoard, AbstractPosition
 
-from utils.tool import get_logger
-from utils.impl_obj import VALUE_QUESS, MINES_TAG
+from ...utils.tool import get_logger
+from ...utils.impl_obj import VALUE_QUESS, MINES_TAG
 
 
 class Rule1K(AbstractClueRule):

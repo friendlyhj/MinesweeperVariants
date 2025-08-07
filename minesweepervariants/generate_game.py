@@ -13,12 +13,12 @@ from pathlib import Path
 
 import yaml
 
-from impl.impl_obj import ModelGenerateError, get_board, encode_board
-from impl.summon import Summon
-from impl.summon.game import GameSession, PUZZLE
-from impl.summon.summon import GenerateError
-from utils.impl_obj import get_seed
-from utils.tool import get_logger, get_random
+from .impl.impl_obj import ModelGenerateError, get_board, encode_board
+from .impl.summon import Summon
+from .impl.summon.game import GameSession, PUZZLE
+from .impl.summon.summon import GenerateError
+from .utils.impl_obj import get_seed
+from .utils.tool import get_logger, get_random
 
 base_path = Path("config/base_puzzle_config.yaml")
 default_path = Path("config/default.yaml")

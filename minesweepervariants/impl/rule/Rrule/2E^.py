@@ -8,10 +8,10 @@
 [2E^] 加密^ (Encrypted^)：线索被字母替代，每个数字与字母两两对应 [副版规则]
 """
 
-from abs.board import AbstractBoard, AbstractPosition
-from abs.Rrule import AbstractClueRule, AbstractClueValue
-from utils.impl_obj import VALUE_QUESS, VALUE_CROSS, VALUE_CIRCLE
-from utils.tool import get_random
+from ....abs.board import AbstractBoard, AbstractPosition
+from ....abs.Rrule import AbstractClueRule, AbstractClueValue
+from ...utils.impl_obj import VALUE_QUESS, VALUE_CROSS, VALUE_CIRCLE
+from ...utils.tool import get_random
 
 NAME_2Eq = "2E^"
 
@@ -126,4 +126,3 @@ class Value2Eq(AbstractClueValue):
             tmp_vars.append(tmp_var)
 
         model.AddBoolOr(tmp_vars).OnlyEnforceIf(s)
-

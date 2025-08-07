@@ -9,8 +9,8 @@
 [1B'']后平衡: 雷八方向上的总雷数均相等
 """
 
-from abs.Lrule import AbstractMinesRule
-from abs.board import AbstractBoard, AbstractPosition
+from ....abs.Lrule import AbstractMinesRule
+from ....abs.board import AbstractBoard, AbstractPosition
 
 
 def get_line(board: AbstractBoard, pos: AbstractPosition):

@@ -7,8 +7,8 @@
 """
 [3O]横纵: 雷从四个方向中的任意一个连到题板外
 """
-from abs.Lrule import AbstractMinesRule
-from abs.board import AbstractBoard
+from ....abs.Lrule import AbstractMinesRule
+from ....abs.board import AbstractBoard
 
 
 class Rule3O(AbstractMinesRule):

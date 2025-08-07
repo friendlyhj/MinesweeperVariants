@@ -14,17 +14,17 @@ import itertools as it
 import yaml
 from ortools.sat.python import cp_model
 
-from abs.Lrule import Rule0R
+from ...abs.Lrule import Rule0R
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from abs.Mrule import AbstractMinesValue
-from abs.Rrule import AbstractClueValue
-from abs.board import AbstractBoard
-from abs.board import AbstractPosition
-from impl.summon import Summon
-from impl.summon.solver import solver_by_csp, hint_by_csp, Switch, deduced_by_csp, solver_board
-from utils.impl_obj import MINES_TAG, VALUE_QUESS, POSITION_TAG
-from utils.tool import get_logger, get_random
+from ...abs.Mrule import AbstractMinesValue
+from ...abs.Rrule import AbstractClueValue
+from ...abs.board import AbstractBoard
+from ...abs.board import AbstractPosition
+from ...impl.summon import Summon
+from ...impl.summon.solver import solver_by_csp, hint_by_csp, Switch, deduced_by_csp, solver_board
+from ...utils.impl_obj import MINES_TAG, VALUE_QUESS, POSITION_TAG
+from ...utils.tool import get_logger, get_random
 
 # ==== 获取默认值 ====
 default_path = Path("config/default.yaml")

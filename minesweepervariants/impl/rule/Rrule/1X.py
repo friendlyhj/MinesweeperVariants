@@ -7,11 +7,11 @@
 """
 [1X] 十字 (Cross)：线索表示半径为 2 的十字范围内的雷数
 """
-from abs.Rrule import AbstractClueRule, AbstractClueValue
-from abs.board import AbstractBoard, AbstractPosition
+from ....abs.Rrule import AbstractClueRule, AbstractClueValue
+from ....abs.board import AbstractBoard, AbstractPosition
 
-from utils.tool import get_logger
-from utils.impl_obj import VALUE_QUESS, MINES_TAG
+from ...utils.tool import get_logger
+from ...utils.impl_obj import VALUE_QUESS, MINES_TAG
 
 
 class Rule1X(AbstractClueRule):

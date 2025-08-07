@@ -8,8 +8,8 @@
 [2G'] 三连块 (Group')：所有四连通雷区域的面积为 3
 """
 # (在提示的表现似乎有问题)
-from abs.Lrule import AbstractMinesRule
-from abs.board import AbstractBoard
+from ....abs.Lrule import AbstractMinesRule
+from ....abs.board import AbstractBoard
 
 
 class Rule2Gp(AbstractMinesRule):

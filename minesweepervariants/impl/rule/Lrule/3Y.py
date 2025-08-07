@@ -9,10 +9,10 @@
 """
 from typing import List
 
-from abs.Lrule import AbstractMinesRule
-from abs.board import AbstractBoard, AbstractPosition
-from impl.rule.Lrule.connect import connect
-from utils.impl_obj import get_total
+from ....abs.Lrule import AbstractMinesRule
+from ....abs.board import AbstractBoard, AbstractPosition
+from ..impl.rule.Lrule.connect import connect
+from ...utils.impl_obj import get_total
 
 
 def block(a_pos: AbstractPosition, board: AbstractBoard) -> List[AbstractPosition]:

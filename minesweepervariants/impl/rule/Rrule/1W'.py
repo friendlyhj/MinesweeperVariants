@@ -7,8 +7,8 @@
 """
 [1W'] 最长数墙 (Longest Wall)：线索表示 3x3 范围内最长的连续雷的长度
 """
-from abs.Rrule import AbstractClueRule, AbstractClueValue
-from abs.board import AbstractBoard, AbstractPosition
+from ....abs.Rrule import AbstractClueRule, AbstractClueValue
+from ....abs.board import AbstractBoard, AbstractPosition
 
 
 def MineStatus_1W(clue: list) -> list[int]:

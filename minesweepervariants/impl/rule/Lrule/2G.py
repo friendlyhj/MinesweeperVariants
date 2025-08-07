@@ -7,8 +7,8 @@
 """
 [2G] 四连块 (Group)：所有四连通雷区域的面积为 4
 """
-from abs.Lrule import AbstractMinesRule
-from abs.board import AbstractBoard
+from ....abs.Lrule import AbstractMinesRule
+from ....abs.board import AbstractBoard
 
 
 class Rule2G(AbstractMinesRule):

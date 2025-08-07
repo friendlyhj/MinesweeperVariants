@@ -8,11 +8,11 @@
 from abc import abstractmethod, ABC
 from typing import TYPE_CHECKING, List, Dict
 
-from abs.rule import AbstractRule, AbstractValue
-from utils.image_create import get_text, get_image, get_dummy, get_col
+from ..abs.rule import AbstractRule, AbstractValue
+from ..utils.image_create import get_text, get_image, get_dummy, get_col
 
 if TYPE_CHECKING:
-    from abs.board import AbstractBoard, AbstractPosition
+    from ..abs.board import AbstractBoard, AbstractPosition
 
 
 class AbstractClueRule(AbstractRule):

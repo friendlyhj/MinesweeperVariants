@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
-# 
+#
 # @Time    : 2025/06/10 11:40
 # @Author  : xxx
 # @FileName: sharp.py
@@ -8,9 +8,9 @@
 [F#]雷标签: 雷线索会有不同的规则, 每个雷线索的规则会单独标出
 """
 
-from abs.Mrule import AbstractMinesClueRule
-from abs.board import AbstractBoard
-from utils.tool import get_random
+from ....abs.Mrule import AbstractMinesClueRule
+from ....abs.board import AbstractBoard
+from ...utils.tool import get_random
 
 
 class RuleSharp(AbstractMinesClueRule):

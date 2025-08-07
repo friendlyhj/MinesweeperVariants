@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
-# 
+#
 # @Time    : 2025/06/10 11:44
 # @Author  : xxx
 # @FileName: Q1.py
@@ -11,8 +11,8 @@
 
 from typing import List
 
-from abs.Lrule import AbstractMinesRule
-from abs.board import AbstractPosition, AbstractBoard
+from ....abs.Lrule import AbstractMinesRule
+from ....abs.board import AbstractPosition, AbstractBoard
 
 
 def block(a_pos: AbstractPosition, board: AbstractBoard) -> List[AbstractPosition]:

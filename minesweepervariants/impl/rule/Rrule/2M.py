@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
-# 
+#
 # @Time    : 2025/06/10 11:07
 # @Author  : xxx
 # @FileName: 1L.py
@@ -8,10 +8,10 @@
 [2M]取模:线索与周围8格的雷数除以3的余数相同
 """
 
-from abs.Rrule import AbstractClueRule, AbstractClueValue
-from abs.board import AbstractBoard, AbstractPosition
+from ....abs.Rrule import AbstractClueRule, AbstractClueValue
+from ....abs.board import AbstractBoard, AbstractPosition
 
-from utils.tool import get_logger
+from ...utils.tool import get_logger
 
 
 class Rule2M(AbstractClueRule):

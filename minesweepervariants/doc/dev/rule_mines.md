@@ -185,8 +185,8 @@ subrules = [
 **示例结构**：
 
 ```python
-from utils.solver import get_model
-from utils.impl_obj import get_total
+from .utils.solver import get_model
+from .utils.impl_obj import get_total
 
 class RuleR(...):
   def create_constraints(self, board):
@@ -244,12 +244,12 @@ class RuleR(...):
 ```python
 class RuleTest:
   def suggest_total_mines(self, info):
-    
+
       # 定义硬约束函数，追加到 info 的硬约束列表
       def hard_constraint(m, total):
           m.AddModuloEquality(0, total, 3)
       info["hard_fns"].append(hard_constraint)
-  
+
       # 调用软约束函数，传入目标值和优先级
       info["soft_fn"](40, 0)
 ```
@@ -338,9 +338,9 @@ class RuleR(...):
 """
 [0R]：总雷数规则，控制题板中雷的总数
 """
-from abs.Lrule import AbstractMinesRule
-from utils.solver import get_model
-from utils.impl_obj import get_total
+from .abs.Lrule import AbstractMinesRule
+from .utils.solver import get_model
+from .utils.impl_obj import get_total
 
 class Rule0R(AbstractMinesRule):
     name = "0R"
@@ -353,7 +353,7 @@ class Rule0R(AbstractMinesRule):
         model = get_model()
         all_variable = [board.get_variable(pos) for pos, _ in board()]
         model.Add(sum(all_variable) == get_total())
-        
+
     @classmethod
     def method_choose(cls) -> int:
         return 1
@@ -372,4 +372,3 @@ class Rule0R(AbstractMinesRule):
 ### [board_api.md](./board_api.md) << 题板与坐标系统接口
 
 ### [utils.md](./utils.md) << 工具模块接口说明
-

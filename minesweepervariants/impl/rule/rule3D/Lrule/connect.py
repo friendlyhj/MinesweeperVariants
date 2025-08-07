@@ -9,8 +9,8 @@ from typing import List, Callable, Union
 from ortools.sat.python import cp_model
 from ortools.sat.python.cp_model import IntVar
 
-from abs.board import AbstractBoard
-from .. import Abstract3DRule
+from ....abs.board import AbstractBoard
+from .... import Abstract3DRule
 
 
 def connect(

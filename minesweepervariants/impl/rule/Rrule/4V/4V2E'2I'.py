@@ -10,11 +10,11 @@
 """
 from typing import List
 
-from abs.Rrule import AbstractClueRule, AbstractClueValue
-from abs.board import AbstractBoard, AbstractPosition, MASTER_BOARD
-from utils.impl_obj import VALUE_QUESS, MINES_TAG, VALUE_CIRCLE, VALUE_CROSS
-from utils.tool import get_random, get_logger
-from . import BOARD_NAME_4V
+from ....abs.Rrule import AbstractClueRule, AbstractClueValue
+from ....abs.board import AbstractBoard, AbstractPosition, MASTER_BOARD
+from ...utils.impl_obj import VALUE_QUESS, MINES_TAG, VALUE_CIRCLE, VALUE_CROSS
+from ...utils.tool import get_random, get_logger
+from ... import BOARD_NAME_4V
 
 NAME = BOARD_NAME_4V
 NAME_4V_2Ip = "4V2I'"

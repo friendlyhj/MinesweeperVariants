@@ -9,8 +9,8 @@
 [1T'']纯三连：所有雷格必须与其他雷组成三连，且最终题板可以为每一个雷构造唯一的三连组（我又表达困难了，淦）
 """
 
-from abs.Lrule import AbstractMinesRule
-from abs.board import AbstractBoard
+from ....abs.Lrule import AbstractMinesRule
+from ....abs.board import AbstractBoard
 
 
 class Rule1Tpp(AbstractMinesRule):

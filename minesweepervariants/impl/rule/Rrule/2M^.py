@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
-# 
+#
 # @Time    : 2025/06/10 11:07
 # @Author  : xxx
 # @FileName: 1L.py
@@ -9,10 +9,10 @@
 """
 
 
-from abs.Rrule import AbstractClueRule, AbstractClueValue
-from abs.board import AbstractBoard, AbstractPosition
+from ....abs.Rrule import AbstractClueRule, AbstractClueValue
+from ....abs.board import AbstractBoard, AbstractPosition
 
-from utils.tool import get_logger
+from ...utils.tool import get_logger
 
 
 class Rule2M(AbstractClueRule):

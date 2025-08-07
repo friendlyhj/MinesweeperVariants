@@ -7,11 +7,11 @@
 """
 [2E'']互指: 如果线索X周围有N个雷 则另一个题板的X=N的格子必定为雷
 """
-from utils.impl_obj import VALUE_QUESS, MINES_TAG
-from utils.tool import get_random, get_logger
+from ...utils.impl_obj import VALUE_QUESS, MINES_TAG
+from ...utils.tool import get_random, get_logger
 
-from abs.Rrule import AbstractClueValue, AbstractClueRule
-from abs.board import AbstractBoard, AbstractPosition, MASTER_BOARD
+from ....abs.Rrule import AbstractClueValue, AbstractClueRule
+from ....abs.board import AbstractBoard, AbstractPosition, MASTER_BOARD
 
 ALPHABET = "ABCDEFGHI"
 NAME_2Epp = "2E''"
@@ -98,4 +98,3 @@ class Value2Ep(AbstractClueValue):
             var = line[index]
             model.Add(sum_vers != index).OnlyEnforceIf(var.Not()).OnlyEnforceIf(s)
             get_logger().trace(f"[2E'']: {self.pos} != {index} if {var} is 0")
-

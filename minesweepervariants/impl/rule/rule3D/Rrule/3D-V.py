@@ -9,13 +9,13 @@
 """
 from typing import List
 
-from .. import Abstract3DClueRule
+from .... import Abstract3DClueRule
 
-from abs.Rrule import AbstractClueValue
-from abs.board import AbstractBoard, AbstractPosition
+from ....abs.Rrule import AbstractClueValue
+from ....abs.board import AbstractBoard, AbstractPosition
 
-from utils.tool import get_logger
-from utils.impl_obj import VALUE_QUESS, MINES_TAG
+from ...utils.tool import get_logger
+from ...utils.impl_obj import VALUE_QUESS, MINES_TAG
 
 
 class Rule3DV(Abstract3DClueRule):

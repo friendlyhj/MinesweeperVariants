@@ -7,8 +7,8 @@
 """
 [2H] 横向 (Horizontal)：所有雷必须存在横向相邻的雷
 """
-from abs.Lrule import AbstractMinesRule
-from abs.board import AbstractBoard
+from ....abs.Lrule import AbstractMinesRule
+from ....abs.board import AbstractBoard
 
 
 class Rule2H(AbstractMinesRule):

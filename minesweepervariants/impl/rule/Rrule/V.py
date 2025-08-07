@@ -7,11 +7,11 @@
 """
 [V]标准扫雷：每个数字标明周围八格内雷的数量。
 """
-from abs.Rrule import AbstractClueRule, AbstractClueValue
-from abs.board import AbstractBoard, AbstractPosition
+from ....abs.Rrule import AbstractClueRule, AbstractClueValue
+from ....abs.board import AbstractBoard, AbstractPosition
 
-from utils.tool import get_logger
-from utils.impl_obj import VALUE_QUESS, MINES_TAG
+from ...utils.tool import get_logger
+from ...utils.impl_obj import VALUE_QUESS, MINES_TAG
 
 
 class RuleV(AbstractClueRule):

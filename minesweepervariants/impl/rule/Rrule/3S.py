@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
-# 
+#
 # @Time    : 2025/06/16 09:20
 # @Author  : xxx
 # @FileName: 3S.py
@@ -9,11 +9,11 @@
 """
 from typing import Dict
 
-from abs.Rrule import AbstractClueRule, AbstractClueValue
-from abs.board import AbstractBoard, AbstractPosition
-from utils.image_create import get_text, get_row
+from ....abs.Rrule import AbstractClueRule, AbstractClueValue
+from ....abs.board import AbstractBoard, AbstractPosition
+from ...utils.image_create import get_text, get_row
 
-from utils.tool import get_logger, get_random
+from ...utils.tool import get_logger, get_random
 
 
 class Rule3S(AbstractClueRule):

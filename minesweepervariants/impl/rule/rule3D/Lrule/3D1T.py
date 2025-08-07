@@ -9,8 +9,8 @@
 [3D1T]无三连: 雷不能在横竖对角构成三连
 """
 
-from .. import Abstract3DMinesRule
-from abs.board import AbstractBoard
+from .... import Abstract3DMinesRule
+from ....abs.board import AbstractBoard
 
 
 class Rule1T(Abstract3DMinesRule):

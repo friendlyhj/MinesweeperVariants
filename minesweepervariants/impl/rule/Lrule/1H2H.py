@@ -7,8 +7,8 @@
 """
 [1H2H]: 在每一行中, 要么都没有横向相邻的雷，要么都至少有一个横向相邻的雷。
 """
-from abs.Lrule import AbstractMinesRule
-from abs.board import AbstractBoard
+from ....abs.Lrule import AbstractMinesRule
+from ....abs.board import AbstractBoard
 
 
 class Rule1H(AbstractMinesRule):

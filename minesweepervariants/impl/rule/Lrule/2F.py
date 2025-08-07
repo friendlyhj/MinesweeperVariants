@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
-# 
+#
 # @Time    : 2025/06/11 12:14
 # @Author  : xxx
 # @FileName: 2F.py
@@ -8,8 +8,8 @@
 [2F]花田: 染色格中的雷周围四格内恰好有1个雷
 """
 
-from abs.Lrule import AbstractMinesRule
-from abs.board import AbstractBoard
+from ....abs.Lrule import AbstractMinesRule
+from ....abs.board import AbstractBoard
 
 
 class Rule2F(AbstractMinesRule):

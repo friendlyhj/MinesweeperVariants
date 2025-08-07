@@ -7,11 +7,11 @@
 """
 [2D]偏移: 线索表示上方一格为中心的3x3区域内的总雷数
 """
-from abs.Rrule import AbstractClueRule, AbstractClueValue
-from abs.board import AbstractBoard, AbstractPosition
-from utils.impl_obj import VALUE_QUESS, MINES_TAG
+from ....abs.Rrule import AbstractClueRule, AbstractClueValue
+from ....abs.board import AbstractBoard, AbstractPosition
+from ...utils.impl_obj import VALUE_QUESS, MINES_TAG
 
-from utils.tool import get_logger
+from ...utils.tool import get_logger
 
 
 class Rule2D(AbstractClueRule):

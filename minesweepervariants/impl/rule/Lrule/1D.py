@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
-# 
+#
 # @Time    : 2025/06/11 14:25
 # @Author  : xxx
 # @FileName: 1D.py
@@ -8,8 +8,8 @@
 [1D]对偶: 雷均有1x2或2x1的矩阵组成
 """
 
-from abs.Lrule import AbstractMinesRule
-from abs.board import AbstractBoard
+from ....abs.Lrule import AbstractMinesRule
+from ....abs.board import AbstractBoard
 
 
 class Rule1D(AbstractMinesRule):

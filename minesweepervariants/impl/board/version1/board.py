@@ -11,19 +11,19 @@ import heapq
 from ortools.sat.python import cp_model
 from ortools.sat.python.cp_model import IntVar
 
-from utils.impl_obj import VALUE_QUESS, MINES_TAG
-from utils.tool import get_logger
-from abs.board import AbstractBoard, AbstractPosition
-from abs.board import MASTER_BOARD
-from abs.Rrule import AbstractClueValue
-from abs.Mrule import AbstractMinesValue
+from ....utils.impl_obj import VALUE_QUESS, MINES_TAG
+from ....utils.tool import get_logger
+from ....abs.board import AbstractBoard, AbstractPosition
+from ....abs.board import MASTER_BOARD
+from ....abs.Rrule import AbstractClueValue
+from ....abs.Mrule import AbstractMinesValue
 
 if TYPE_CHECKING:
     ...
 
 
 def get_value(pos=None, code=None):
-    from impl.impl_obj import get_value
+    from ..impl.impl_obj import get_value
     return get_value(pos, code)
 
 

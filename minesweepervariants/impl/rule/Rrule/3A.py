@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
-# 
+#
 # @Time    : 2025/06/09 11:37
 # @Author  : xxx
 # @FileName: 3A.py
@@ -11,11 +11,11 @@
 """
 from typing import List, Dict
 
-from abs.Rrule import AbstractClueRule, AbstractClueValue
-from abs.board import AbstractBoard, AbstractPosition
-from utils.image_create import get_image, get_text, get_row, get_col, get_dummy
-from utils.impl_obj import MINES_TAG, VALUE_QUESS
-from utils.tool import get_random
+from ....abs.Rrule import AbstractClueRule, AbstractClueValue
+from ....abs.board import AbstractBoard, AbstractPosition
+from ...utils.image_create import get_image, get_text, get_row, get_col, get_dummy
+from ...utils.impl_obj import MINES_TAG, VALUE_QUESS
+from ...utils.tool import get_random
 
 
 def put(board, pos: 'AbstractPosition', path):

@@ -7,8 +7,8 @@
 """
 [1U] 一元 (Unary)：所有雷不能与其他雷相邻
 """
-from abs.Lrule import AbstractMinesRule
-from abs.board import AbstractBoard
+from ....abs.Lrule import AbstractMinesRule
+from ....abs.board import AbstractBoard
 
 
 class Rule1H(AbstractMinesRule):

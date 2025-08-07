@@ -7,8 +7,8 @@
 """
 [2Z] 零和 (Zero-Sum)：每行的染色格与非染色格的雷数相等
 """
-from abs.Lrule import AbstractMinesRule
-from abs.board import AbstractBoard
+from ....abs.Lrule import AbstractMinesRule
+from ....abs.board import AbstractBoard
 
 
 class Rule2Z(AbstractMinesRule):

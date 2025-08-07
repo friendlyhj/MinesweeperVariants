@@ -12,11 +12,11 @@ from dataclasses import dataclass
 from ortools.sat.python import cp_model
 from ortools.sat.python.cp_model import IntVar
 
-from impl.board.dye import get_dye
+from ..impl.board.dye import get_dye
 
 if TYPE_CHECKING:
-    from .Rrule import AbstractClueValue
-    from .Mrule import AbstractMinesValue
+    from ..Rrule import AbstractClueValue
+    from ..Mrule import AbstractMinesValue
 
 MASTER_BOARD = "main"
 

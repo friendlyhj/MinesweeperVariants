@@ -10,8 +10,8 @@
 from functools import reduce
 from math import gcd
 
-from abs.Lrule import AbstractMinesRule
-from abs.board import AbstractBoard
+from ....abs.Lrule import AbstractMinesRule
+from ....abs.board import AbstractBoard
 
 
 class Rule1B(AbstractMinesRule):

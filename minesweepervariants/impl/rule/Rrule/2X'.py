@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
-# 
+#
 # @Time    : 2025/06/16 09:20
 # @Author  : xxx
 # @FileName: 2X'.py
 """
 [2X'] 十字' (Cross')：线索表示 3x3 范围内染色格或非染色格的雷数
 """
-from abs.Rrule import AbstractClueRule, AbstractClueValue
-from abs.board import AbstractBoard, AbstractPosition
+from ....abs.Rrule import AbstractClueRule, AbstractClueValue
+from ....abs.board import AbstractBoard, AbstractPosition
 
-from utils.tool import get_logger, get_random
+from ...utils.tool import get_logger, get_random
 
 
 class Rule2X(AbstractClueRule):

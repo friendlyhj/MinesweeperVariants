@@ -7,8 +7,8 @@
 """
 [1N] 负雷 (Negative)：线索表示 3x3 范围内染色格与非染色格的雷数差
 """
-from abs.Rrule import AbstractClueRule, AbstractClueValue
-from abs.board import AbstractBoard, AbstractPosition
+from ....abs.Rrule import AbstractClueRule, AbstractClueValue
+from ....abs.board import AbstractBoard, AbstractPosition
 
 
 class Rule1N(AbstractClueRule):

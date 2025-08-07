@@ -13,8 +13,8 @@
 
 from typing import List
 
-from .. import Abstract3DMinesRule
-from abs.board import AbstractPosition, AbstractBoard
+from .... import Abstract3DMinesRule
+from ....abs.board import AbstractPosition, AbstractBoard
 
 
 def get_vertical_column(board: AbstractBoard, pos: AbstractPosition) -> List[AbstractPosition]:
@@ -120,4 +120,3 @@ class Rule3DW(Abstract3DMinesRule):
                     neighbor_vars = [board.get_variable(neighbor) for neighbor in neighbors]
 
                     model.Add(sum(neighbor_vars) == len(neighbors2d)+1).OnlyEnforceIf([center_var, s2])
-

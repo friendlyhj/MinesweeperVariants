@@ -9,16 +9,16 @@ import sys
 import importlib.util
 from pathlib import Path
 
-from utils.impl_obj import VALUE_QUESS, MINES_TAG
+from ..utils.impl_obj import VALUE_QUESS, MINES_TAG
 
-from abs.rule import AbstractValue, AbstractRule
-from abs.board import AbstractBoard
-from abs.Lrule import AbstractMinesRule
-from abs.Mrule import AbstractMinesClueRule, AbstractMinesValue
-from abs.Rrule import AbstractClueRule, AbstractClueValue
+from ..abs.rule import AbstractValue, AbstractRule
+from ..abs.board import AbstractBoard
+from ..abs.Lrule import AbstractMinesRule
+from ..abs.Mrule import AbstractMinesClueRule, AbstractMinesValue
+from ..abs.Rrule import AbstractClueRule, AbstractClueValue
 
-from impl.board import version1, version2
-from impl import rule
+from ..impl.board import version1, version2
+from ..impl import rule
 
 TOTAL = -1
 hypothesis_board = [version2, version1]

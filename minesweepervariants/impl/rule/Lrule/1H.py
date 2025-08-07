@@ -7,8 +7,8 @@
 """
 [1H] 横向 (Horizontal)：所有雷不能与其他雷横向相邻
 """
-from abs.Lrule import AbstractMinesRule
-from abs.board import AbstractBoard
+from ....abs.Lrule import AbstractMinesRule
+from ....abs.board import AbstractBoard
 
 
 class Rule1H(AbstractMinesRule):

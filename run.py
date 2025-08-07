@@ -13,9 +13,9 @@ import textwrap
 import yaml
 from pathlib import Path
 
-from main.generate_puzzle import main as puzzle
-from main.generate_game import main as puzzle_query
-from main.generate_test import main as test
+from minesweepervariants.generate_puzzle import main as puzzle
+from minesweepervariants.generate_game import main as puzzle_query
+from minesweepervariants.generate_test import main as test
 
 # ==== 获取默认值 ====
 default_path = Path("config/default.yaml")
@@ -94,7 +94,7 @@ def print_with_indent(text, indent="\t"):
 
 
 if args.command == "list":
-    from impl import rule
+    from .impl import rule
     rule_list = rule.get_all_rules()
     # print(rule_list)
 

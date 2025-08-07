@@ -8,9 +8,9 @@ import os
 
 import yaml
 
-from abs.board import AbstractBoard
-from utils.tool import get_logger
-from utils.element_renderer import *
+from ..abs.board import AbstractBoard
+from ..utils.tool import get_logger
+from ..utils.element_renderer import *
 
 
 def _hex_to_rgb(hex_color: str):

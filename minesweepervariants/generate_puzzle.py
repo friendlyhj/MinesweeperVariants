@@ -9,13 +9,13 @@ import time
 from pathlib import Path
 import yaml
 
-from abs.board import AbstractBoard
-from impl.impl_obj import get_board, ModelGenerateError, encode_board
-from impl.summon import Summon
-from impl.summon.summon import GenerateError
-from utils.image_create import draw_board
-from utils.tool import get_logger, get_random
-from utils.impl_obj import get_seed
+from .abs.board import AbstractBoard
+from .impl.impl_obj import get_board, ModelGenerateError, encode_board
+from .impl.summon import Summon
+from .impl.summon.summon import GenerateError
+from .utils.image_create import draw_board
+from .utils.tool import get_logger, get_random
+from .utils.impl_obj import get_seed
 
 base_path = Path("config/base_puzzle_config.yaml")
 default_path = Path("config/default.yaml")

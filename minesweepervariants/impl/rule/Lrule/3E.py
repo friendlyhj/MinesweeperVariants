@@ -9,10 +9,10 @@
 [3E]演化: 每个3x1区域决定其中间下方1格是否为雷，演化被当前题板所有区域共享。
 """
 
-from abs.Lrule import AbstractMinesRule
-from abs.board import AbstractBoard
-from utils.impl_obj import VALUE_QUESS, MINES_TAG
-from utils.tool import get_random
+from ....abs.Lrule import AbstractMinesRule
+from ....abs.board import AbstractBoard
+from ...utils.impl_obj import VALUE_QUESS, MINES_TAG
+from ...utils.tool import get_random
 
 NAME_3E = ["3E_x", "3E_y"]
 

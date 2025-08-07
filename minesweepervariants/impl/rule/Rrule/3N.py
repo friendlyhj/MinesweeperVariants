@@ -4,10 +4,10 @@
 """
 from typing import  Dict, Literal
 
-from abs.Rrule import AbstractClueValue, AbstractClueRule
-from abs.board import AbstractPosition, AbstractBoard
-from utils.image_create import get_text, get_image, get_row, get_col, get_dummy
-from utils.tool import get_random
+from ....abs.Rrule import AbstractClueValue, AbstractClueRule
+from ....abs.board import AbstractPosition, AbstractBoard
+from ...utils.image_create import get_text, get_image, get_row, get_col, get_dummy
+from ...utils.tool import get_random
 
 P = Literal[0, 1, 2] | Literal['00']
 Root = tuple[int, int]

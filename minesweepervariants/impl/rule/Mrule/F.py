@@ -9,7 +9,7 @@
 [F]标准雷线索: 雷线索表示该格是一个雷
 """
 
-from abs.Mrule import Rule0F as AbstractRule0F
+from ....abs.Mrule import Rule0F as AbstractRule0F
 
 
 class RuleF(AbstractRule0F):

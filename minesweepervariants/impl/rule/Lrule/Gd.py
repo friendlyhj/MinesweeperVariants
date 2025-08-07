@@ -8,8 +8,8 @@
 [Gd]: 每列雷数不少于左一列雷数；每行雷数不少于上一行雷数
 """
 
-from abs.Lrule import AbstractMinesRule
-from abs.board import AbstractBoard
+from ....abs.Lrule import AbstractMinesRule
+from ....abs.board import AbstractBoard
 
 
 class RuleGd(AbstractMinesRule):

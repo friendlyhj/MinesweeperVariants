@@ -8,12 +8,12 @@
 from typing import TYPE_CHECKING
 from abc import abstractmethod
 
-from utils.impl_obj import get_total
-from utils.tool import get_logger
-from abs.rule import AbstractRule
+from ..utils.impl_obj import get_total
+from ..utils.tool import get_logger
+from ..abs.rule import AbstractRule
 
 if TYPE_CHECKING:
-    from .board import AbstractBoard
+    from ..board import AbstractBoard
 
 
 class AbstractMinesRule(AbstractRule):

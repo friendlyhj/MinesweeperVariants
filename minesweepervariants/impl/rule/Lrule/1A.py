@@ -8,8 +8,8 @@
 [1A] 无马步 (Anti-Knight)：所有雷的马步位置不能有雷
 """
 
-from abs.Lrule import AbstractMinesRule
-from abs.board import AbstractBoard
+from ....abs.Lrule import AbstractMinesRule
+from ....abs.board import AbstractBoard
 
 
 class Rule1A(AbstractMinesRule):

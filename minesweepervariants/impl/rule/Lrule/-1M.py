@@ -7,8 +7,8 @@
 """
 [*1M]: 雷分布将随机按照下述方式对称 [水平/垂直/对角/副对角/中心/旋转90度]对称
 """
-from abs.Lrule import AbstractMinesRule
-from abs.board import AbstractBoard
+from ....abs.Lrule import AbstractMinesRule
+from ....abs.board import AbstractBoard
 
 
 class Rulen1M(AbstractMinesRule):

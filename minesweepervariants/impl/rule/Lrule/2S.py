@@ -8,8 +8,8 @@
 [2S] 分段 (Segment)：每行有且仅有一组连续的雷
 """
 
-from abs.Lrule import AbstractMinesRule
-from abs.board import AbstractBoard
+from ....abs.Lrule import AbstractMinesRule
+from ....abs.board import AbstractBoard
 
 
 class Rule2S(AbstractMinesRule):
@@ -29,4 +29,3 @@ class Rule2S(AbstractMinesRule):
                     model.Add(sum(line_var[index + 1:]) == 0).OnlyEnforceIf([var, line_var[index + 1].Not(), s])
                 for index, var in enumerate(line_var[1:]):
                     model.Add(sum(line_var[:index+1]) == 0).OnlyEnforceIf([var, line_var[index].Not(), s])
-
