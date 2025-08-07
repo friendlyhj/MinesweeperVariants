@@ -234,11 +234,15 @@ def generate_board():
     mask_board = None
     code = request.args.get("code", None)
     used_r = request.args.get("used_r", "true").lower() == "true"
-    rules = request.args.get("rules", "V").split(",")
+    rules = request.args.get("rules", "V")
     ultimate_mode = request.args.get("u_mode", "+A")
     total = int(request.args.get("total", -1))
     dye = request.args.get("dye", "")
     seed = request.args.get("seed", None)
+    if rules:
+        rules = rules.split(",")
+    else:
+        rules = ["V"]
     if seed is not None:
         get_random(new=True, seed=hash_str(seed))
     # dye = "@c"
@@ -292,7 +296,7 @@ def generate_board():
         )
     except Exception as e:
         return {
-            "reason": str(e),
+            "reason": f"{type(e).__name__}: {e}",
             "success": False
         }
     hypothesis_data["game"] = Game(
@@ -301,13 +305,12 @@ def generate_board():
         drop_r=not used_r,
         ultimate_mode=u_mode
     )
-    error_str = ""
     if code:
         hypothesis_data["game"].answer_board = answer_board
         hypothesis_data["game"].board = mask_board
     else:
         # print(2)
-        if mode < 3:
+        if mode < PUZZLE:
             try:
                 answer_board = hypothesis_data["summon"].summon_board()
                 hypothesis_data["game"].answer_board = answer_board
@@ -331,8 +334,8 @@ def generate_board():
     # hypothesis_data["game"].deduced(wait=False)
     hypothesis_data["rules"] = rules[:]
     data = {
-        "reason": error_str,
-        "success": error_str is not None
+        "reason": '',
+        "success": True
     }
     hypothesis_data["game"].thread_hint()
     hypothesis_data["data"] = {}
@@ -351,6 +354,10 @@ def metadata():
         or hypothesis_data["game"].answer_board is None:
         return {}, 200
     game = hypothesis_data["game"]
+    if game.board is None:
+        return {}, 200
+    if game.answer_board is None:
+        return {}, 200
     board = game.board
     a_board = game.answer_board
 
@@ -358,12 +365,12 @@ def metadata():
     count = dict()
     count["total"] = len([_ for pos, _ in a_board("F")])
     count["unknown"] = len([_ for _ in board("N")])
-    if not hypothesis_data["game"].drop_r:
-        count["known"] = len([_ for pos, _ in a_board("F")])
-        count["remains"] = len([_ for pos, _ in a_board("F") if board.get_type(pos) == "N"])
-    else:
+    if hypothesis_data["game"].drop_r:
         count["known"] = None
         count["remains"] = None
+    else:
+        count["known"] = len([_ for pos, _ in a_board("F")])
+        count["remains"] = len([_ for pos, _ in a_board("F") if board.get_type(pos) == "N"])
     board_data["rules"] = hypothesis_data["rules"]
     board_data["count"] = count
     board_data["noFails"] = hypothesis_data["data"]["noFails"]
@@ -424,13 +431,15 @@ def click():
     #     print(hypothesis_data["game"].hint(wait=True))
     #     print(hypothesis_data["game"].deduced(wait=True))
     #     return {}
+    print("start click")
+    t = time.time()
     if data["button"] == "left":
         _board = game.click(pos)
     elif data["button"] == "right":
         _board = game.mark(pos)
     else:
         _board = None
-    print("end click")
+    print(f"end click used time:{time.time() - t}s")
     hypothesis_data["game"].thread_hint()
     hypothesis_data["game"].thread_deduced()
 
@@ -498,12 +507,12 @@ def click():
     count = dict()
     count["total"] = len([_ for pos, _ in a_board("F")])
     count["unknown"] = len([_ for _ in _board("N")])
-    if not hypothesis_data["game"].drop_r:
-        count["known"] = len([_ for pos, _ in a_board("F")])
-        count["remains"] = len([_ for pos, _ in a_board("F") if _board.get_type(pos) == "N"])
-    else:
+    if hypothesis_data["game"].drop_r:
         count["known"] = None
         count["remains"] = None
+    else:
+        count["known"] = len([_ for pos, _ in a_board("F")])
+        count["remains"] = len([_ for pos, _ in a_board("F") if _board.get_type(pos) == "N"])
     refresh["count"] = count
     refresh["noFails"] = hypothesis_data["data"]["noFails"]
     refresh["noHint"] = hypothesis_data["data"]["noHint"]
@@ -594,9 +603,17 @@ def reset():
         print("board is None")
         return {}, 500
     game.board = mask_board
+    hypothesis_data["data"]["noFails"] = True
+    hypothesis_data["data"]["noHint"] = True
+    game.last_deduced = [None, []]
+    game.last_hint = [None, {}]
+    game.thread_deduced()
+    game.thread_hint()
     if game.mode == ULTIMATE:
-        if not game.ultimate_mode & ULTIMATE_R:
+        if game.ultimate_mode & ULTIMATE_R:
             game.drop_r = False
+        else:
+            game.drop_r = True
     print("rest end")
     return '', 200
 

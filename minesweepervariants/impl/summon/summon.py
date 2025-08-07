@@ -15,7 +15,7 @@ from ortools.sat.python import cp_model
 from abs.Mrule import AbstractMinesClueRule
 from abs.Rrule import AbstractClueRule
 from utils.impl_obj import set_total, VALUE_QUESS, MINES_TAG
-from .solver import solver_by_csp
+from .solver import solver_by_csp, solver_model, Switch
 from utils.tool import get_random, get_logger
 
 from abs.Lrule import MinesRules, AbstractMinesRule
@@ -212,7 +212,6 @@ class Summon:
             symbol = not symbol
 
     def create_puzzle(self):
-        self.board.clear_board()
         if self.summon_board() is None:
             raise ValueError("生成失败 左线/雷数出现矛盾")
         board_bytes = self.board.encode()
@@ -224,11 +223,11 @@ class Summon:
         return self.board
 
     def summon_board(self):
+        self.board.clear_board()
         _board = self.fill_valid(self.board, self.total)
         if _board is None:
             return None
-        if "N" in self.board:
-            _board = self.board.clone()
+        if "N" in _board:
             for rule in self.mines_rules.rules:
                 rule.init_board(_board)
             self.answer_board_str = "\n" + _board.show_board()
@@ -238,60 +237,53 @@ class Summon:
             self.answer_board_str = "\n" + _board.show_board()
             self.answer_board_code = _board.encode()
             self.answer_board = _board.clone()
-        self.board = _board
-        self.logger.debug("题板生成完毕:\n" + self.board.show_board())
-        self.logger.debug(self.board.encode())
-        [self.board.set_value(pos, None) for pos, _ in self.board("C")]
-        self.board = self.clue_rule.fill(self.board)
-        self.board = self.mines_clue_rule.fill(self.board)
-        return self.board
+        self.logger.debug("题板生成完毕:\n" + _board.show_board())
+        self.logger.debug(_board.encode())
+        [_board.set_value(pos, None) for pos, _ in _board("C")]
+        _board = self.clue_rule.fill(_board)
+        _board = self.mines_clue_rule.fill(_board)
+        self.answer_board = _board
+        self.board = _board.clone()
+        return _board
 
-    def fill_valid(self, board: 'AbstractBoard', total: int) -> Union[AbstractBoard, None]:
+    def fill_valid(self, board: 'AbstractBoard', total: int, model=None) -> Union[AbstractBoard, None]:
         random = get_random()
-        history_code: list[tuple[bytes, "AbstractPosition"]] = []
+        history: list[tuple] = []
+        if model is None:
+            switch = Switch()
+            model = board.get_model()
+            for rule in self.mines_rules.rules:
+                rule.create_constraints(board, switch)
+            model.AddBoolAnd(switch.get_all_vars())
         positions = [pos for pos, _ in self.board("N")]
         random.shuffle(positions)
         for index in range(len(positions)):
-            if len(positions) - index < total:
-                continue
             print(f"正在随机放雷"
                   f"  已放置雷数: {self.total - total}/{self.total}"
-                  f"  进度:{index}/{len(positions)}   ",
+                  f"  总剩余位置: {index}/{len(positions)}   ",
                   end="\r")
             pos = positions[index]
-            if total == 0:
-                board.set_value(pos, VALUE_QUESS)
-                continue
+            _model = model.clone()
+            _model.Add(board.get_variable(pos) == 0)
             code = board.encode()
-            board.set_value(pos, MINES_TAG)
-            if len(self.mines_rules.rules) == 1:
+            board[pos] = MINES_TAG
+            model.Add(board.get_variable(pos) == 1)
+            if solver_model(model):
+                history.append((code, _model))
                 total -= 1
-                continue
-            if solver_by_csp(
-                    self.mines_rules, None,
-                    None, board, bool_mode=True
-            ):
-                total -= 1
-                history_code.append((code, pos))
             else:
-                board.set_value(pos, VALUE_QUESS)
-        # 是否已经存在解
-        if solver_by_csp(
-                self.mines_rules, None,
-                None, board, bool_mode=True
-        ):
+                board: AbstractBoard = type(board)(code=code)
+                board[pos] = VALUE_QUESS
+                del model
+                model = _model
+        if solver_model(model):
             return board
-        # 不存在解就回撤一步
-        while len(history_code):
-            code, pos = history_code.pop(-1)
-            total += 1
-            board = board.__class__(code=code)
-            board: AbstractBoard
-            board.set_value(pos, VALUE_QUESS)
+        while history:
+            code, model = history.pop()
+            board = type(board)(code=code)
             board = self.fill_valid(board, total)
-            if board is None:
-                continue
-            return board
+            if board is not None:
+                return board
         return None
 
     def dig_unique(self, board: 'AbstractBoard'):

@@ -590,3 +590,14 @@ def solver_board(
                 positions.append(pos)
 
     return positions
+
+
+def solver_model(
+    model: cp_model
+):
+    solver = get_solver(False)
+    status = solver.Solve(model)
+    if status in (cp_model.OPTIMAL, cp_model.FEASIBLE):
+        return True
+    else:
+        return None
