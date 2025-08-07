@@ -9,41 +9,36 @@
 
 ## 环境配置
 
-本项目基于 Python 虚拟环境开发，运行前需完成以下步骤：
+
+本项目推荐使用 [Poetry](https://python-poetry.org/) 进行依赖管理和环境配置。
 
 ### 1. 安装 Python（推荐 3.11+）
 
 Windows 可至 [https://www.python.org](https://www.python.org) 下载官方安装包。
 
-### 2. 创建虚拟环境
+### 2. 安装 Poetry
+
+请参考官方文档安装 Poetry：[https://python-poetry.org/docs/#installation](https://python-poetry.org/docs/#installation)
+
+### 3. 安装依赖并自动创建虚拟环境
 
 在项目根目录下执行：
 
 ```bash
-python -m venv .venv
+poetry install
 ```
 
-然后激活虚拟环境：
+Poetry 会自动为项目创建隔离的虚拟环境并安装所有依赖。
 
-* Windows：
+### 4. 运行项目
 
-  ```bash
-  .venv\Scripts\activate
-  ```
-
-* Linux / macOS：
-
-  ```bash
-  source .venv/bin/activate
-  ```
-
-### 3. 安装依赖
-
-确保当前在虚拟环境中，执行：
+无需手动激活虚拟环境，直接使用 Poetry 运行项目脚本：
 
 ```bash
-python -m pip install -r requirements.txt
+poetry run python run.py [参数列表]
 ```
+
+其它命令同理，均可用 `poetry run <命令>` 方式执行。
 
 ### 4. C 扩展构建环境（Windows）
 
