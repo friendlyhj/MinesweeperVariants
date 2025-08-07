@@ -15,8 +15,8 @@ from ortools.sat.python.cp_model import IntVar
 from ..impl.board.dye import get_dye
 
 if TYPE_CHECKING:
-    from ..Rrule import AbstractClueValue
-    from ..Mrule import AbstractMinesValue
+    from minesweepervariants.abs.Rrule import AbstractClueValue
+    from minesweepervariants.abs.Mrule import AbstractMinesValue
 
 MASTER_BOARD = "main"
 

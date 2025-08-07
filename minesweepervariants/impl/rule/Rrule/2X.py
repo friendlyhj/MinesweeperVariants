@@ -74,7 +74,7 @@ class Value2X(AbstractClueValue):
 
     def create_constraints(self, board: 'AbstractBoard'):
         """创建CP-SAT约束: 周围染色格雷数等于两个染色格的数量"""
-        model = get_model()
+        model = board.get_model()
 
         # 收集周围格子的布尔变量
         neighbor_vars1 = []

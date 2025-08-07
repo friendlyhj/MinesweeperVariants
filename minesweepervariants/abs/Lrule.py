@@ -13,7 +13,7 @@ from ..utils.tool import get_logger
 from .rule import AbstractRule
 
 if TYPE_CHECKING:
-    from ..board import AbstractBoard
+    from minesweepervariants.abs.board import AbstractBoard
 
 
 class AbstractMinesRule(AbstractRule):

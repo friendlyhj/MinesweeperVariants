@@ -7,11 +7,13 @@ from typing import Dict, Tuple
 class Renderer:
     def __init__(self, cell_size: float, background_white: bool,
                  origin: Tuple[float, float], font_path: str,
-                 debug=False):
+                 assets:str,debug=False):
         self.cell_size = cell_size
         self.background_white = background_white
         self.origin = origin
-        self.font_path = font_path
+        self.assets_path = assets
+        self.font_path = os.path.join(assets, font_path)
+
         # 创建用于文本测量的临时图像和绘图对象
         self.temp_img = Image.new('RGB', (1, 1))
         self.temp_draw = ImageDraw.Draw(self.temp_img)
@@ -368,7 +370,7 @@ class Renderer:
 
     def _render_image(self, image: Image.Image, element: Dict,
                       box: Tuple[float, float, float, float]):
-        path = f"assets/{element['image']}.png"
+        path = os.path.join(self.assets_path, f"{element['image']}.png")
         if not os.path.exists(path):
             return None
         img = Image.open(path).convert("RGBA")

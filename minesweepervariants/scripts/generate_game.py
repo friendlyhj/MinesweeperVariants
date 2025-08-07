@@ -9,9 +9,6 @@
 """
 import os
 import time
-from pathlib import Path
-
-import yaml
 
 from minesweepervariants.impl.impl_obj import ModelGenerateError, get_board, encode_board
 from minesweepervariants.impl.summon import Summon
@@ -20,32 +17,12 @@ from minesweepervariants.impl.summon.summon import GenerateError
 from minesweepervariants.utils.impl_obj import get_seed
 from minesweepervariants.utils.tool import get_logger, get_random
 
-base_path = Path("config/base_puzzle_config.yaml")
-default_path = Path("config/default.yaml")
-CONFIG = {
-    "output_file": "output",   # 默认的img文件名(不含后缀)
-    "cell_size": 100,          # 一个单元格的尺寸
-    "white_base": False,       # 默认黑底
-    "board_class": None,       # 调用默认版本最高的board_class
-    "image_debug": False,      # 在生成图片的时候启用debug显示: 在显示的时候会附上红蓝框方便查看
+from minesweepervariants.config.config import DEFAULT_CONFIG, PUZZLE_CONFIG
 
-    "seed": -1,                # 随机种子
-    "logger_lv": "INFO",       # 默认logger为info级别
-    "attempts": -1,            # 默认无限次次数尝试 (无-q参数默认20次)
-    "query": -1,               # 如果非-1的话就会启用-1参数
-    "total": -1,               # 默认自动计算总雷数数量
-    "dye": "",                  # 默认无染色
-    "used_r": False,           # 默认不启用R推理
-    "output_path": ".\\output", # 保存到哪个文件夹内 默认为工作目录下的output内
-    "timeout": 0,              # 求解器进行多少时间后算为超时 单位秒 0为无限制
-    "workes_number": 20        # 提示系统中多线程的数量
-}
-if default_path.exists():
-    with open(default_path, "r", encoding="utf-8") as f:
-        CONFIG.update(yaml.safe_load(f))
-if base_path.exists():
-    with open(base_path, "r", encoding="utf-8") as f:
-        CONFIG.update(yaml.safe_load(f))
+# ==== 获取默认值 ====
+CONFIG = {}
+CONFIG.update(DEFAULT_CONFIG)
+CONFIG.update(PUZZLE_CONFIG)
 
 
 def main(

@@ -12,7 +12,7 @@ from .rule import AbstractRule, AbstractValue
 from ..utils.image_create import get_text, get_image, get_dummy, get_col
 
 if TYPE_CHECKING:
-    from ..board import AbstractBoard, AbstractPosition
+    from minesweepervariants.abs.board import AbstractBoard, AbstractPosition
 
 
 class AbstractClueRule(AbstractRule):
@@ -47,10 +47,12 @@ class AbstractClueValue(AbstractValue, ABC):
         返回一个可渲染对象列表
         默认使用__repr__
         """
+        if web:
+            return get_text(self.__repr__())
         return get_col(
-            get_dummy(height=0.175),
+            get_dummy(height=0.3),
             get_text(self.__repr__()),
-            get_dummy(height=0.175),
+            get_dummy(height=0.3),
         )
 
 

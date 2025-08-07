@@ -296,7 +296,7 @@ def generate_board():
         )
     except Exception as e:
         return {
-            "reason": f"{type(e).__name__}: {e}",
+            "reason": traceback.format_exc(),
             "success": False
         }
     hypothesis_data["game"] = Game(
@@ -317,7 +317,10 @@ def generate_board():
                 mask_board = hypothesis_data["game"].create_board()
                 hypothesis_data["board"] = mask_board.clone()
             except Exception as e:
-                error_str = traceback.format_exc()
+                return {
+                    "reason": traceback.format_exc(),
+                    "success": False
+                }
         else:
             try:
                 mask_board = hypothesis_data["summon"].create_puzzle()
@@ -325,7 +328,10 @@ def generate_board():
                 hypothesis_data["game"].answer_board = answer_board
                 hypothesis_data["game"].board = mask_board
             except Exception as e:
-                error_str = traceback.format_exc()
+                return {
+                    "reason": traceback.format_exc(),
+                    "success": False
+                }
     if dye:
         rules += [f"@{dye}"]
         # answer_board = hypothesis_data["game"].answer_board

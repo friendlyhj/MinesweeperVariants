@@ -9,7 +9,6 @@ import time
 from pathlib import Path
 from typing import Union
 
-import yaml
 from ortools.sat.python import cp_model
 
 from ...abs.Mrule import AbstractMinesClueRule
@@ -23,12 +22,12 @@ from ...abs.board import AbstractBoard, AbstractPosition
 
 from ..impl_obj import get_rule, get_board
 
-default_path = Path("config/base_puzzle_config.yaml")
-CONFIG = {'delimiter': ":"}
-if default_path.exists():
-    with open(default_path, "r", encoding="utf-8") as f:
-        CONFIG.update(yaml.safe_load(f))
-print(f"加载配置文件: {default_path} 成功, 配置内容: {CONFIG}")
+from minesweepervariants.config.config import PUZZLE_CONFIG
+
+# ==== 获取默认值 ====
+CONFIG = {}
+CONFIG.update(PUZZLE_CONFIG)
+
 
 class GenerateError(Exception):
     pass

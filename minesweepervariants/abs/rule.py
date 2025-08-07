@@ -10,8 +10,8 @@ from typing import List, Union, TYPE_CHECKING, Dict, Tuple
 
 
 if TYPE_CHECKING:
-    from ..board import AbstractBoard, AbstractPosition
-    from ..impl.summon.solver import Switch
+    from minesweepervariants.abs.board import AbstractBoard, AbstractPosition
+    from minesweepervariants.impl.summon.solver import Switch
 
 
 class AbstractRule(ABC):

@@ -9,6 +9,7 @@ import os
 import yaml
 
 from ..abs.board import AbstractBoard
+from ..config.config import IMAGE_CONFIG, DEFAULT_CONFIG
 from ..utils.tool import get_logger
 from ..utils.element_renderer import *
 
@@ -183,7 +184,7 @@ def draw_board(
     :param output: 输出文件名（不含扩展名）。
     """
     def load_font(size: int) -> ImageFont.FreeTypeFont:
-        path = CONFIG["font"]["path"]
+        path = os.path.join(CONFIG["assets"], CONFIG["font"]["name"])
         try:
             return ImageFont.truetype(path, size)
         except OSError:
@@ -227,29 +228,10 @@ def draw_board(
         "row_col": board.get_config(k, "row_col"),
     } for k in board_keys}
 
-    # 载入配置文件（固定路径）
-    CONFIG = {
-        "output_file": "output",   # 默认的img文件名(不含后缀)
-        "cell_size": 100,          # 一个单元格的尺寸
-        "white_base": False,       # 默认黑底
-        "board_class": None,       # 调用默认版本最高的board_class
-        "image_debug": False,      # 在生成图片的时候启用debug显示: 在显示的时候会附上红蓝框方便查看
+    CONFIG = {}
 
-        "seed": -1,                # 随机种子
-        "logger_lv": "INFO",       # 默认logger为info级别
-        "attempts": -1,            # 默认无限次次数尝试 (无-q参数默认20次)
-        "query": -1,               # 如果非-1的话就会启用-1参数
-        "total": -1,               # 默认自动计算总雷数数量
-        "dye": "",                  # 默认无染色
-        "used_r": False,           # 默认不启用R推理
-        "output_path": ".\\output", # 保存到哪个文件夹内 默认为工作目录下的output内
-        "timeout": 0,              # 求解器进行多少时间后算为超时 单位秒 0为无限制
-        "workes_number": 20        # 提示系统中多线程的数量
-    }
-    with open("config/base_image_config.yaml", "r", encoding="utf-8") as f:
-        CONFIG.update(yaml.safe_load(f))
-    with open("config/default.yaml", "r", encoding="utf-8") as f:
-        CONFIG["output_path"] = yaml.safe_load(f)["output_path"]
+    CONFIG.update(IMAGE_CONFIG)
+    CONFIG["output_path"] = DEFAULT_CONFIG["output_path"]
 
     margin_ratio = CONFIG["margin"]["top_left_right_ratio"]
     bottom_ratio = CONFIG["margin"]["bottom_ratio"]
@@ -385,7 +367,8 @@ def draw_board(
                 cell_size=cell_size,
                 background_white=background_white,
                 origin=(x0_cell,y0_cell),
-                font_path=CONFIG["font"]["path"]
+                font_path=CONFIG["font"]["name"],
+                assets=CONFIG["assets"]
             )
 
             renderer.render(image, value.compose(board, False))
