@@ -53,7 +53,7 @@ class TerminalEmulator:
         self.running = True
 
         print(f"终端服务器启动在 {self.host}:{self.port}")
-        print(f"等待连接，使用 {self.bat_file} 执行命令...")
+        print(f"等待连接，使用 {self.bat_file} 执行命令minesweepervariants..")
 
         # 启动主接收线程
         threading.Thread(target=self._accept_clients, daemon=True).start()
@@ -242,6 +242,6 @@ if __name__ == "__main__":
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
-        print("接收到中断信号，停止服务器...")
+        print("接收到中断信号，停止服务器minesweepervariants..")
     finally:
         emulator.stop_server()

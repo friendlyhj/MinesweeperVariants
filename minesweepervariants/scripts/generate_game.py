@@ -13,12 +13,12 @@ from pathlib import Path
 
 import yaml
 
-from .impl.impl_obj import ModelGenerateError, get_board, encode_board
-from .impl.summon import Summon
-from .impl.summon.game import GameSession, PUZZLE
-from .impl.summon.summon import GenerateError
-from .utils.impl_obj import get_seed
-from .utils.tool import get_logger, get_random
+from minesweepervariants.impl.impl_obj import ModelGenerateError, get_board, encode_board
+from minesweepervariants.impl.summon import Summon
+from minesweepervariants.impl.summon.game import GameSession, PUZZLE
+from minesweepervariants.impl.summon.summon import GenerateError
+from minesweepervariants.utils.impl_obj import get_seed
+from minesweepervariants.utils.tool import get_logger, get_random
 
 base_path = Path("config/base_puzzle_config.yaml")
 default_path = Path("config/default.yaml")

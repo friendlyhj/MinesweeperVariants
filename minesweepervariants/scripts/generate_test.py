@@ -10,10 +10,10 @@ import time
 from pathlib import Path
 import yaml
 
-from .impl.summon import Summon
-from .utils.image_create import draw_board
-from .utils.impl_obj import get_seed
-from .utils.tool import get_logger, get_random
+from minesweepervariants.impl.summon import Summon
+from minesweepervariants.utils.image_create import draw_board
+from minesweepervariants.utils.impl_obj import get_seed
+from minesweepervariants.utils.tool import get_logger, get_random
 
 
 base_path = Path("config/base_puzzle_config.yaml")
@@ -62,7 +62,7 @@ def main(
     _board = None
     while True:
         attempt_index += 1
-        print(f"尝试第{attempt_index}次...", end="\r")
+        print(f"尝试第{attempt_index}次minesweepervariants..", end="\r")
         get_random(seed, new=True)
         a_time = time.time()
         _board = s.summon_board()

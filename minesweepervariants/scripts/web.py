@@ -588,7 +588,7 @@ def get_rule_list():
             ]
     return {
         "rules": rules_info,
-        "dye": get_all_dye()  # {dye_name: doc, ...}
+        "dye": get_all_dye()  # {dye_name: doc, minesweepervariants..}
     }
 
 

@@ -9,13 +9,13 @@ import time
 from pathlib import Path
 import yaml
 
-from .abs.board import AbstractBoard
-from .impl.impl_obj import get_board, ModelGenerateError, encode_board
-from .impl.summon import Summon
-from .impl.summon.summon import GenerateError
-from .utils.image_create import draw_board
-from .utils.tool import get_logger, get_random
-from .utils.impl_obj import get_seed
+from minesweepervariants.abs.board import AbstractBoard
+from minesweepervariants.impl.impl_obj import get_board, ModelGenerateError, encode_board
+from minesweepervariants.impl.summon import Summon
+from minesweepervariants.impl.summon.summon import GenerateError
+from minesweepervariants.utils.image_create import draw_board
+from minesweepervariants.utils.tool import get_logger, get_random
+from minesweepervariants.utils.impl_obj import get_seed
 
 base_path = Path("config/base_puzzle_config.yaml")
 default_path = Path("config/default.yaml")
@@ -67,7 +67,7 @@ def main(
     _board = None
     info_list = []
     for attempt_index in range(attempts):
-        print(f"尝试第{attempt_index}次...", end="\r")
+        print(f"尝试第{attempt_index}次minesweepervariants..", end="\r")
         get_random(seed, new=True)
         a_time = time.time()
         try:

@@ -13,9 +13,7 @@ import textwrap
 import yaml
 from pathlib import Path
 
-from minesweepervariants.generate_puzzle import main as puzzle
-from minesweepervariants.generate_game import main as puzzle_query
-from minesweepervariants.generate_test import main as test
+from minesweepervariants import puzzle, puzzle_query, test
 
 # ==== 获取默认值 ====
 default_path = Path("config/default.yaml")
