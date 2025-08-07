@@ -312,10 +312,24 @@ def generate_board():
         # print(2)
         if mode < PUZZLE:
             try:
-                answer_board = hypothesis_data["summon"].summon_board()
-                hypothesis_data["game"].answer_board = answer_board
-                mask_board = hypothesis_data["game"].create_board()
-                hypothesis_data["board"] = mask_board.clone()
+                mask_board = None
+                __t = time.time()
+                __count = 0
+                while __t + 9.5 > time.time():
+                    __count += 1
+                    answer_board = hypothesis_data["summon"].summon_board()
+                    if answer_board is None:
+                        get_random(new=True)
+                        continue
+                    hypothesis_data["game"].answer_board = answer_board
+                    mask_board = hypothesis_data["game"].create_board()
+                    if mask_board is None:
+                        get_random(new=True)
+                        continue
+                    hypothesis_data["board"] = mask_board.clone()
+                    break
+                if mask_board is None:
+                    raise ValueError(f"共尝试{__count}次, 均未生成成功")
             except Exception as e:
                 return {
                     "reason": traceback.format_exc(),
@@ -625,7 +639,7 @@ def reset():
 
 
 if __name__ == '__main__':
-    get_logger(log_lv="ERROR")
+    # get_logger(log_lv="ERROR")
     port = int(sys.argv[1] if len(sys.argv) == 2 else "5050")
     # 允许所有来源跨域，或根据需要设置 origins=["*"]
 

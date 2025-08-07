@@ -168,7 +168,7 @@ class GameSession:
     def thread_deduced(self):
         threading.Thread(target=self.deducedManger.wait).start()
 
-    def create_board(self) -> "AbstractBoard":
+    def create_board(self) -> Union["AbstractBoard", None]:
         """
         一层具象
         终极模式的规则是 直到推无可推再给下一步线索 如果倒过来想呢
@@ -215,9 +215,8 @@ class GameSession:
                     break
                 board.set_value(pos, clue)
         if r_flag and self.drop_r:
-            self.board = self.create_board()
-        else:
-            self.board = board
+            return None
+        self.board = board
         return board
 
     def chord_clue(self, clue_pos: AbstractPosition) -> list[AbstractPosition]:
@@ -286,9 +285,9 @@ class GameSession:
                         self.board[_pos] = VALUE_TAG
         elif self.mode == NORMAL:
             # 普通模式
-            if action and self.answer_board.get_type(pos) == "F":
+            if not action and self.answer_board.get_type(pos) == "F":
                 return None
-            if not action and self.answer_board.get_type(pos) == "C":
+            if action and self.answer_board.get_type(pos) == "C":
                 return None
             self.board[pos] = self.answer_board[pos]
         elif self.mode in [EXPERT, ULTIMATE, PUZZLE]:

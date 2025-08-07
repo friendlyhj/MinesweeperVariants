@@ -68,15 +68,36 @@ class Value1M(AbstractClueValue):
         model = board.get_model()
         s = switch.get(model, self)
         vals = []
+        value = self.value
         for pos in self.neighbors:
-            if board.get_type(pos) != "N":
+            if not board.is_valid(pos):
                 continue
             if not board.is_valid(pos.down()):
-                a = board.get_variable(pos)
-            else:
-                a = model.NewIntVar(0, 2, "")
-                model.Add(a == board.get_variable(pos)).OnlyEnforceIf([board.get_variable(pos.down()).Not(), s])
-                model.Add(a == board.get_variable(pos) * 2).OnlyEnforceIf([board.get_variable(pos.down()), s])
-            vals.append(a)
+                if board.get_type(pos) == "F":
+                    value -= 1
+                elif board.get_type(pos) == "N":
+                    vals.append(board.get_variable(pos))
+                continue
+            if board.get_type(pos) == "F":
+                if board.get_type(pos.down()) == "F":
+                    value -= 2
+                elif board.get_type(pos.down()) == "C":
+                    value -= 1
+                elif board.get_type(pos.down()) == "N":
+                    vals.append(board.get_variable(pos.down()) + 1)
+            elif board.get_type(pos) == "N":
+                if board.get_type(pos.down()) == "F":
+                    vals.append(board.get_variable(pos) * 2)
+                elif board.get_type(pos.down()) == "C":
+                    vals.append(board.get_variable(pos))
+                elif board.get_type(pos.down()) == "N":
+                    z = model.NewIntVar(0, 2, f"{pos}*{pos.down()}")
+                    a = board.get_variable(pos)
+                    b = board.get_variable(pos.down())
+                    # 枚举所有情况
+                    model.Add(z == 0).OnlyEnforceIf([a.Not()])
+                    model.Add(z == 1).OnlyEnforceIf([a, b.Not()])
+                    model.Add(z == 2).OnlyEnforceIf([a, b])
+                    vals.append(z)
         if vals:
-            model.Add(sum(vals) == self.value).OnlyEnforceIf(s)
+            model.Add(sum(vals) == value).OnlyEnforceIf(s)

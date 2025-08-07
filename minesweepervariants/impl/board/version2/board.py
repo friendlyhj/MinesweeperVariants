@@ -430,7 +430,7 @@ class Board(AbstractBoard):
         size = self.board_data[key]["config"]["size"]
         self.get_model()
         if 0 <= pos.x < size[0] and 0 <= pos.y < size[1]:
-            return self.board_data[key]["variable"][pos.y][pos.x]
+            return self.board_data[key]["variable"][pos.x][pos.y]
 
     def clear_variable(self):
         for key in self.board_data.keys():

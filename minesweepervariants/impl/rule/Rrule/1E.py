@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
-#
-# @Time    : 2025/07/09 10:32
-# @Author  : Wu_RH
-# @FileName: 1E.py
+
 """
 [1E] 视野 (Eyesight)：线索表示四方向上能看到的非雷格数量（包括自身），雷会阻挡视线
 """
@@ -15,27 +12,39 @@ from ....abs.board import AbstractBoard, AbstractPosition
 
 class Rule1E(AbstractClueRule):
     # name = ["1E", "E", "视野", "Eyesight"]
-    # DFS遍历存在错误
     doc = "线索表示四方向上能看到的非雷格数量（包括自身），雷会阻挡视线"
 
     def clue_class(self):
-        return Value1E
+        return Value1EX
 
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':
-        fn: Callable[[int], AbstractPosition]
         for pos, _ in board("N"):
-            value = 1
-            for fn in [pos.up, pos.down, pos.left, pos.right]:
+            value = 1  # 包括自身
+            # 四个斜向方向的函数
+            direction_funcs = [
+                lambda n: type(pos)(pos.x + n, pos.y + n, pos.board_key),  # 右上
+                lambda n: type(pos)(pos.x - n, pos.y - n, pos.board_key),  # 左下
+                lambda n: type(pos)(pos.x - n, pos.y + n, pos.board_key),  # 左上
+                lambda n: type(pos)(pos.x + n, pos.y - n, pos.board_key)   # 右下
+            ]
+
+            for fn in direction_funcs:
                 n = 1
-                while board.get_type(fn(n)) not in "F":
-                    n += 1
+                while True:
+                    next_pos = fn(n)
+                    if not board.in_bounds(next_pos):
+                        break
+                    if board.get_type(next_pos) == "F":  # 遇到雷，视线被阻挡
+                        break
                     value += 1
-            obj = Value1E(pos, bytes([value]))
+                    n += 1
+
+            obj = Value1EX(pos, bytes([value]))
             board.set_value(pos, obj)
         return board
 
 
-class Value1E(AbstractClueValue):
+class Value1EX(AbstractClueValue):
     def __init__(self, pos: 'AbstractPosition', code: bytes = b''):
         self.value = code[0]
         self.pos = pos
@@ -45,17 +54,14 @@ class Value1E(AbstractClueValue):
 
     def high_light(self, board: 'AbstractBoard') -> list['AbstractPosition']:
         positions = []
-        pos = self.pos.clone()
-        for fn in [pos.up, pos.down]:
+        for i in [
+            (0, 1), (0, -1),
+            (-1, 0), (1, 0),
+        ]:
             n = 0
-            while board.get_type(fn(n)) not in "F":
+            while board.get_type(pos := self.pos.shift(i[0] * n, i[1] * n)) not in "F":
                 n += 1
-                positions.append(fn(n))
-        for fn in [pos.left, pos.right]:
-            n = 0
-            while board.get_type(fn(n)) not in "F":
-                n += 1
-                positions.append(fn(n))
+                positions.append(pos)
         return positions
 
     @classmethod
@@ -73,37 +79,57 @@ class Value1E(AbstractClueValue):
                 if value == 1:
                     possible_list.append((set(info["T"]), [var for var in info["F"] if var is not None]))
                 return
-            fn = [self.pos.up, self.pos.down, self.pos.left, self.pos.right][index]
-            fn: Callable[[int], AbstractPosition]
+
+            # 四个斜向方向的函数
+            direction_funcs = [
+                lambda n: type(self.pos)(self.pos.x + n, self.pos.y, self.pos.board_key),  # 右上
+                lambda n: type(self.pos)(self.pos.x - n, self.pos.y, self.pos.board_key),  # 左下
+                lambda n: type(self.pos)(self.pos.x, self.pos.y + n, self.pos.board_key),  # 左上
+                lambda n: type(self.pos)(self.pos.x, self.pos.y - n, self.pos.board_key)   # 右下
+            ]
+
+            fn = direction_funcs[index]
+
             for i in range(value):
-                _var_t = board.get_variable(fn(i))
+                current_pos = fn(i)
+                if not board.in_bounds(current_pos):
+                    dfs(value - i, index + 1, info)
+                    break
+
+                _var_t = board.get_variable(current_pos)
                 if _var_t is None:
                     dfs(value - i, index + 1, info)
                     break
-                _var_f = board.get_variable(fn(i + 1))
+
+                next_pos = fn(i + 1)
+                _var_f = board.get_variable(next_pos) if board.in_bounds(next_pos) else None
+
                 info["T"].append(_var_t)
                 info["F"].append(_var_f)
                 dfs(value - i, index + 1, info)
                 info["F"].pop(-1)
+
             for i in range(value):
-                if board.get_variable(fn(i)) is None:
+                current_pos = fn(i)
+                if not board.in_bounds(current_pos):
+                    continue
+                if board.get_variable(current_pos) is None:
                     continue
                 info["T"].pop(-1)
 
         model = board.get_model()
         s = switch.get(model, self)
-
         possible_list = []
 
         dfs(value=self.value)
         tmp_list = []
-        print(self.pos, self.value)
-        print(board)
 
         for vars_t, vars_f in possible_list:
-            print(f"1E => pos:{self.pos} {self.value}?:{vars_t}F:{vars_f}")
             tmp = model.NewBoolVar("tmp")
-            model.Add(sum(vars_t) == 0).OnlyEnforceIf([tmp, s])
-            model.AddBoolAnd(vars_f).OnlyEnforceIf([tmp, s])
+            model.Add(sum(vars_t) == 0).OnlyEnforceIf(tmp)
+            if vars_f and any(var is not None for var in vars_f):
+                model.AddBoolAnd([var for var in vars_f if var is not None]).OnlyEnforceIf(tmp)
             tmp_list.append(tmp)
-        model.AddBoolOr(tmp_list).OnlyEnforceIf(s)
+
+        if tmp_list:
+            model.AddBoolOr(tmp_list).OnlyEnforceIf(s)

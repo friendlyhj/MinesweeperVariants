@@ -226,6 +226,9 @@ class Summon:
         _board = self.fill_valid(self.board, self.total)
         if _board is None:
             return None
+        [_board.set_value(pos, None) for pos, _ in _board("C")]
+        _board = self.clue_rule.fill(_board)
+        _board = self.mines_clue_rule.fill(_board)
         if "N" in _board:
             for rule in self.mines_rules.rules:
                 rule.init_board(_board)
@@ -238,9 +241,6 @@ class Summon:
             self.answer_board = _board.clone()
         self.logger.debug("题板生成完毕:\n" + _board.show_board())
         self.logger.debug(_board.encode())
-        [_board.set_value(pos, None) for pos, _ in _board("C")]
-        _board = self.clue_rule.fill(_board)
-        _board = self.mines_clue_rule.fill(_board)
         self.answer_board = _board
         self.board = _board.clone()
         return _board

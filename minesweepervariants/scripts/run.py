@@ -76,7 +76,7 @@ def print_with_indent(text, indent="\t"):
 
 
 if args.command == "list":
-    from ..impl import rule
+    from minesweepervariants.impl import rule
     rule_list = rule.get_all_rules()
     # print(rule_list)
 
@@ -85,12 +85,9 @@ if args.command == "list":
         encode = "utf-8"
         split_symbol = ''.join([chr(random.randint(33, 126)) for _ in range(50)])
         result = split_symbol.encode(encode)
-        result += split_symbol.join(rule_list["L"].values()).encode(encode)
-        result += (split_symbol * 2).encode(encode)
-        result += split_symbol.join(rule_list["M"].values()).encode(encode)
-        result += (split_symbol * 2).encode(encode)
-        result += split_symbol.join(rule_list["R"].values()).encode(encode)
-        result += (split_symbol * 2).encode(encode)
+        for rule_line in ["L", "M", "R"]:
+            result += split_symbol.join([rule_list[rule_line][name]['module_doc'] for name in rule_list[rule_line].keys() if rule_list[rule_line][name]['module_doc'] is not None]).encode(encode)
+            result += (split_symbol * 2).encode(encode)
         print("hex_start:" + result.hex() + ":hex_end", end="", flush=True)
         # print(result.decode(encode))
         sys.stdout.buffer.flush()
