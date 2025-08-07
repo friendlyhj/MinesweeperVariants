@@ -16,19 +16,19 @@ import webbrowser
 from flask_cors import CORS
 import sys
 
-from .abs.board import AbstractPosition, AbstractBoard
-from .abs.rule import AbstractRule
-from .impl.summon.game import GameSession as Game
-from .impl.summon.summon import Summon
-from .impl.impl_obj import decode_board
+from minesweepervariants.abs.board import AbstractPosition, AbstractBoard
+from minesweepervariants.abs.rule import AbstractRule
+from minesweepervariants.impl.summon.game import GameSession as Game
+from minesweepervariants.impl.summon.summon import Summon
+from minesweepervariants.impl.impl_obj import decode_board
 from flask import Flask
 import os
-from .impl.summon.game import NORMAL, EXPERT, ULTIMATE, PUZZLE
-from .impl.summon.game import ULTIMATE_R, ULTIMATE_S, ULTIMATE_F, ULTIMATE_A, ULTIMATE_P
+from minesweepervariants.impl.summon.game import NORMAL, EXPERT, ULTIMATE, PUZZLE
+from minesweepervariants.impl.summon.game import ULTIMATE_R, ULTIMATE_S, ULTIMATE_F, ULTIMATE_A, ULTIMATE_P
 from datetime import datetime, timedelta
 
-from .utils.impl_obj import get_seed
-from .utils.tool import get_logger
+from minesweepervariants.utils.impl_obj import get_seed
+from minesweepervariants.utils.tool import get_logger
 
 # 添加项目路径到系统路径
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -225,7 +225,7 @@ def root():
 @app.route('/api/new')
 def generate_board():
     global hypothesis_data
-    from .utils.tool import get_random
+    from minesweepervariants.utils.tool import get_random
     get_random(new=True)
     # get_random(new=True, seed=1145141919810)
     # get_random(new=True, seed=4096695)
@@ -573,8 +573,8 @@ def hint_post():
 
 @app.route('/api/rules', methods=['POST', 'GET'])
 def get_rule_list():
-    from .impl.rule import get_all_rules
-    from .impl.board.dye import get_all_dye
+    from minesweepervariants.impl.rule import get_all_rules
+    from minesweepervariants.impl.board.dye import get_all_dye
     all_rules = get_all_rules()
     rules_info = {}
     for key in ["L", "M", "R"]:

@@ -10,8 +10,8 @@ import yaml
 import argparse
 from pathlib import Path
 
-from .impl.impl_obj import get_board, decode_board
-from .utils.image_create import draw_board
+from minesweepervariants.impl.impl_obj import get_board, decode_board
+from minesweepervariants.utils.image_create import draw_board
 
 # ==== 获取默认值 ====
 default_path = Path("config/default.yaml")
