@@ -28,3 +28,5 @@ github.bat
 TODO.md
 
 .vscode/
+build/
+dist/
