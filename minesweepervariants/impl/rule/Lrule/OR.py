@@ -5,7 +5,7 @@
 # @Author  : Wu_RH
 # @FileName: OR.py
 """
-[OR]或:你可以在后面输入多个左线来表示或关系(题板将按照A规则或B规则)(规则间使用","隔开)
+[OR]或:你可以在后面输入多个左线来表示或关系(题板将按照A规则或B规则)(规则间使用":"隔开)
 """
 from minesweepervariants.abs.Lrule import AbstractMinesRule
 from minesweepervariants.abs.board import AbstractBoard
@@ -36,7 +36,7 @@ class RuleOR(AbstractMinesRule):
                 if deep > 1:
                     rule_list[-1] += ")"
                 deep -= 1
-            elif s == "," and deep == 0:
+            elif s == ":" and deep == 0:
                 rule_list.append("")
             else:
                 rule_list[-1] += s
@@ -50,6 +50,8 @@ class RuleOR(AbstractMinesRule):
                 rule_name = rule
                 rule_data = None
             rule = get_rule(rule_name)(board=board, data=rule_data)
+            if not isinstance(rule, AbstractMinesRule):
+                continue
             if rule_name in ["OR", "AND"]:
                 name += "|[" + rule.name[0] + "]"
             else:
