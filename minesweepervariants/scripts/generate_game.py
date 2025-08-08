@@ -36,9 +36,12 @@ def main(
         dye: str,  # 染色规则
         drop_r: bool,  # 在推理时候是否隐藏R推理
         early_stop: bool,  # 如果达到指定的线索数量 直接跳出
-        board_class: str,     # 题板的类名
-        vice_board: bool,   # 启用删除副板
+        board_class: str,  # 题板的类名
+        vice_board: bool,  # 启用删除副板
+        unseed: bool  # 是否禁用种子来快速生成题目
 ):
+    rule_code = rules[:]
+    rule_code = [base64.urlsafe_b64encode(rule.encode("ascii")).decode("ascii") for rule in rule_code]
     logger = get_logger(log_lv=log_lv)
     get_random(seed, new=True)
     s = Summon(size=size, total=total, rules=rules, board=board_class,
@@ -111,10 +114,11 @@ def main(
             os.makedirs(CONFIG["output_path"])
 
         mask = 0
-        for _, obj in _board():
-            if obj is None:
-                mask += 1
-            mask <<= 1
+        for key in _board.get_board_keys():
+            for _, obj in _board(key=key):
+                if obj is None:
+                    mask += 1
+                mask <<= 1
 
         # 计算需要的字节长度
         byte_length = (mask.bit_length() + 7) // 8  # 计算所需字节数
@@ -122,7 +126,7 @@ def main(
 
         mask = mask.to_bytes(byte_length, "big", signed=False)
 
-        with open(os.path.join(CONFIG["output_path"], "demo.txt"), "a", encoding="utf-8") as f:
+        with (open(os.path.join(CONFIG["output_path"], "demo.txt"), "a", encoding="utf-8") as f):
             f.write("\n" + ("=" * 100) + "\n\n生成时间" + logger.get_time() + "\n")
             f.write(f'线索表\n')
             if 0 in clue_freq:
@@ -139,12 +143,20 @@ def main(
 
             f.write(f"\n答案: img -c {answer_code.hex()} ")
             f.write(f"-r \"{rule_text}-R{total}/")
-            f.write(f"{n_num}-{get_seed()}\" ")
+            f.write(f"{n_num}")
+            if unseed:
+                f.write(f"-{get_seed()}\" ")
+            else:
+                f.write(" ")
             f.write("-o answer\n")
 
             f.write(f"\n题板: img -c {board_code.hex()} ")
             f.write(f"-r \"{rule_text}-R{'*' if drop_r else total}/")
-            f.write(f"{n_num}-{get_seed()}\" ")
+            f.write(f"{n_num}")
+            if unseed:
+                f.write(f"-{get_seed()}\" ")
+            else:
+                f.write(" ")
             f.write("-o demo\n")
 
-            f.write(f"\n题板代码: \n{encode_board(answer_code)}:{mask.hex()}\n")
+            f.write(f"\n题板代码: \n{encode_board(answer_code)}:{mask.hex()}:{':'.join(rule_code)}\n")

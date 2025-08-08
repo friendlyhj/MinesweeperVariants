@@ -52,6 +52,8 @@ parser.add_argument("--test", action="store_true", default=False,
                     help="启用后将仅生成一份使用了规则的答案题板")
 parser.add_argument("--seed", type=int, default=defaults.get("seed"),
                     help="随机种子")
+parser.add_argument("--onseed",  action="store_true", default=False,
+                    help="启用可循的种子来生成题板,速度会大幅降低")
 parser.add_argument("--log-lv", default=defaults.get("log_lv"),
                     help="日志等级，如 DEBUG、INFO、WARNING")
 parser.add_argument("--board-class", default=defaults.get("board_class"),
@@ -138,6 +140,7 @@ if args.test:
         rules=[i.upper() for i in args.rules],
         dye=args.dye.lower(),
         board_class=args.board_class,
+        unseed=not args.onseed,
     )
 elif args.query == defaults.get("query"):
     puzzle(
@@ -150,7 +153,8 @@ elif args.query == defaults.get("query"):
         dye=args.dye.lower(),
         drop_r=(not args.used_r),
         board_class=args.board_class,
-        vice_board=args.vice_board
+        vice_board=args.vice_board,
+        unseed=not args.onseed,
     )
 else:
     puzzle_query(
@@ -165,5 +169,6 @@ else:
         drop_r=(not args.used_r),
         early_stop=args.early_stop,
         board_class=args.board_class,
-        vice_board=args.vice_board
+        vice_board=args.vice_board,
+        unseed=not args.onseed,
     )

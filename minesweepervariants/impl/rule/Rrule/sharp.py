@@ -13,7 +13,8 @@ from ....utils.tool import get_random
 
 
 class RuleSharp(AbstractClueRule):
-    name = "#"
+    name = ["#", "标签", "Tag"]
+    doc = "线索会有不同的规则, 每个线索的规则会单独标出"
 
     def __init__(self, board: AbstractBoard, data: list[AbstractClueRule]):
         super().__init__(board, None)

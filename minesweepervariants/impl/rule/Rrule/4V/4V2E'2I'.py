@@ -118,15 +118,15 @@ class Value4V2Ep2Ip(AbstractClueValue):
     def __repr__(self) -> str:
         return f"{ALPHABET[self.value]}"
 
-    def high_light(self, board: 'AbstractBoard') -> List['AbstractPosition']:
+    def high_light(self, board: 'AbstractBoard') -> list['AbstractPosition']:
         positions = []
         for pos_key in [MASTER_BOARD, BOARD_NAME_4V]:
             self_pos = self.pos.clone()
             self_pos.board_key = pos_key
             for pos, _ in board("NF", key=NAME_4V_2Ip):
-                _pos = self_pos.deviation(pos.shift(-1, -1))
+                _pos = self_pos.deviation(pos.shift(1, -1))
                 if board.in_bounds(_pos):
-                    positions.append(pos)
+                    positions.append(_pos)
         return positions
 
     def create_constraints(self, board: 'AbstractBoard', switch):

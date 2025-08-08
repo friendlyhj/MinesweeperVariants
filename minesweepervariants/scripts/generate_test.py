@@ -29,11 +29,14 @@ def main(
         rules: list[str],  # 规则id集合
         dye: str,  # 染色规则
         board_class: str,  # 题板的名称
+        unseed: bool
 ):
     logger = get_logger(log_lv=log_lv)
     get_random(seed, new=True)
     attempt_index = 0
     s = Summon(size=size, total=total, rules=rules, board=board_class, dye=dye)
+    if unseed:
+        s.unseed = unseed
     total = s.total
     logger.info(f"total mines: {total}")
     _board = None
@@ -72,7 +75,10 @@ def main(
 
             f.write(f"\n题板: img -c {_board.encode().hex()} ")
             f.write(f"-r \"{rule_text}-R{total}")
-            f.write(f"-{get_seed()}\" ")
+            if unseed:
+                f.write(" ")
+            else:
+                f.write(f"-{get_seed()}\" ")
             f.write("-o answer\n")
 
         def d():

@@ -35,13 +35,13 @@ class GenerateError(Exception):
 
 class Summon:
     def __init__(
-            self, size: tuple[int, int],
-            total: int,
-            rules: list[str],
-            drop_r: bool = False,
-            dye: str = "",
-            board: str = "Board1",
-            vice_board: bool = False,
+        self, size: tuple[int, int],
+        total: int,
+        rules: list[str],
+        drop_r: bool = False,
+        dye: str = "",
+        board: str = "Board1",
+        vice_board: bool = False,
     ):
         """
         :param size: 题板的尺寸
@@ -59,6 +59,7 @@ class Summon:
         self.answer_board_code = None
         self.total = total
         self.vice_board = vice_board
+        self.unseed = False
 
         # 题板初始化
         self.board = get_board(board)(size)
@@ -98,20 +99,7 @@ class Summon:
             if type(rule.name) is str:
                 rules.append(rule.name)
             else:
-                rules.append(rule.name[0])
-
-        # 右线规则初始化
-        if len(clue_rules) == 0:
-            self.clue_rule = get_rule("V")(board=self.board, data=None)
-        elif len(clue_rules) > 1:
-            self.clue_rule = get_rule("#")(board=self.board, data=clue_rules)
-            rules.append("#")
-        else:
-            self.clue_rule = clue_rules[0]
-            if type(clue_rules[0].name) is str:
-                rules.append(clue_rules[0].name)
-            else:
-                rules.append(clue_rules[0].name[0])
+                rules.append(rule.name[0][:])
 
         # 中线规则初始化
         if len(mines_clue_rules) == 0:
@@ -127,6 +115,22 @@ class Summon:
                 rules.append(mines_clue_rules[0].name)
             else:
                 rules.append(mines_clue_rules[0].name[0])
+
+        # 右线规则初始化
+        if len(clue_rules) == 0:
+            if len(mines_clue_rules) == 0:
+                self.clue_rule = get_rule("V")(board=self.board, data=None)
+            else:
+                self.clue_rule = get_rule("?")(board=self.board, data="")
+        elif len(clue_rules) > 1:
+            self.clue_rule = get_rule("#")(board=self.board, data=clue_rules)
+            rules.append("#")
+        else:
+            self.clue_rule = clue_rules[0]
+            if type(clue_rules[0].name) is str:
+                rules.append(clue_rules[0].name)
+            else:
+                rules.append(clue_rules[0].name[0])
 
         if not rules:
             rules.append("V")
@@ -223,7 +227,10 @@ class Summon:
 
     def summon_board(self):
         self.board.clear_board()
-        _board = self.fill_valid(self.board, self.total)
+        if self.unseed:
+            _board = self.random_fill(self.board, self.total)
+        else:
+            _board = self.fill_valid(self.board, self.total)
         if _board is None:
             return None
         [_board.set_value(pos, None) for pos, _ in _board("C")]
@@ -245,6 +252,32 @@ class Summon:
         self.board = _board.clone()
         return _board
 
+    def random_fill(self, board, total):
+        switch = Switch()
+        random = get_random()
+        model = board.get_model()
+        for rule in self.mines_rules.rules:
+            rule.create_constraints(board, switch)
+        var_list = [v for _, v in board(mode="variable")]
+        model.AddBoolAnd(switch.get_all_vars())
+        solver = None
+        t = time.time()
+        __count = 0
+        while time.time() - t < 60:
+            __count += 1
+            print(f"正在随机放雷 正在尝试第{__count}次", end="\r", flush=True)
+            _model = model.clone()
+            _model.AddBoolAnd(random.sample(var_list, int(total * 0.1)))
+            status, solver = solver_model(model, True)
+            if status:
+                break
+        for pos, var in board(mode="variable"):
+            if solver.Value(var):
+                board[pos] = MINES_TAG
+            else:
+                board[pos] = VALUE_QUESS
+        return board
+
     def fill_valid(self, board: 'AbstractBoard', total: int, model=None) -> Union[AbstractBoard, None]:
         random = get_random()
         history: list[tuple] = []
@@ -260,7 +293,7 @@ class Summon:
             print(f"正在随机放雷"
                   f"  已放置雷数: {self.total - total}/{self.total}"
                   f"  总剩余位置: {index}/{len(positions)}   ",
-                  end="\r")
+                  end="\r", flush=True)
             pos = positions[index]
             _model = model.clone()
             _model.Add(board.get_variable(pos) == 0)

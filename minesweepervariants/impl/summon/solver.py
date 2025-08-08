@@ -573,10 +573,13 @@ def solver_board(
 
 
 def solver_model(
-    model: cp_model
+    model: cp_model,
+    back_solver: bool = False
 ):
     solver = get_solver(False)
     status = solver.Solve(model)
+    if back_solver:
+        return status in (cp_model.OPTIMAL, cp_model.FEASIBLE), solver
     if status in (cp_model.OPTIMAL, cp_model.FEASIBLE):
         return True
     else:

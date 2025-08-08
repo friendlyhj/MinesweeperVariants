@@ -192,7 +192,7 @@ class Value3A(AbstractClueValue):
             value -= 1
             if value == 0:
                 break
-        print(self.value, position)
+        # print(self.value, position)
         return position
 
     def append(self, data):

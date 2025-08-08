@@ -4,6 +4,7 @@
 # @Time    : 2025/07/30 08:15
 # @Author  : Wu_RH
 # @FileName: app.py.py
+import base64
 import hashlib
 import threading
 import time
@@ -233,6 +234,7 @@ def generate_board():
     answer_board = None
     mask_board = None
     code = request.args.get("code", None)
+    # code = ""
     used_r = request.args.get("used_r", "true").lower() == "true"
     rules = request.args.get("rules", "V")
     ultimate_mode = request.args.get("u_mode", "+A")
@@ -273,15 +275,17 @@ def generate_board():
     print(mode)
     # print(123456)
     if code:
-        code, mask = code.split(":", 1)
-        print(code, mask)
+        code, mask, *rules = code.split(":")
+        rules = [base64.urlsafe_b64decode(rule_code.encode("ascii")).decode("ascii") for rule_code in rules]
+        print(code, mask, rules)
         answer_board = decode_board(code, None)
         mask = int.from_bytes(bytes.fromhex(mask), "big", signed=False)
         mask_board = answer_board.clone()
-        for pos, _ in answer_board():
-            if mask & 1:
-                mask_board[pos] = None
-            mask >>= 1
+        for key in answer_board.get_board_keys():
+            for pos, _ in answer_board(key=key):
+                if mask & 1:
+                    mask_board[pos] = None
+                mask >>= 1
         master_key = mask_board.get_board_keys()[0]
         size = mask_board.get_config(master_key, "size")
     else:

@@ -62,11 +62,11 @@ class MinesAsterisk(AbstractMinesValue):
         pass
 
     def __repr__(self) -> str:
-        return "*"
+        return "#"
 
     @classmethod
     def type(cls) -> bytes:
-        return b"*"
+        return b"F*"
 
     def code(self) -> bytes:
         return b""
@@ -76,6 +76,7 @@ class MinesAsterisk(AbstractMinesValue):
 
 
 VALUE_TAG = ValueAsterisk(POSITION_TAG)
+VALUE_MINES = MinesAsterisk(POSITION_TAG)
 
 
 class Manger:
@@ -157,7 +158,7 @@ class GameSession:
             all_rules = [rule for rule in all_rules if not isinstance(rule, Rule0R)]
         board = self.board.clone()
         if action == 0:
-            board[pos] = MINES_TAG
+            board[pos] = VALUE_MINES
         else:
             board[pos] = VALUE_TAG
         return solver_board(board, all_rules)
@@ -224,7 +225,7 @@ class GameSession:
         VALUE = self.board.get_config(clue_pos.board_key, "VALUE")
         MINES = self.board.get_config(clue_pos.board_key, "MINES")
         self.logger.trace("chord")
-        if self.board[clue_pos] in [VALUE, MINES, VALUE_TAG, None]:
+        if self.board[clue_pos] in [VALUE, MINES, VALUE_TAG, VALUE_MINES, None]:
             return []
         obj = self.board.get_value(clue_pos)
         board: AbstractBoard = self.board.clone()
@@ -264,7 +265,7 @@ class GameSession:
         if self.mode == PUZZLE:
             if action == 1:
                 value_tag = self.board.get_config(pos.board_key, "MINES")
-                self.board.set_value(pos, value_tag)
+                self.board.set_value(pos, VALUE_MINES if value_tag == VALUE_QUESS else value_tag)
             elif action == 0:
                 value_tag = self.board.get_config(pos.board_key, "VALUE")
                 self.board.set_value(pos, VALUE_TAG if value_tag == VALUE_QUESS else value_tag)
@@ -280,7 +281,7 @@ class GameSession:
                 # 如果是纸笔和专家就放标志
                 for _pos in chord_positions:
                     if self.answer_board.get_type(_pos) == "F":
-                        self.board[_pos] = MINES_TAG
+                        self.board[_pos] = VALUE_MINES
                     elif self.answer_board.get_type(_pos) == "C":
                         self.board[_pos] = VALUE_TAG
         elif self.mode == NORMAL:
@@ -301,7 +302,7 @@ class GameSession:
             if not action and self.answer_board.get_type(pos) == "F":
                 return None
             if self.mode in [ULTIMATE, PUZZLE]:
-                self.board[pos] = MINES_TAG if action else VALUE_TAG
+                self.board[pos] = VALUE_MINES if action else VALUE_TAG
             else:
                 self.board[pos] = self.answer_board[pos]
         else:
@@ -334,7 +335,7 @@ class GameSession:
         if self.deduced():
             return
         for pos, obj in self.board():
-            if obj not in [VALUE_TAG, MINES_TAG]:
+            if obj not in [VALUE_TAG, VALUE_MINES]:
                 continue
             self.board[pos] = self.answer_board[pos]
 
@@ -353,7 +354,7 @@ class GameSession:
                 if board.get_type(pos) != "N":
                     continue
                 if self.answer_board.get_type(pos) == "F":
-                    board[pos] = MINES_TAG
+                    board[pos] = VALUE_MINES
                 elif self.answer_board.get_type(pos) == "C":
                     board[pos] = VALUE_TAG
                 deduced.append(pos)

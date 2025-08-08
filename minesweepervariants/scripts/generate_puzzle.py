@@ -4,6 +4,7 @@
 # @Time    : 2025/06/15 18:07
 # @Author  : Wu_RH
 # @FileName: generate_puzzle.py.py
+import base64
 import os
 import time
 
@@ -33,12 +34,17 @@ def main(
         drop_r: bool,  # 在推理时候是否隐藏R推理
         board_class: str,  # 题板的名称
         vice_board: bool,  # 启用删除副板
+        unseed: bool,
 ):
+    rule_code = rules[:]
+    rule_code = [base64.urlsafe_b64encode(rule.encode("ascii")).decode("ascii") for rule in rule_code]
     logger = get_logger(log_lv=log_lv)
     get_random(seed, new=True)
     attempts = 20 if attempts == -1 else attempts
     s = Summon(size=size, total=total, rules=rules, board=board_class,
                drop_r=drop_r, dye=dye, vice_board=vice_board)
+    if unseed:
+        s.unseed = True
     total = s.total
     logger.info(f"total mines: {total}")
     _board = None
@@ -104,10 +110,11 @@ def main(
         os.mkdir(CONFIG["output_path"])
 
     i, mask = 1, 0
-    for _, obj in _board():
-        if obj is None:
-            mask += i
-        i <<= 1
+    for key in _board.get_board_keys():
+        for _, obj in _board(key=key):
+            if obj is None:
+                mask += i
+            i <<= 1
 
     # 计算需要的字节长度
     byte_length = (mask.bit_length() + 7) // 8  # 计算所需字节数
@@ -126,20 +133,32 @@ def main(
 
         f.write(f"\n答案: img -c {answer_code.hex()} ")
         f.write(f"-r \"{rule_text}-R{total}/")
-        f.write(f"{n_num}-{get_seed()}\" ")
+        f.write(f"{n_num}")
+        if unseed:
+            f.write(f"-{get_seed()}\" ")
+        else:
+            f.write(" ")
         f.write("-o answer\n")
 
         f.write(f"\n题板: img -c {board_code.hex()} ")
         f.write(f"-r \"{rule_text}-R{'*' if drop_r else total}/")
-        f.write(f"{n_num}-{get_seed()}\" ")
+        f.write(f"{n_num}")
+        if unseed:
+            f.write(f"-{get_seed()}\" ")
+        else:
+            f.write(" ")
         f.write("-o demo\n")
 
-        f.write(f"\n题板代码: \n{encode_board(answer_code)}:{mask.hex()}\n")
+        f.write(f"\n题板代码: \n{encode_board(answer_code)}:{mask.hex()}:{':'.join(rule_code)}\n")
 
     image_bytes = draw_board(board=get_board(board_class)(code=board_code), cell_size=100, output="demo",
-                             bottom_text=rule_text + f"-R{'*' if drop_r else total}/{n_num}-{get_seed()}\n")
+                             bottom_text=(rule_text +
+                                          f"-R{'*' if drop_r else total}/{n_num}" +
+                                          "\n" if unseed else f"-{get_seed()}\n"))
     draw_board(board=get_board(board_class)(code=answer_code), output="answer", cell_size=100,
-               bottom_text=rule_text + f"-R{total}/{n_num}-{get_seed()}\n")
+               bottom_text=(rule_text +
+                            f"-R{total}/{n_num}-{get_seed()}" +
+                            "\n" if unseed else f"-{get_seed()}\n"))
 
     filepath = os.path.join(CONFIG["output_path"], "demo.png")
     with open(filepath, "wb") as f:
