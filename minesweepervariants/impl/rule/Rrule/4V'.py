@@ -53,9 +53,6 @@ class Rule4Vp(AbstractClueRule):
 
         return board
 
-    def clue_class(self):
-        return Value4Vp
-
 
 class Value4Vp(AbstractClueValue):
     def __init__(self, pos: 'AbstractPosition', code: bytes = b''):
@@ -66,6 +63,7 @@ class Value4Vp(AbstractClueValue):
             self.neighbors_list.append(_pos.neighbors(0, 2))
         self.value_a = code[0] & 0xf
         self.value_b = code[0] >> 4
+        self.pos = pos
 
     @classmethod
     def method_choose(cls) -> int:

@@ -131,7 +131,7 @@ def main(
         f.write(board_str)
         f.write(answer)
 
-        f.write(f"\n答案: img -c {answer_code.hex()} ")
+        f.write(f"\n答案: img -c {encode_board(answer_code)} ")
         f.write(f"-r \"{rule_text}-R{total}/")
         f.write(f"{n_num}")
         if unseed:
@@ -140,7 +140,7 @@ def main(
             f.write(" ")
         f.write("-o answer\n")
 
-        f.write(f"\n题板: img -c {board_code.hex()} ")
+        f.write(f"\n题板: img -c {encode_board(board_code)} ")
         f.write(f"-r \"{rule_text}-R{'*' if drop_r else total}/")
         f.write(f"{n_num}")
         if unseed:
@@ -157,7 +157,7 @@ def main(
                                           "\n" if unseed else f"-{get_seed()}\n"))
     draw_board(board=get_board(board_class)(code=answer_code), output="answer", cell_size=100,
                bottom_text=(rule_text +
-                            f"-R{total}/{n_num}-{get_seed()}" +
+                            f"-R{total}/{n_num}" +
                             "\n" if unseed else f"-{get_seed()}\n"))
 
     filepath = os.path.join(CONFIG["output_path"], "demo.png")

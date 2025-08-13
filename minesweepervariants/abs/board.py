@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from minesweepervariants.abs.Rrule import AbstractClueValue
     from minesweepervariants.abs.Mrule import AbstractMinesValue
 
-MASTER_BOARD = "main"
+MASTER_BOARD = "1"
 
 
 @dataclass(order=True)
@@ -420,7 +420,7 @@ class AbstractBoard(ABC):
         :param mode: 模式字符串，表示要获取的类型:
             - "object": 返回原始对象
             - "type": 返回位置的类型
-            - "variable": 返回 OR-Tools 中与该位置关联的变量
+            - "variable"/"var": 返回 OR-Tools 中与该位置关联的变量
             - "dye": 返回染色情况
         :param drop_none:
             返回时是否丢弃none

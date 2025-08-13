@@ -41,10 +41,8 @@ class Rule1Q(Abstract3DMinesRule):
         model = board.get_model()
         s = switch.get(model, self)
 
-        a_pos = board.boundary()
-        for b_pos in board.get_col_pos(a_pos):
-            for i_pos in board.get_row_pos(b_pos):
-                if not (pos_block := block(i_pos, board)):
-                    continue
-                var_list = [board.get_variable(pos) for pos in pos_block]
-                model.Add(sum(var_list) > 1).OnlyEnforceIf(s)
+        for pos, _ in board():
+            if not (pos_block := block(pos, board)):
+                continue
+            var_list = [board.get_variable(pos) for pos in pos_block]
+            model.Add(sum(var_list) > 1).OnlyEnforceIf(s)

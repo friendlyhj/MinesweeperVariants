@@ -5,9 +5,9 @@
 # @Author  : Wu_RH
 # @FileName: 1B'.py
 
-# """
-# [1B']失衡: 每行每列雷数均不相同
-# """
+"""
+[1B']失衡: 每行每列雷数均不相同
+"""
 
 from ....abs.Lrule import AbstractMinesRule
 from ....abs.board import AbstractBoard
@@ -15,7 +15,7 @@ from ....abs.board import AbstractBoard
 
 class Rule1B(AbstractMinesRule):
     name = ["1B'", "失衡"]
-    doc = "每行每列雷数均不相同"
+    doc = "每行每列雷数均不相同 1.每列雷数不相同 2.每行雷数不相同"
 
     def create_constraints(self, board: 'AbstractBoard', switch):
         model = board.get_model()

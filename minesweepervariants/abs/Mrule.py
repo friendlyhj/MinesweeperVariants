@@ -90,7 +90,13 @@ class MinesTag(AbstractMinesValue):
 class Rule0F(AbstractMinesClueRule):
     name = "_0F"
 
+    def __init__(self, board: "AbstractBoard" = None, data=None) -> None:
+        super().__init__(board, data)
+        self.drop = data is None
+
     def init_clear(self, board: 'AbstractBoard'):
+        if not self.drop:
+            return
         for key in board.get_board_keys():
             if not board.get_config(key, "interactive"):
                 continue

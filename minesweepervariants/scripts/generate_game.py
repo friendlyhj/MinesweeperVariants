@@ -7,6 +7,7 @@
 """
 普通模式-随机生成题板
 """
+import base64
 import os
 import time
 
@@ -141,7 +142,7 @@ def main(
             f.write("\n" + board_str)
             f.write("\n" + answer)
 
-            f.write(f"\n答案: img -c {answer_code.hex()} ")
+            f.write(f"\n答案: img -c {encode_board(answer_code)} ")
             f.write(f"-r \"{rule_text}-R{total}/")
             f.write(f"{n_num}")
             if unseed:
@@ -150,7 +151,7 @@ def main(
                 f.write(" ")
             f.write("-o answer\n")
 
-            f.write(f"\n题板: img -c {board_code.hex()} ")
+            f.write(f"\n题板: img -c {encode_board(board_code)} ")
             f.write(f"-r \"{rule_text}-R{'*' if drop_r else total}/")
             f.write(f"{n_num}")
             if unseed:

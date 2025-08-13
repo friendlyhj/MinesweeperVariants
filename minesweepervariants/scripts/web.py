@@ -374,8 +374,8 @@ def generate_board():
 @app.route('/api/metadata')
 def metadata():
     if "game" not in hypothesis_data \
-        or hypothesis_data["game"].board is None \
-        or hypothesis_data["game"].answer_board is None:
+            or hypothesis_data["game"].board is None \
+            or hypothesis_data["game"].answer_board is None:
         return {}, 200
     game = hypothesis_data["game"]
     if game.board is None:
@@ -444,7 +444,7 @@ def click():
     if game.mode == ULTIMATE:
         deduced = game.deduced()
         refresh["u_hint"] = {
-            "flagcount":  len([None for _pos in deduced if game.answer_board.get_type(_pos) == "F"]),
+            "flagcount": len([None for _pos in deduced if game.answer_board.get_type(_pos) == "F"]),
             "emptycount": len([None for _pos in deduced if game.answer_board.get_type(_pos) == "C"]),
             "markcount": len([None for _pos in deduced if _pos.board_key not in game.board.get_interactive_keys()])
         }
@@ -500,19 +500,19 @@ def click():
                 if obj is None and board[pos] is None:
                     continue
                 if (
-                    not (obj is None or board[pos] is None) and
-                    obj.type() == board[pos].type() and
-                    obj.code() == board[pos].code() and
-                    obj.high_light(_board) == board[pos].high_light(board) and
-                    obj.invalid(_board) == board[pos].invalid(board)
+                        not (obj is None or board[pos] is None) and
+                        obj.type() == board[pos].type() and
+                        obj.code() == board[pos].code() and
+                        obj.high_light(_board) == board[pos].high_light(board) and
+                        obj.invalid(_board) == board[pos].invalid(board)
                 ):
                     continue
                 data = format_cell(_board, pos)
                 print(pos, obj, data)
                 refresh["cells"].append(data)
         if not any(
-            _board.has("N", key=key) for
-            key in _board.get_interactive_keys()
+                _board.has("N", key=key) for
+                key in _board.get_interactive_keys()
         ):
             refresh["gameover"] = True
             refresh["reason"] = "你过关!!!(震声)"
@@ -643,7 +643,7 @@ def reset():
 
 
 if __name__ == '__main__':
-    # get_logger(log_lv="ERROR")
+    get_logger(log_lv="DEBUG")
     port = int(sys.argv[1] if len(sys.argv) == 2 else "5050")
     # 允许所有来源跨域，或根据需要设置 origins=["*"]
 

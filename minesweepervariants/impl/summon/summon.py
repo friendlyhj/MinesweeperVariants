@@ -253,6 +253,8 @@ class Summon:
         return _board
 
     def random_fill(self, board, total):
+        # if len(self.mines_rules.rules) == 1:
+        #     return self.fill_valid(board, total)
         switch = Switch()
         random = get_random()
         model = board.get_model()
@@ -263,19 +265,23 @@ class Summon:
         solver = None
         t = time.time()
         __count = 0
+        random_k = 5 ** (1 - len(self.mines_rules.rules))
         while time.time() - t < 60:
             __count += 1
             print(f"正在随机放雷 正在尝试第{__count}次", end="\r", flush=True)
             _model = model.clone()
-            _model.AddBoolAnd(random.sample(var_list, int(total * 0.1)))
+            model.AddBoolAnd(random.sample(var_list, int(total * random_k)))
             status, solver = solver_model(model, True)
             if status:
                 break
+            del model
+            model = _model
         for pos, var in board(mode="variable"):
             if solver.Value(var):
                 board[pos] = MINES_TAG
             else:
                 board[pos] = VALUE_QUESS
+        print(f"随机放雷完毕 共尝试了{__count}次 ", end="\r", flush=True)
         return board
 
     def fill_valid(self, board: 'AbstractBoard', total: int, model=None) -> Union[AbstractBoard, None]:
@@ -290,6 +296,8 @@ class Summon:
         positions = [pos for pos, _ in self.board("N")]
         random.shuffle(positions)
         for index in range(len(positions)):
+            if total <= 0:
+                break
             print(f"正在随机放雷"
                   f"  已放置雷数: {self.total - total}/{self.total}"
                   f"  总剩余位置: {index}/{len(positions)}   ",
@@ -300,7 +308,9 @@ class Summon:
             code = board.encode()
             board[pos] = MINES_TAG
             model.Add(board.get_variable(pos) == 1)
-            if solver_model(model):
+            if len(self.mines_rules.rules) == 1:
+                total -= 1
+            elif solver_model(model):
                 history.append((code, _model))
                 total -= 1
             else:
@@ -327,6 +337,7 @@ class Summon:
                 drop_r=self.drop_r
         ) != 1:
             self.logger.warn("题板存在错误 需要重新设计")
+            self.logger.debug("warn board:\n" + board.show_board())
             return None
 
         # 初始统计
@@ -412,15 +423,10 @@ class Summon:
                 temp_b_number = len([None for _ in board('F')])
                 if (init_clues_count == temp_a_number and
                         init_mines_count == temp_b_number):
+                    self.logger.warn("题板无法删除任何线索 提前退出")
                     progress_info["running"] = False
                     thread.join()
                     return None
-
-            if solver_by_csp(self.mines_rules, self.clue_rule, self.mines_clue_rule,
-                             board.clone(), drop_r=self.drop_r) != 1:
-                progress_info["running"] = False
-                thread.join()
-                return None
 
             c_poses = [(i, t, key) for key in
                        [key for key in board.get_board_keys() if board.get_config(key, "interactive")]

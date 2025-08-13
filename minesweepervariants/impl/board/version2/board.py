@@ -210,8 +210,12 @@ class Board(AbstractBoard):
                     if target == "always" or pos_type in target:
                         if mode == "object":
                             yield pos, self.get_value(pos)
+                        elif mode == "obj":
+                            yield pos, self.get_value(pos)
                         elif mode == "type":
                             yield pos, pos_type
+                        elif mode == "var":
+                            yield pos, self.get_variable(pos)
                         elif mode == "variable":
                             yield pos, self.get_variable(pos)
                         elif mode == "dye":
@@ -238,8 +242,8 @@ class Board(AbstractBoard):
                     del self.board_data[_key]["variable"]
                 self.board_data[_key]["variable"] = \
                     [[self._model.NewBoolVar(f"var({self.get_pos(x, y, _key)})")
-                      for y in range(_size[0])]
-                     for x in range(_size[1])]
+                      for y in range(_size[1])]
+                     for x in range(_size[0])]
                 get_logger().trace(f"构建新变量:{self.board_data[_key]['variable']}")
         return self._model
 
@@ -499,7 +503,11 @@ class Board(AbstractBoard):
                 continue
             if mode == "object":
                 result.append(self.get_value(pos))
+            elif mode == "obj":
+                result.append(self.get_value(pos))
             elif mode == "variable":
+                result.append(self.get_variable(pos))
+            elif mode == "var":
                 result.append(self.get_variable(pos))
             elif mode == "type":
                 result.append(self.get_type(pos))
