@@ -8,12 +8,53 @@
 [2G] 四连块 (Group)：所有四连通雷区域的面积为 4
 """
 from ....abs.Lrule import AbstractMinesRule
-from ....abs.board import AbstractBoard
+from ....abs.board import AbstractBoard, AbstractPosition
 
 
 class Rule2G(AbstractMinesRule):
     name = ["2G", "四连块", "Group"]
     doc = "所有四连通雷区域的面积为 4"
+
+    def __init__(self, board: "AbstractBoard" = None, data=None) -> None:
+        super().__init__(board, data)
+        self.nei_values = []
+        self.rule_name = self.name[0]
+        if board is None:
+            self.nei_values = [tuple([1])]
+            self.value = 4
+            return
+        self.rule_name += "(" + data[:] + ")"
+        nei_values = "1"
+        if ";;" in data:
+            nei_values = data.split(";;")[0]
+            self.value = int(data.split(";;")[1])
+        if nei_values == "":
+            nei_values = "1"
+        nei_values = nei_values.split(";")
+        for nei_value in nei_values:
+            if ":" in nei_value:
+                self.nei_values.append(tuple([
+                    int(nei_value.split(":")[0]),
+                    int(nei_value.split(":")[1])
+                ]))
+            else:
+                self.nei_values.append(tuple([int(nei_value)]))
+
+    def get_name(self):
+        return self.rule_name
+
+    def nei_pos(self, pos: AbstractPosition):
+        positions = []
+        for nei_value in self.nei_values:
+            if len(nei_value) == 1:
+                positions.extend(
+                    pos.neighbors(nei_value[0], nei_value[0])
+                )
+            elif len(nei_value) == 2:
+                positions.extend(
+                    pos.neighbors(nei_value[0], nei_value[1])
+                )
+        return positions
 
     def create_constraints(self, board: AbstractBoard, switch):
         model = board.get_model()
@@ -24,7 +65,7 @@ class Rule2G(AbstractMinesRule):
                 _possible_list = set()
             if checked is None:
                 checked = []
-            if step == 4:
+            if step == self.value:
                 _possible_list.add((tuple(sorted(set(_valides))), tuple(sorted(set(checked)))))
                 return _possible_list
             for _pos in sorted(set(_valides)):
@@ -35,7 +76,7 @@ class Rule2G(AbstractMinesRule):
                 checked.append(_pos)
                 _valides.remove(_pos)
                 pos_list = []
-                for __pos in _pos.neighbors(1):
+                for __pos in self.nei_pos(_pos):
                     if __pos in checked:
                         continue
                     if __pos in _valides:
@@ -75,6 +116,6 @@ class Rule2G(AbstractMinesRule):
     def suggest_total(self, info: dict):
 
         def hard_constraint(m, total):
-            m.AddModuloEquality(0, total, 4)
+            m.AddModuloEquality(0, total, self.value)
 
         info["hard_fns"].append(hard_constraint)

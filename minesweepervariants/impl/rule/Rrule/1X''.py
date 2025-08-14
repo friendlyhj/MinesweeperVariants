@@ -5,7 +5,7 @@
 # @Author  : Wu_RH
 # @FileName: 1X'.py
 """
-[1X''] 十字 (Mini Cross)：线索表示距离为1和距离为2√2区域的总雷数
+[1X'']双十字 (Double Cross)：线索表示距离为1和距离为2√2区域的总雷数
 """
 from ....abs.Rrule import AbstractClueRule, AbstractClueValue
 from ....abs.board import AbstractBoard, AbstractPosition
@@ -15,7 +15,7 @@ from ....utils.impl_obj import VALUE_QUESS, MINES_TAG
 
 
 class Rule1Xp(AbstractClueRule):
-    name = ["1X''", "X''", "十字"]
+    name = ["1X''", "X''", "双十字"]
     doc = "线索表示距离为1和距离为2√2区域的总雷数"
 
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':

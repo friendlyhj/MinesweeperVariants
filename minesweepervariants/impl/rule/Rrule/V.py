@@ -93,10 +93,3 @@ class ValueV(AbstractClueValue):
         if neighbor_vars:
             model.Add(sum(neighbor_vars) == self.count).OnlyEnforceIf(switch.get(model, self.pos))
             get_logger().trace(f"[V] Value[{self.pos}: {self.count}] add: {neighbor_vars} == {self.count}")
-
-    def check(self, board: 'AbstractBoard') -> bool:
-        neighbor = [board.get_type(pos) for pos in self.neighbor]
-        return (f_num := neighbor.count("F")) <= self.count <= f_num + neighbor.count("N")
-
-    def method_choose(self) -> int:
-        return 3

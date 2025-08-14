@@ -16,10 +16,6 @@ from ....utils.image_create import get_text, get_row
 from ....utils.tool import get_logger, get_random
 
 
-def put(pos: 'AbstractPosition', board: 'AbstractBoard'):
-    clue = board.get_value(pos)
-
-
 class Rule2X(AbstractClueRule):
     name = ["2X", "十字"]
     doc = "线索代表相邻的8个格子中，染色和非染色格里的雷数(顺序不确定)"
@@ -35,9 +31,6 @@ class Rule2X(AbstractClueRule):
             board.set_value(pos, Value2X(pos, count=value1 * 10 + value2))
             logger.debug(f"Set {pos} to 2X[{value1 * 10 + value2}]")
         return board
-
-    def clue_class(self):
-        return Value2X
 
 
 class Value2X(AbstractClueValue):
@@ -72,9 +65,10 @@ class Value2X(AbstractClueValue):
     def code(self) -> bytes:
         return bytes([self.count])
 
-    def create_constraints(self, board: 'AbstractBoard'):
+    def create_constraints(self, board: 'AbstractBoard', switch):
         """创建CP-SAT约束: 周围染色格雷数等于两个染色格的数量"""
         model = board.get_model()
+        s = switch.get(model, self)
 
         # 收集周围格子的布尔变量
         neighbor_vars1 = []
@@ -92,14 +86,7 @@ class Value2X(AbstractClueValue):
             # 定义变量
             t = model.NewBoolVar('t')
             # 设置A B C D的值
-            model.Add(sum(neighbor_vars1) == self.count // 10).OnlyEnforceIf(t)
-            model.Add(sum(neighbor_vars2) == self.count % 10).OnlyEnforceIf(t)
-            model.Add(sum(neighbor_vars1) == self.count % 10).OnlyEnforceIf(t.Not())
-            model.Add(sum(neighbor_vars2) == self.count // 10).OnlyEnforceIf(t.Not())
-
-    def check(self, board: 'AbstractBoard') -> bool:
-        return False
-
-    @classmethod
-    def method_choose(cls) -> int:
-        return 3
+            model.Add(sum(neighbor_vars1) == self.count // 10).OnlyEnforceIf([t, s])
+            model.Add(sum(neighbor_vars2) == self.count % 10).OnlyEnforceIf([t, s])
+            model.Add(sum(neighbor_vars1) == self.count % 10).OnlyEnforceIf([t.Not(), s])
+            model.Add(sum(neighbor_vars2) == self.count // 10).OnlyEnforceIf([t.Not(), s])

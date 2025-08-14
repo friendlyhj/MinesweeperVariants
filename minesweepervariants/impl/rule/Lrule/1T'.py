@@ -15,12 +15,11 @@ from ....utils.tool import get_logger
 
 
 class Rule1Tp(AbstractMinesRule):
-    name = ["1T'", "必三联"]
+    name = ["1T'", "必三连"]
     doc = "雷必然处在横竖对角构成三连"
 
     def create_constraints(self, board: 'AbstractBoard', switch):
         model = board.get_model()
-        logger = get_logger()
         s = switch.get(model, self)
 
         # 存储每个位置所属的三连组变量
@@ -61,8 +60,6 @@ class Rule1Tp(AbstractMinesRule):
             if coverage_list:  # 确保该位置有三连组覆盖
                 # 雷 => 至少属于一个三连组
                 model.AddBoolOr(coverage_list).OnlyEnforceIf([var, s])
-                logger.debug(f"Pos {pos}:雷必须属于{len(coverage_list)}个三连组之一")
             else:
                 # 无三连组覆盖的位置不能是雷
                 model.Add(var == 0).OnlyEnforceIf(s)
-                logger.warning(f"位置{pos}无三连组覆盖，强制为非雷")

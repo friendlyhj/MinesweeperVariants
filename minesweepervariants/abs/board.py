@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from minesweepervariants.abs.Rrule import AbstractClueValue
     from minesweepervariants.abs.Mrule import AbstractMinesValue
 
-MASTER_BOARD = "main"
+MASTER_BOARD = "1"
 
 
 @dataclass(order=True)
@@ -413,6 +413,17 @@ class AbstractBoard(ABC):
         """
 
     @abstractmethod
+    def get_pos_box(self, pos1: "AbstractPosition", pos2: "AbstractPosition") -> List["AbstractPosition"]:
+        """
+        使用输入的两个坐标作为对角点来生成一个矩形
+        随后返回矩形框内的所有位置对象的列表
+        对角点顺序不限
+        :param pos1: 对角点1
+        :param pos2: 对角点2
+        :return: 矩形框内的所有位置
+        """
+
+    @abstractmethod
     def batch(self, positions: List['AbstractPosition'], mode: str, drop_none: bool = False) -> List[Any]:
         """
         批量获取指定位置上的信息。
@@ -420,7 +431,7 @@ class AbstractBoard(ABC):
         :param mode: 模式字符串，表示要获取的类型:
             - "object": 返回原始对象
             - "type": 返回位置的类型
-            - "variable": 返回 OR-Tools 中与该位置关联的变量
+            - "variable"/"var": 返回 OR-Tools 中与该位置关联的变量
             - "dye": 返回染色情况
         :param drop_none:
             返回时是否丢弃none

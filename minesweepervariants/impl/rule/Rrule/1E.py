@@ -11,37 +11,35 @@ from ....abs.board import AbstractBoard, AbstractPosition
 
 
 class Rule1E(AbstractClueRule):
-    # name = ["1E", "E", "视野", "Eyesight"]
+    name = ["1E", "E", "视野", "Eyesight"]
     doc = "线索表示四方向上能看到的非雷格数量（包括自身），雷会阻挡视线"
 
-    def clue_class(self):
-        return Value1EX
-
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':
-        for pos, _ in board("N"):
-            value = 1  # 包括自身
-            # 四个斜向方向的函数
-            direction_funcs = [
-                lambda n: type(pos)(pos.x + n, pos.y + n, pos.board_key),  # 右上
-                lambda n: type(pos)(pos.x - n, pos.y - n, pos.board_key),  # 左下
-                lambda n: type(pos)(pos.x - n, pos.y + n, pos.board_key),  # 左上
-                lambda n: type(pos)(pos.x + n, pos.y - n, pos.board_key)   # 右下
-            ]
-
-            for fn in direction_funcs:
-                n = 1
-                while True:
-                    next_pos = fn(n)
-                    if not board.in_bounds(next_pos):
-                        break
-                    if board.get_type(next_pos) == "F":  # 遇到雷，视线被阻挡
-                        break
-                    value += 1
-                    n += 1
-
-            obj = Value1EX(pos, bytes([value]))
-            board.set_value(pos, obj)
         return board
+        # for pos, _ in board("N"):
+        #     value = 1  # 包括自身
+        #     # 四个斜向方向的函数
+        #     direction_funcs = [
+        #         lambda n: type(pos)(pos.x + n, pos.y + n, pos.board_key),  # 右上
+        #         lambda n: type(pos)(pos.x - n, pos.y - n, pos.board_key),  # 左下
+        #         lambda n: type(pos)(pos.x - n, pos.y + n, pos.board_key),  # 左上
+        #         lambda n: type(pos)(pos.x + n, pos.y - n, pos.board_key)   # 右下
+        #     ]
+        #
+        #     for fn in direction_funcs:
+        #         n = 1
+        #         while True:
+        #             next_pos = fn(n)
+        #             if not board.in_bounds(next_pos):
+        #                 break
+        #             if board.get_type(next_pos) == "F":  # 遇到雷，视线被阻挡
+        #                 break
+        #             value += 1
+        #             n += 1
+        #
+        #     obj = Value1EX(pos, bytes([value]))
+        #     board.set_value(pos, obj)
+        # return board
 
 
 class Value1EX(AbstractClueValue):

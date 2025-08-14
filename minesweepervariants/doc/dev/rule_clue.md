@@ -69,27 +69,24 @@
 |----|--------------------------------------------------------------|---------------|
 | 属性 | [name](#name)                                                | 规则名称属性        |
 | 属性 | [doc](#doc)                                                  | 规则介绍说明        |
-| 属性 | [subrules](#subrules)                                        | 规则子项列表        |
 | 方法 | [__init\__](#__init__board-abstractboard--none-datanone)     | 构造函数，初始化规则和题板 |
 | 方法 | [fill](#fillboard-abstractboard---abstractboard)             | 规则填充题板的方法     |
-| 方法 | [clue_class](#clue_class)                                    | 获取线索类的方法      |
+| 方法 | [init\_board](#init_boardboard-abstractboard)                | 初始化题板内容       |
 | 方法 | [init_clear](#init_clearboard-abstractboard)                 | 初始化清理题板       |
 | 方法 | [create_constraints](#create_constraintsboard-abstractboard) | 创建约束条件        |
 
 ### AbstractClueValue（线索类）
 
-| 类型 | 名称                                                             | 简介                  |
-|----|----------------------------------------------------------------|---------------------|
-| 方法 | [__init\__](#__init__pos-abstractposition-code-bytes--none)    | 构造函数，初始化线索位置和代码     |
-| 方法 | [__repr\__](#__repr__)                                         | 线索的字符串表示            |
-| 方法 | [compose](#composeboard---listtextelement--imageelement)       | 生成线索的组合表示，接收board参数 |
-| 方法 | [type](#type---bytes)                                          | 获取线索类型              |
-| 方法 | [code](#code---bytes)                                          | 获取线索编码              |
-| 方法 | [invalid](#invalidboard-abstractboard---bool)                  | 判断线索是否无效            |
-| 方法 | [deduce_cells](#deduce_cellsboard-abstractboard---bool)        | 推断相关格子状态            |
-| 方法 | [create_constraints](#create_constraintsboard-abstractboard-1) | 创建线索相关的约束条件         |
-| 方法 | [check](#checkboard-abstractboard---bool)                      | 验证线索是否符合题板状态        |
-| 方法 | [method_choose](#method_choose---int)                          | 选择线索处理方法            |
+| 类型 | 名称                                                                         | 简介                  |
+|----|----------------------------------------------------------------------------|---------------------|
+| 方法 | [__init\__](#__init__pos-abstractposition-code-bytes--none)                | 构造函数，初始化线索位置和代码     |
+| 方法 | [__repr\__](#__repr__)                                                     | 线索的字符串表示            |
+| 方法 | [compose](#composeboard-web---listtextelement--imageelement)               | 生成线索的组合表示，接收board参数 |
+| 方法 | [type](#type---bytes)                                                      | 获取线索类型              |
+| 方法 | [code](#code---bytes)                                                      | 获取线索编码              |
+| 方法 | [high_light](#hight_lightboard-abstractboard---listpos)                    | 获取线索编码              |
+| 方法 | [deduce_cells](#deduce_cellsboard-abstractboard---bool)                    | 推断相关格子状态            |
+| 方法 | [create_constraints](#create_constraintsboard-abstractboard-switch-switch) | 创建线索相关的约束条件         |
 
 ---
 
@@ -100,7 +97,7 @@
 ### name
 
 **类型**：字符串列表（至少包含一个元素）
-**说明**：规则名称属性，如 `["1A", "无马步", "Anti-Knight"]`。第一个元素是主名称，后续元素为别名或描述。
+**说明**：规则名称属性，如 `["1A", "无马步", "Anti-Knight"]`。第一个元素是主名称，后续元素为别名。
 
 ---
 
@@ -108,16 +105,6 @@
 
 **类型**：字符串
 **说明**：规则的详细文档说明，用于在命令行中展示。
-
----
-
-### subrules
-
-**类型**：列表
-
-**说明**：包含二元组，表示规则的子规则约束模块开关及其描述，用于线索数检查和约束控制。
-
-**示例**：`subrules = [[True, "[2E]每个字母对应一个线索，且每个线索对应一个字母"], ...]`
 
 ---
 
@@ -156,19 +143,6 @@ data值可以在运行命令的时候使用`|`分割来传入data值
 
 ---
 
-### clue_class()
-
-**功能说明**：
-返回规则对应的线索实体类。
-
-**参数**：
-无。
-
-**返回值**：
-线索类（`AbstractClueValue` 的子类）。
-
----
-
 ### init_clear(board: AbstractBoard)
 
 **功能说明**：
@@ -184,6 +158,21 @@ data值可以在运行命令的时候使用`|`分割来传入data值
 
 **备注**：
 此方法为可选实现，视具体规则需求决定是否重写。
+
+---
+
+### `init_board(board: AbstractBoard)`
+
+**功能说明**:
+用于生成answer.png 需要将题板填充至无空
+
+**参数**：
+
+* `board (AbstractBoard)`：题板实例
+
+**返回值**：
+
+* 无
 
 ---
 
@@ -283,12 +272,15 @@ class RuleTest:
 
 ---
 
-[//]: # (TODO 将compose增加web接口来给前端使用)
-
-### compose(board) -> list\[TextElement | ImageElement]
+### compose(board, web) -> list\[TextElement | ImageElement]
 
 **功能说明**：
 （可选）渲染线索的视觉元素。
+
+**参数**：
+
+* `board (AbstractBoard)`：题板实例。
+* `web (Boolean)`: 是否供web渲染(如果启用web将会无视部分渲染设置)
 
 **返回值**：
 返回由 `utils.image_create` 模块内的 `get_...` 系列函数生成的渲染组件（如 `get_text()` 或 `get_image()`）。
@@ -322,38 +314,42 @@ class RuleTest:
 
 ---
 
-### invalid(board: AbstractBoard) -> bool
-
-**功能说明**：
-可选方法，判断该线索是否对当前题板无效。
-
-**参数**：
-
-* `board (AbstractBoard)`：题板实例。
-
-**返回值**：
-布尔值，`True` 表示无效。
-
----
-
 ### deduce\_cells(board: AbstractBoard) -> bool
 
 **功能说明**：
-可选方法，对题板进行快速推理并修改。
+可选方法，对题板进行快速推理并原地修改。
 
 **参数**：
 
 * `board (AbstractBoard)`：题板实例。
 
 **返回值**：
-布尔值，`True` 表示题板有修改。
+布尔值，`True` 表示题板有修改。/`False` 表示题板无修改
 
 **备注**：
 相对于对着该线索进行chord/左键单击
 
 ---
 
-### create\_constraints(board: AbstractBoard)
+### hight_light(board: AbstractBoard) -> List[Pos]
+
+**功能说明**：
+可选方法，返回该线索的高亮范围
+
+**参数**：
+
+* `board (AbstractBoard)`：题板实例。
+
+**返回值**：
+所有高亮格子的列表
+
+**备注**：
+会被用作判断该线索是否无效的根据
+如果高亮内部无任何None值则当作该值已经无效
+
+---
+
+### create\_constraints(board: AbstractBoard, switch: Switch)
 
 **功能说明**：
 为该线索添加ortools模型约束，优先实现此方法。
@@ -361,43 +357,12 @@ class RuleTest:
 **参数**：
 
 * `board (AbstractBoard)`：题板实例。
+* `switch (Switch)`: 该约束的开关
+  * 详见: [switch.get](utils.md/#switchget)
+
 
 **返回值**：
 无。
-
----
-
-### check(board: AbstractBoard) -> bool
-
-**功能说明**：
-可选方法(次选实现)，检查线索是否合法。
-
-**参数**：
-
-* `board (AbstractBoard)`：题板实例。
-
-**返回值**：
-布尔值，`True` 表示合法或未知，`False` 表示非法。
-
-**备注**：
-
-如果实在无法使用约束实现 那么就实现该方法,
-
-不过需要注意的是该方法仍然处于测试阶段
-
----
-
-### method\_choose() -> int
-
-**功能说明**：
-选择检查时使用的方法，优先约束建模。
-
-**返回值**：
-整数, 范围1至3，通常：
-
-* `1`：优先使用 `create_constraints`。
-* `2`：使用 `check` 方法验证。
-* `3`：两者均实现
 
 ---
 
@@ -474,8 +439,7 @@ impl/rule/Rrule/
 所有标记为“T”的格子代表非雷.(这说的什么废话)
 """
 
-from .abs.Rrule import AbstractClueRule, AbstractClueValue
-from .utils.solver import get_model
+from minesweepervariants.abs.Rrule import AbstractClueRule, AbstractClueValue
 
 class RuleT(AbstractClueRule):
     name = "T"
@@ -484,12 +448,10 @@ class RuleT(AbstractClueRule):
         for pos, val in board(target="N"):
             board[pos] = ValueT(pos)
         return board
-
-    def clue_class(self):
-        return ValueT
-
-    def create_constraints(self, board):
-        super().create_constraints(board)
+    
+    def create_constraints(self, board, switch):
+        # 规则对整体的约束, 一般适用于左线或优化(示例:QL,2E)
+        ...
 
 
 class ValueT(AbstractClueValue):
@@ -500,19 +462,15 @@ class ValueT(AbstractClueValue):
     def __repr__(self):
         return "T"
 
-    @classmethod
-    def method_choose(cls):
-        return 1
-
     def type(self):
         return RuleT.name.encode("ascii")
 
     def code(self):
         return b""
 
-    def create_constraints(self, board):
+    def create_constraints(self, board, switch):
+        model = board.get_model()
         var = board.get_variable(self.pos)
-        model = get_model()
         model.Add(var == 0)
 ```
 

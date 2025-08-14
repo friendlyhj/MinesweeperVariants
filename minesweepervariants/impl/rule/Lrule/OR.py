@@ -5,7 +5,7 @@
 # @Author  : Wu_RH
 # @FileName: OR.py
 """
-[OR]或:你可以在后面输入多个左线来表示或关系(题板将按照A规则或B规则)(规则间使用","隔开)
+[OR]或:你可以在后面输入多个左线来表示或关系(题板将按照A规则或B规则)(规则间使用":"隔开)
 """
 from minesweepervariants.abs.Lrule import AbstractMinesRule
 from minesweepervariants.abs.board import AbstractBoard
@@ -19,7 +19,7 @@ CONFIG.update(PUZZLE_CONFIG)
 
 
 class RuleOR(AbstractMinesRule):
-    name = ["", "OR", "或"]
+    name = ["OR", "或"]
     doc = "你可以在后面输入多个左线来表示或关系(题板将按照A规则或B规则)"
 
     def __init__(self, board: "AbstractBoard" = None, data=None) -> None:
@@ -36,7 +36,7 @@ class RuleOR(AbstractMinesRule):
                 if deep > 1:
                     rule_list[-1] += ")"
                 deep -= 1
-            elif s == "," and deep == 0:
+            elif s == ":" and deep == 0:
                 rule_list.append("")
             else:
                 rule_list[-1] += s
@@ -50,12 +50,17 @@ class RuleOR(AbstractMinesRule):
                 rule_name = rule
                 rule_data = None
             rule = get_rule(rule_name)(board=board, data=rule_data)
+            if not isinstance(rule, AbstractMinesRule):
+                continue
             if rule_name in ["OR", "AND"]:
                 name += "|[" + rule.name[0] + "]"
             else:
                 name += "|" + rule.name[0]
             self.rules.append(rule)
-        self.name[0] = name[1:]
+        self.rule_name = name[1:]
+
+    def get_name(self):
+        return self.rule_name[:]
 
     def create_constraints(self, board: 'AbstractBoard', switch: 'Switch'):
         model = board.get_model()

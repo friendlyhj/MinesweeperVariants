@@ -210,8 +210,12 @@ class Board(AbstractBoard):
                     if target == "always" or pos_type in target:
                         if mode == "object":
                             yield pos, self.get_value(pos)
+                        elif mode == "obj":
+                            yield pos, self.get_value(pos)
                         elif mode == "type":
                             yield pos, pos_type
+                        elif mode == "var":
+                            yield pos, self.get_variable(pos)
                         elif mode == "variable":
                             yield pos, self.get_variable(pos)
                         elif mode == "dye":
@@ -238,8 +242,8 @@ class Board(AbstractBoard):
                     del self.board_data[_key]["variable"]
                 self.board_data[_key]["variable"] = \
                     [[self._model.NewBoolVar(f"var({self.get_pos(x, y, _key)})")
-                      for y in range(_size[0])]
-                     for x in range(_size[1])]
+                      for y in range(_size[1])]
+                     for x in range(_size[0])]
                 get_logger().trace(f"构建新变量:{self.board_data[_key]['variable']}")
         return self._model
 
@@ -491,6 +495,20 @@ class Board(AbstractBoard):
             return Position(x, y, key)
         return None
 
+    def get_pos_box(self, pos1: "AbstractPosition", pos2: "AbstractPosition") -> List["AbstractPosition"]:
+        if pos1.board_key != pos2.board_key:
+            return []
+        if not (self.in_bounds(pos1) and self.in_bounds(pos2)):
+            return []
+        x_min, x_max = sorted([pos1.x, pos2.x])
+        y_min, y_max = sorted([pos1.y, pos2.y])
+
+        result = []
+        for y in range(y_min, y_max + 1):
+            for x in range(x_min, x_max + 1):
+                result.append(self.get_pos(x, y, key=pos1.board_key))
+        return result
+
     def batch(self, positions: List['Position'],
               mode: str, drop_none: bool = False) -> List[Any]:
         result = []
@@ -499,7 +517,11 @@ class Board(AbstractBoard):
                 continue
             if mode == "object":
                 result.append(self.get_value(pos))
+            elif mode == "obj":
+                result.append(self.get_value(pos))
             elif mode == "variable":
+                result.append(self.get_variable(pos))
+            elif mode == "var":
                 result.append(self.get_variable(pos))
             elif mode == "type":
                 result.append(self.get_type(pos))

@@ -82,6 +82,26 @@ class Value4V(AbstractClueValue):
         return f"{self.value}"
 
     def high_light(self, board: 'AbstractBoard') -> List['AbstractPosition']:
+        neighbors1_type = board.batch(self.neighbors_list[0], mode="type")
+        neighbors2_type = board.batch(self.neighbors_list[1], mode="type")
+        if neighbors1_type.count("N") == 0:
+            if neighbors1_type.count("F") == self.value:
+                return self.neighbors_list[0]
+            else:
+                return self.neighbors_list[1]
+        elif neighbors1_type.count("F") > self.value:
+            return self.neighbors_list[1]
+        elif neighbors1_type.count("N") + neighbors1_type.count("F") < self.value:
+            return self.neighbors_list[1]
+        if neighbors2_type.count("N") == 0:
+            if neighbors2_type.count("F") == self.value:
+                return self.neighbors_list[1]
+            else:
+                return self.neighbors_list[0]
+        elif neighbors2_type.count("F") > self.value:
+            return self.neighbors_list[0]
+        elif neighbors2_type.count("F") + neighbors2_type.count("N") < self.value:
+            return self.neighbors_list[0]
         return self.neighbors_list[0] + self.neighbors_list[1]
 
     def create_constraints(self, board: 'AbstractBoard', switch):

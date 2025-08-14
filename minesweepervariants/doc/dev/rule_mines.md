@@ -44,18 +44,17 @@
 
 ## 3. 方法总览
 
-| 类型 | 名称                          | 跳转链接                                                          |
-|----|-----------------------------|---------------------------------------------------------------|
-| 属性 | `name`                      | [name](#name)                                                 |
-| 属性 | `subrules`                  | [subrules](#subrules)                                         |
-| 方法 | `__init__`                  | [\__init\__](#__init__board-abstractboard--none-datanone)     |
-| 方法 | `deduce_cells(board)`       | [deduce\_cells](#deduce_cellsboard-abstractboard---bool)      |
-| 方法 | `create_constraints(board)` | [create\_constraints](#create_constraintsboard-abstractboard) |
-| 方法 | `check(board)`              | [check](#checkboard-abstractboard---bool)                     |
-| 方法 | `init_board(board)`         | [init_board](#init_boardboard-abstractboard)                  |
-| 方法 | `init_clear(board)`         | [init_clear](#init_clearboard-abstractboard)                  |
-| 方法 | `suggest_total(info)`       | [suggest_total](#suggest_totalinfo-dict)                      |
-| 方法 | `method_choose()`           | [method\_choose](#method_choose---int)                        |
+| 类型 | 名称                                                            | 简介            |
+|----|---------------------------------------------------------------|---------------|
+| 属性 | [name](#name)                                                 | 规则名称属性        |
+| 属性 | [subrules](#subrules)                                         | 规则子项列表        |
+| 方法 | [\_\_init\_\_](#__init__board-abstractboard--none-datanone)   | 构造函数，初始化规则和题板 |
+| 方法 | [deduce\_cells](#deduce_cellsboard-abstractboard---bool)      | 推导格子状态的方法     |
+| 方法 | [create\_constraints](#create_constraintsboard-abstractboard) | 创建约束条件        |
+| 方法 | [init\_board](#init_boardboard-abstractboard)                 | 初始化题板内容       |
+| 方法 | [init\_clear](#init_clearboard-abstractboard)                 | 初始化清理题板       |
+| 方法 | [suggest\_total](#suggest_totalinfo-dict)                     | 建议总雷数的方法      |
+
 
 > 每个规则类文件建议在**文件头部加注释说明规则含义**，以便 `run list` 命令扫描输出。
 >
@@ -74,7 +73,7 @@
 * 优先实现 `create_constraints()`，提升解题效率与解唯一性
 * 若规则无法用 OR-Tools 表达，应实现 `check()` 并通过 `method_choose()` 明确声明
 * 所有变量必须使用 `board.get_variable(pos)` 获得
-* CP 模型通过 `utils.solver.get_model()` 获取
+* CP 模型通过 `board.get_model()` 获取
 * `name` 必须为唯一字符串常量，用于规则识别
 * 若涉及交互线索或检查开关功能，应实现 `subrules` 属性
 
@@ -100,8 +99,8 @@ impl/rule/Lrule/
 
 ### name
 
-**类型**：字符串常量
-**说明**：规则名称，如 `"0R"`、`"1Q"`，用于标识与导入该规则。
+**类型**：字符串列表（至少包含一个元素）
+**说明**：规则名称属性，如 `["1A", "无马步", "Anti-Knight"]`。第一个元素是主名称，后续元素为别名。
 
 ---
 
@@ -176,7 +175,7 @@ subrules = [
 **实现要点**：
 
 * 所有变量必须通过 `board.get_variable(pos)` 获取
-* 模型对象通过 `get_model()` 获取（位于 `utils.solver`）
+* 模型对象通过 `board.get_model()` 获取
 
 **返回值**：
 
@@ -185,12 +184,11 @@ subrules = [
 **示例结构**：
 
 ```python
-from .utils.solver import get_model
-from .utils.impl_obj import get_total
+from minesweepervariants.utils.impl_obj import get_total
 
 class RuleR(...):
   def create_constraints(self, board):
-      model = get_model()
+      model = board.get_model()
       variables = [board.get_variable(pos) for pos in board.iter_all()]
       model.Add(sum(variables) == get_total())
 ```
@@ -278,85 +276,32 @@ class RuleTest:
 
 ---
 
-### `check(board: AbstractBoard) -> bool`
-
-**功能说明**：
-验证当前题板是否符合该左线规则。
-
-**参数**：
-
-* `board (AbstractBoard)`：题板实例
-
-**返回值**：
-
-* `True`：当前题板满足该规则
-* `False`：当前题板不合法
-
-**备注**：
-
-* 若规则无法用约束表达，应实现本方法
-* 该方法仍然处于测试阶段 极不推荐实现该方法
-
----
-
-### `method_choose() -> int`
-
-**功能说明**：
-指示系统采用何种方式实现该规则。
-
-**返回值**：
-
-* `1`：使用 `create_constraints` 建模
-* `2`：使用 `check` 验证题板合法性
-* `3`：两者都实现（可选）
-
-**建议**：
-
-* 优先选择 `1`（建模），因性能更佳
-* 若无法建模则选 `2`
-
-**示例**：
-
-```python
-class RuleR(...):
-  @classmethod
-  def method_choose(cls):
-      return 1
-```
-
----
-
 ## 7. 示例结构
 
 ```python
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 #
-# @Time    : 2025/07/03 03:39:12
+# @Time    : 创建文件时间
 # @Author  : 作者名
 # @FileName: 0R.py
 """
 [0R]：总雷数规则，控制题板中雷的总数
 """
-from .abs.Lrule import AbstractMinesRule
-from .utils.solver import get_model
-from .utils.impl_obj import get_total
+from minesweepervariants.abs.Lrule import AbstractMinesRule
+from minesweepervariants.utils.impl_obj import get_total
 
 class Rule0R(AbstractMinesRule):
     name = "0R"
     subrules = [
       [True, "0R"]
     ]
-    def create_constraints(self, board: 'AbstractBoard'):
+    def create_constraints(self, board: 'AbstractBoard', switch: 'Switch'):
         if not self.subrules[0][0]:
             return
-        model = get_model()
+        model = board.get_model()
         all_variable = [board.get_variable(pos) for pos, _ in board()]
         model.Add(sum(all_variable) == get_total())
-
-    @classmethod
-    def method_choose(cls) -> int:
-        return 1
 ```
 
 ---

@@ -262,6 +262,7 @@ class GameSession:
             1: 右键点击/标雷/设置必雷
         """
         global NORMAL, EXPERT, ULTIMATE, PUZZLE
+        _board = None
         if self.mode == PUZZLE:
             if action == 1:
                 value_tag = self.board.get_config(pos.board_key, "MINES")
@@ -293,6 +294,7 @@ class GameSession:
             self.board[pos] = self.answer_board[pos]
         elif self.mode in [EXPERT, ULTIMATE, PUZZLE]:
             # 专家模式
+            _board = self.board.clone()
             if pos not in self.last_deduced[1]:
                 print(f"apply {pos} 未命中 {self.last_deduced[1]}")
                 if pos not in self.deduced():
@@ -311,9 +313,16 @@ class GameSession:
             self.mode in [ULTIMATE, PUZZLE] and
             self.ultimate_mode & ULTIMATE_A
         ):
-            print(self.drop_r)
-            if not self.deduced():
-                self.hint()
+            if self.last_deduced[0] != _board:
+                print("last0 uneq board")
+                self.step()
+            elif not [_pos for _pos in self.last_deduced[1] if _pos != pos]:
+                print("last1 unfind")
+                if not self.deduced():
+                    self.step()
+            else:
+                print([_pos for _pos in self.last_deduced[1] if _pos != pos])
+                print(self.last_deduced[0])
         return self.board
 
     def click(self, pos: "AbstractPosition") -> Union["AbstractBoard", None]:
@@ -334,10 +343,17 @@ class GameSession:
         # TODO 检查终极的+F+S
         if self.deduced():
             return
-        for pos, obj in self.board():
-            if obj not in [VALUE_TAG, VALUE_MINES]:
-                continue
-            self.board[pos] = self.answer_board[pos]
+        for key in self.board.get_board_keys():
+            for pos, obj in self.board(key=key):
+                if obj not in [VALUE_TAG, VALUE_MINES]:
+                    continue
+                self.board[pos] = self.answer_board[pos]
+
+        if not self.deduced():
+            self.drop_r = False
+        self.last_deduced[0] = None
+        self.last_hint[0] = None
+        self.thread_hint()
 
     def deduced(self):
         """

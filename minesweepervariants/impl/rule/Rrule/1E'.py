@@ -15,7 +15,7 @@ from ....utils.image_create import get_row, get_image, get_text, get_col, get_du
 
 
 class Rule1E(AbstractClueRule):
-    # name = ["1E'", "E'", "视差", "Eyesight'"]
+    name = ["1E'", "E'", "视差", "Eyesight'"]
     # DFS遍历存在错误
     doc = "线索表示纵向和横向的视野之差，箭头指示视野更长的方向"
 
@@ -23,22 +23,23 @@ class Rule1E(AbstractClueRule):
         return Value1E
 
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':
-        fn: Callable[[int], AbstractPosition]
-        for pos, _ in board("N"):
-            value = 0
-            for fn in [pos.up, pos.down]:
-                n = 1
-                while board.get_type(fn(n)) not in "F":
-                    n += 1
-                    value += 1
-            for fn in [pos.left, pos.right]:
-                n = 1
-                while board.get_type(fn(n)) not in "F":
-                    n += 1
-                    value -= 1
-            obj = Value1E(pos, bytes([value + 128]))
-            board.set_value(pos, obj)
         return board
+        # fn: Callable[[int], AbstractPosition]
+        # for pos, _ in board("N"):
+        #     value = 0
+        #     for fn in [pos.up, pos.down]:
+        #         n = 1
+        #         while board.get_type(fn(n)) not in "F":
+        #             n += 1
+        #             value += 1
+        #     for fn in [pos.left, pos.right]:
+        #         n = 1
+        #         while board.get_type(fn(n)) not in "F":
+        #             n += 1
+        #             value -= 1
+        #     obj = Value1E(pos, bytes([value + 128]))
+        #     board.set_value(pos, obj)
+        # return board
 
 
 class Value1E(AbstractClueValue):

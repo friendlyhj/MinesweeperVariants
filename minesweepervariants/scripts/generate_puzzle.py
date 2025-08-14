@@ -37,7 +37,6 @@ def main(
         unseed: bool,
 ):
     rule_code = rules[:]
-    rule_code = [base64.urlsafe_b64encode(rule.encode("ascii")).decode("ascii") for rule in rule_code]
     logger = get_logger(log_lv=log_lv)
     get_random(seed, new=True)
     attempts = 20 if attempts == -1 else attempts
@@ -50,6 +49,11 @@ def main(
     _board = None
     info_list = []
     for attempt_index in range(attempts):
+        print(rule_code)
+        s = Summon(size=size, total=total, rules=rule_code[:], board=board_class,
+                   drop_r=drop_r, dye=dye, vice_board=vice_board)
+        if unseed:
+            s.unseed = True
         print(f"尝试第{attempt_index}次minesweepervariants..", end="\r")
         get_random(seed, new=True)
         a_time = time.time()
@@ -131,7 +135,7 @@ def main(
         f.write(board_str)
         f.write(answer)
 
-        f.write(f"\n答案: img -c {answer_code.hex()} ")
+        f.write(f"\n答案: img -c {encode_board(answer_code)} ")
         f.write(f"-r \"{rule_text}-R{total}/")
         f.write(f"{n_num}")
         if unseed:
@@ -140,7 +144,7 @@ def main(
             f.write(" ")
         f.write("-o answer\n")
 
-        f.write(f"\n题板: img -c {board_code.hex()} ")
+        f.write(f"\n题板: img -c {encode_board(board_code)} ")
         f.write(f"-r \"{rule_text}-R{'*' if drop_r else total}/")
         f.write(f"{n_num}")
         if unseed:
@@ -149,6 +153,7 @@ def main(
             f.write(" ")
         f.write("-o demo\n")
 
+        rule_code = [base64.urlsafe_b64encode(rule.encode("utf-8")).decode("utf-8") for rule in rule_code]
         f.write(f"\n题板代码: \n{encode_board(answer_code)}:{mask.hex()}:{':'.join(rule_code)}\n")
 
     image_bytes = draw_board(board=get_board(board_class)(code=board_code), cell_size=100, output="demo",
@@ -157,7 +162,7 @@ def main(
                                           "\n" if unseed else f"-{get_seed()}\n"))
     draw_board(board=get_board(board_class)(code=answer_code), output="answer", cell_size=100,
                bottom_text=(rule_text +
-                            f"-R{total}/{n_num}-{get_seed()}" +
+                            f"-R{total}/{n_num}" +
                             "\n" if unseed else f"-{get_seed()}\n"))
 
     filepath = os.path.join(CONFIG["output_path"], "demo.png")

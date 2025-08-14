@@ -15,40 +15,38 @@ from ....utils.tool import get_logger
 
 
 class Rule2A(AbstractClueRule):
-    # name = ["2A", "面积", "Area"]
+    name = ["2A", "面积", "Area"]
     doc = "线索表示四方向相邻雷区域的面积之和"
 
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':
-        logger = get_logger()
-        for pos, _ in board("N"):
-            checked = [[False for j in range(20)] for i in range(20)]
-
-            def dfs(p: 'AbstractPosition', _checked):
-                if not board.in_bounds(p): return None
-                if board.get_type(p) != "F": return None
-                if _checked[p.x][p.y]: return None
-                _checked[p.x][p.y] = True
-                dfs(p.left(1), _checked)
-                dfs(p.right(1), _checked)
-                dfs(p.up(1), _checked)
-                dfs(p.down(1), _checked)
-                return None
-
-            dfs(pos.left(1), checked)
-            dfs(pos.right(1), checked)
-            dfs(pos.up(1), checked)
-            dfs(pos.down(1), checked)
-            cnt = 0
-            for i in range(20):
-                for j in range(20):
-                    if checked[i][j]:
-                        cnt += 1
-            board.set_value(pos, Value2A(pos, bytes([cnt])))
-            logger.debug(f"Set {pos} to 2A[{cnt}]")
         return board
-
-    def clue_class(self):
-        return Value2A
+        # logger = get_logger()
+        # for pos, _ in board("N"):
+        #     checked = [[False for j in range(20)] for i in range(20)]
+        #
+        #     def dfs(p: 'AbstractPosition', _checked):
+        #         if not board.in_bounds(p): return None
+        #         if board.get_type(p) != "F": return None
+        #         if _checked[p.x][p.y]: return None
+        #         _checked[p.x][p.y] = True
+        #         dfs(p.left(1), _checked)
+        #         dfs(p.right(1), _checked)
+        #         dfs(p.up(1), _checked)
+        #         dfs(p.down(1), _checked)
+        #         return None
+        #
+        #     dfs(pos.left(1), checked)
+        #     dfs(pos.right(1), checked)
+        #     dfs(pos.up(1), checked)
+        #     dfs(pos.down(1), checked)
+        #     cnt = 0
+        #     for i in range(20):
+        #         for j in range(20):
+        #             if checked[i][j]:
+        #                 cnt += 1
+        #     board.set_value(pos, Value2A(pos, bytes([cnt])))
+        #     logger.debug(f"Set {pos} to 2A[{cnt}]")
+        # return board
 
 
 class Value2A(AbstractClueValue):

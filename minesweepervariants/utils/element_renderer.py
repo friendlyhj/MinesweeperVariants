@@ -222,7 +222,10 @@ class Renderer:
 
     def _calculate_image_size(self, element: Dict, max_width: float, max_height: float) -> Tuple[float, float]:
         """计算图像尺寸 - 考虑主导方向"""
-        img = element['image']
+        path = os.path.join(self.assets_path, f"{element['image']}.png")
+        if not os.path.exists(path):
+            return 0.0, 0.0
+        img = Image.open(path).convert("RGBA")
         orig_width, orig_height = img.size
         aspect_ratio = orig_width / orig_height
 

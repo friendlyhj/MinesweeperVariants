@@ -13,7 +13,14 @@ from .....utils.tool import get_random, get_logger
 from .....abs.Rrule import AbstractClueValue, AbstractClueRule
 from .....abs.board import AbstractBoard, AbstractPosition, MASTER_BOARD
 
-ALPHABET = "ABCDEFGHI"
+
+def alpha(n: int) -> str:
+    alpha_map = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    if n < 26:
+        return alpha_map[n]
+    return alpha_map[n // 26 - 1] + alpha_map[n % 26]
+
+
 
 
 class Rule2Ep(AbstractClueRule):
@@ -27,14 +34,10 @@ class Rule2Ep(AbstractClueRule):
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':
         random = get_random()
         letter_map = {i: [] for i in range(9)}
-        logger = get_logger()
         for pos, _ in board("F"):
-            if pos.y > 8:
-                continue
-            letter = ALPHABET[pos.y]
             if pos.x not in letter_map:
                 letter_map[pos.x] = []
-            letter_map[pos.x].append(letter)
+            letter_map[pos.x].append(pos.y)
 
         for pos, _ in board("N"):
             positions = pos.neighbors(2)
@@ -42,10 +45,9 @@ class Rule2Ep(AbstractClueRule):
             if not letter_map[value]:
                 board.set_value(pos, VALUE_QUESS)
                 continue
-            letter = random.choice(letter_map[value])
-            obj = Value2Ep(pos, bytes([ALPHABET.index(letter)]))
+            pos_y = random.choice(letter_map[value])
+            obj = Value2Ep(pos, bytes([pos_y]))
             board.set_value(pos, obj)
-            logger.debug(f"[2E'] put {letter}({value}) at {pos}")
         return board
 
 
@@ -56,7 +58,7 @@ class Value2Ep(AbstractClueValue):
         self.neighbors = pos.neighbors(2)
 
     def __repr__(self) -> str:
-        return f"{ALPHABET[self.value]}"
+        return f"{alpha(self.value)}"
 
     def high_light(self, board: 'AbstractBoard') -> list['AbstractPosition']:
         return self.neighbors
