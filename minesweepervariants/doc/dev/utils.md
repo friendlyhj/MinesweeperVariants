@@ -12,7 +12,6 @@
 
 | 模块名               | 功能说明                 |
 |-------------------|----------------------|
-| `solver.py`       | OR-Tools CP-SAT 模型接口 |
 | `tool.py`         | 日志与随机数工具函数           |
 | `impl_obj.py`     | 解题器全局状态接口（如总雷数与种子）   |
 | `image_create.py` | 渲染模块，输出图像与文字构件       |
@@ -20,12 +19,6 @@
 ---
 
 ## 3. 接口总览
-
-### solver.py
-
-| 类型 | 名称                          | 说明                 |
-|----|-----------------------------|--------------------|
-| 函数 | [`get_model()`](#get_model) | 获取一个新的 CP-SAT 模型对象 |
 
 ### tool.py
 
@@ -51,19 +44,13 @@
 | 函数 | [`get_col(...)`](#get_col)     | 构造垂直排列的显示元素组      |
 | 函数 | [`get_dummy(...)`](#get_dummy) | 构造空白占位显示元素，用于布局补齐 |
 
+### summon.solver.Switch
+
+**函数**: [`switch.get(...)`]
+
 ---
 
 ## 4. 接口详解
-
-### get\_model()
-
-**模块**：`solver.py`
-
-**返回类型**：`CpModel`
-
-**说明**：返回当前使用的 OR-Tools 模型对象，所有约束应添加于此模型。
-
----
 
 ### get\_logger()
 
@@ -166,6 +153,27 @@
 |----------|---------|---------|
 | `width`  | `float` | 宽度，单位为格 |
 | `height` | `float` | 高度，单位为格 |
+
+---
+
+### `switch.get(...)`
+
+**说明**: 
+* 该函数为一个类的调用api 供规则在创建约束的时候实现控制开关
+* 将会在create_constraints的时候作为参数传入switch实体对象
+
+**参数**:
+* model(CpModel): 在create_constraints的时候的对应model对象 来控制在其中的具体开关
+* obj(AbstractRule/AbstractValue/AbstractPositions):
+  * AbstractRule: 传入则直接作为该规则的约束开关
+  * AbstractValue: 传入该值的时候将会获取该Value的pos信息并进入下方Pos情况(必须拥有pos对象)
+  * AbstractPositions: 传入的时候将会当作该格的约束开关
+
+**备注**:
+* 如果get被多次同个对象调用 则视为该规则拥有多个子规则 但是请保证顺序
+* 如果pos被调用多次则所有该位置的开关都会被合并为一个总开关来视作是该位置的开关
+
+**返回**: 返回一个Boolvar需要在create_constraints的时候使用If语句控制该约束的开关
 
 ---
 
