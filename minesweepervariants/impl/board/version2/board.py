@@ -495,6 +495,20 @@ class Board(AbstractBoard):
             return Position(x, y, key)
         return None
 
+    def get_pos_box(self, pos1: "AbstractPosition", pos2: "AbstractPosition") -> List["AbstractPosition"]:
+        if pos1.board_key != pos2.board_key:
+            return []
+        if not (self.in_bounds(pos1) and self.in_bounds(pos2)):
+            return []
+        x_min, x_max = sorted([pos1.x, pos2.x])
+        y_min, y_max = sorted([pos1.y, pos2.y])
+
+        result = []
+        for y in range(y_min, y_max + 1):
+            for x in range(x_min, x_max + 1):
+                result.append(self.get_pos(x, y, key=pos1.board_key))
+        return result
+
     def batch(self, positions: List['Position'],
               mode: str, drop_none: bool = False) -> List[Any]:
         result = []

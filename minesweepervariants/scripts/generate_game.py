@@ -42,7 +42,6 @@ def main(
         unseed: bool  # 是否禁用种子来快速生成题目
 ):
     rule_code = rules[:]
-    rule_code = [base64.urlsafe_b64encode(rule.encode("ascii")).decode("ascii") for rule in rule_code]
     logger = get_logger(log_lv=log_lv)
     get_random(seed, new=True)
     s = Summon(size=size, total=total, rules=rules, board=board_class,
@@ -73,6 +72,10 @@ def main(
     attempt_index = 0
 
     while True:
+        s = Summon(size=size, total=total, rules=rule_code[:], board=board_class,
+                   drop_r=drop_r, dye=dye, vice_board=vice_board)
+        if unseed:
+            s.unseed = True
         get_random(seed, new=True)
         a_time = time.time()
         if attempts != -1 and attempt_index >= attempts:
@@ -160,4 +163,5 @@ def main(
                 f.write(" ")
             f.write("-o demo\n")
 
+            rule_code = [base64.urlsafe_b64encode(rule.encode("utf-8")).decode("utf-8") for rule in rule_code]
             f.write(f"\n题板代码: \n{encode_board(answer_code)}:{mask.hex()}:{':'.join(rule_code)}\n")

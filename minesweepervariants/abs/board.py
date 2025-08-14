@@ -413,6 +413,17 @@ class AbstractBoard(ABC):
         """
 
     @abstractmethod
+    def get_pos_box(self, pos1: "AbstractPosition", pos2: "AbstractPosition") -> List["AbstractPosition"]:
+        """
+        使用输入的两个坐标作为对角点来生成一个矩形
+        随后返回矩形框内的所有位置对象的列表
+        对角点顺序不限
+        :param pos1: 对角点1
+        :param pos2: 对角点2
+        :return: 矩形框内的所有位置
+        """
+
+    @abstractmethod
     def batch(self, positions: List['AbstractPosition'], mode: str, drop_none: bool = False) -> List[Any]:
         """
         批量获取指定位置上的信息。

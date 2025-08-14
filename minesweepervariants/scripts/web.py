@@ -276,7 +276,7 @@ def generate_board():
     # print(123456)
     if code:
         code, mask, *rules = code.split(":")
-        rules = [base64.urlsafe_b64decode(rule_code.encode("ascii")).decode("ascii") for rule_code in rules]
+        rules = [base64.urlsafe_b64decode(rule_code.encode("utf-8")).decode("utf-8") for rule_code in rules]
         print(code, mask, rules)
         answer_board = decode_board(code, None)
         mask = int.from_bytes(bytes.fromhex(mask), "big", signed=False)

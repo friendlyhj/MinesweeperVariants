@@ -60,6 +60,14 @@ class AbstractRule(ABC):
         例如纸笔题目中，某些规则可能要求特定位置不能出现雷或线索。
         """
 
+    def get_name(self):
+        if type(self.name) is str:
+            return self.name[:]
+        elif type(self.name) in [tuple, list]:
+            return self.name[0][:]
+        else:
+            return ""
+
 
 class AbstractValue(ABC):
     @abstractmethod

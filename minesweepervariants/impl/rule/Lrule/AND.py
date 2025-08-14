@@ -57,7 +57,10 @@ class RuleOR(AbstractMinesRule):
             else:
                 name += "&" + rule.name[0]
             self.rules.append(rule)
-        self.name[0] = name[1:]
+        self.rule_name = name[1:]
+
+    def get_name(self):
+        return self.rule_name[:]
 
     def create_constraints(self, board: 'AbstractBoard', switch: 'Switch'):
         model = board.get_model()

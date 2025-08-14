@@ -96,10 +96,7 @@ class Summon:
         for rule in mines_rules:
             if "R" in rule.name:
                 continue
-            if type(rule.name) is str:
-                rules.append(rule.name)
-            else:
-                rules.append(rule.name[0][:])
+            rules.append(rule.get_name())
 
         # 中线规则初始化
         if len(mines_clue_rules) == 0:
@@ -111,10 +108,7 @@ class Summon:
             rules.append("F#")
         else:
             self.mines_clue_rule = mines_clue_rules[0]
-            if type(mines_clue_rules[0].name) is str:
-                rules.append(mines_clue_rules[0].name)
-            else:
-                rules.append(mines_clue_rules[0].name[0])
+            rules.append(self.mines_clue_rule.get_name())
 
         # 右线规则初始化
         if len(clue_rules) == 0:
@@ -127,10 +121,7 @@ class Summon:
             rules.append("#")
         else:
             self.clue_rule = clue_rules[0]
-            if type(clue_rules[0].name) is str:
-                rules.append(clue_rules[0].name)
-            else:
-                rules.append(clue_rules[0].name[0])
+            rules.append(self.clue_rule.get_name())
 
         if not rules:
             rules.append("V")

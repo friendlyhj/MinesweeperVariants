@@ -37,7 +37,6 @@ def main(
         unseed: bool,
 ):
     rule_code = rules[:]
-    rule_code = [base64.urlsafe_b64encode(rule.encode("ascii")).decode("ascii") for rule in rule_code]
     logger = get_logger(log_lv=log_lv)
     get_random(seed, new=True)
     attempts = 20 if attempts == -1 else attempts
@@ -50,6 +49,11 @@ def main(
     _board = None
     info_list = []
     for attempt_index in range(attempts):
+        print(rule_code)
+        s = Summon(size=size, total=total, rules=rule_code[:], board=board_class,
+                   drop_r=drop_r, dye=dye, vice_board=vice_board)
+        if unseed:
+            s.unseed = True
         print(f"尝试第{attempt_index}次minesweepervariants..", end="\r")
         get_random(seed, new=True)
         a_time = time.time()
@@ -149,6 +153,7 @@ def main(
             f.write(" ")
         f.write("-o demo\n")
 
+        rule_code = [base64.urlsafe_b64encode(rule.encode("utf-8")).decode("utf-8") for rule in rule_code]
         f.write(f"\n题板代码: \n{encode_board(answer_code)}:{mask.hex()}:{':'.join(rule_code)}\n")
 
     image_bytes = draw_board(board=get_board(board_class)(code=board_code), cell_size=100, output="demo",

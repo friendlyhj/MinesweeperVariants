@@ -19,7 +19,7 @@ CONFIG.update(PUZZLE_CONFIG)
 
 
 class RuleOR(AbstractMinesRule):
-    name = ["", "OR", "或"]
+    name = ["OR", "或"]
     doc = "你可以在后面输入多个左线来表示或关系(题板将按照A规则或B规则)"
 
     def __init__(self, board: "AbstractBoard" = None, data=None) -> None:
@@ -57,7 +57,10 @@ class RuleOR(AbstractMinesRule):
             else:
                 name += "|" + rule.name[0]
             self.rules.append(rule)
-        self.name[0] = name[1:]
+        self.rule_name = name[1:]
+
+    def get_name(self):
+        return self.rule_name[:]
 
     def create_constraints(self, board: 'AbstractBoard', switch: 'Switch'):
         model = board.get_model()
