@@ -111,6 +111,8 @@ def get_all_rules():
     results = {"R": {}, "M": {}, "L": {}, "O": {}}
     dir_path = os.path.dirname(os.path.abspath(__file__))
     for m_doc, doc, x, names in scan_module_docstrings(dir_path):
+        if not names:
+            continue
         name, names = names[0], names[1:]
         rule_line = None
         if x == 1:

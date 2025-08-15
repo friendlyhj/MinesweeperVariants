@@ -93,8 +93,7 @@ def main(
 
     rule_text = ""
     for rule in rules:
-        rule_text += "[" + (rule.split(CONFIG['delimiter'])[0] if
-                            CONFIG['delimiter'] in rule else rule) + "]"
+        rule_text += "[" + rule + "]"
     if rule_text == "":
         rule_text = "[V]"
     if dye:
@@ -159,11 +158,11 @@ def main(
     image_bytes = draw_board(board=get_board(board_class)(code=board_code), cell_size=100, output="demo",
                              bottom_text=(rule_text +
                                           f"-R{'*' if drop_r else total}/{n_num}" +
-                                          "\n" if unseed else f"-{get_seed()}\n"))
+                                          ("\n" if unseed else f"-{get_seed()}\n")))
     draw_board(board=get_board(board_class)(code=answer_code), output="answer", cell_size=100,
                bottom_text=(rule_text +
                             f"-R{total}/{n_num}" +
-                            "\n" if unseed else f"-{get_seed()}\n"))
+                            ("\n" if unseed else f"-{get_seed()}\n")))
 
     filepath = os.path.join(CONFIG["output_path"], "demo.png")
     with open(filepath, "wb") as f:

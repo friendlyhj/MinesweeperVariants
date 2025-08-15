@@ -28,6 +28,8 @@ class Rule2G(AbstractMinesRule):
         if ";;" in data:
             nei_values = data.split(";;")[0]
             self.value = int(data.split(";;")[1])
+            if self.value > 6:
+                raise ValueError("连块数量禁止超过6")
         if nei_values == "":
             nei_values = "1"
         nei_values = nei_values.split(";")
