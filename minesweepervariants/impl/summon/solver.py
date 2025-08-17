@@ -49,24 +49,30 @@ def get_solver(b: bool):
 class Switch:
 
     def __init__(self):
-        # 变量索引到HintFlag的映射
-        self.index_to_hint: Dict[int, Tuple[str, int]] = {}
-
-        # 名称到当前索引计数器的映射
-        self.name_counter: Dict[str, int] = defaultdict(int)
+        # 对象名称到索引计数器的映射（用于自动生成索引）
+        self.name_counter: Dict[str, int] = defaultdict(lambda: 1)
 
         # 存储所有创建的变量
         self.all_vars: List[cp_model.IntVar] = []
 
-        # HintFlag到变量索引列表的映射（用于重映射）
-        self.hint_to_indices: Dict[Tuple[str, int], List[int]] = defaultdict(list)
+        # 对象到其所有开关的映射 {obj_str: [(index_str, var), ...]}
+        self.obj_switches: Dict[str, List[Tuple[str, cp_model.IntVar]]] = defaultdict(list)
 
-    def to_str(self, obj: Union[AbstractRule, AbstractValue, AbstractPosition, str]):
+        # 注册表：存储已创建的变量 {(obj_str, index_str): var}
+        self.var_registry: Dict[Tuple[str, str], cp_model.IntVar] = {}
+
+        # 反向映射：变量索引到(obj_str, index_str)的映射
+        self.var_to_key: Dict[int, Tuple[str, str]] = {}
+
+    def __call__(self, *args, **kwargs):
+        return self.get(*args, **kwargs)
+
+    def to_str(self, obj: Union[AbstractRule, AbstractValue, AbstractPosition, str]) -> str:
         if isinstance(obj, AbstractRule):
             name = f"RULE|{obj.name[0]}"
         elif (
-            isinstance(obj, AbstractPosition) or
-            isinstance(obj, AbstractValue)
+                isinstance(obj, AbstractPosition) or
+                isinstance(obj, AbstractValue)
         ):
             if isinstance(obj, AbstractValue):
                 pos = obj.pos
@@ -86,123 +92,110 @@ class Switch:
             self,
             model: cp_model.CpModel,
             obj: Union[AbstractRule, AbstractValue, AbstractPosition, str],
-            hint_flag: Optional[Tuple[str, int]] = None
+            index_str: Optional[str] = None
     ) -> cp_model.IntVar:
         """
         创建或获取一个开关变量
 
         参数:
-        name: 变量基础名称
-        hint_flag: 可选，指定要映射到的HintFlag (name, index)
+        model: CpModel实例
+        obj: 关联的对象（规则、位置或值）
+        index_str: 可选，指定索引字符串。如果未提供则自动生成
 
         返回:
-        创建的布尔变量
+        布尔变量（如果是新创建或已存在的变量）
         """
-        name = self.to_str(obj)
-        # 自动生成或使用指定的HintFlag
-        if hint_flag is None:
-            # 获取当前索引并递增
-            current_index = self.name_counter[name]
-            self.name_counter[name] += 1
-            hint_flag = (name, current_index)
-        else:
-            # 使用指定的HintFlag
-            name, index = hint_flag
-            # 更新名称计数器以确保后续索引正确
-            self.name_counter[name] = max(self.name_counter[name], index + 1)
+        obj_str = self.to_str(obj)
+
+        # 自动生成索引字符串（如果需要）
+        if index_str is None:
+            # 获取下一个索引并递增
+            current_index = self.name_counter[obj_str]
+            index_str = str(current_index)
+            self.name_counter[obj_str] += 1
+
+        # 检查是否已存在相同的变量
+        key = (obj_str, index_str)
+        if key in self.var_registry:
+            return self.var_registry[key]
 
         # 创建新变量
-        var = model.NewBoolVar(f"{name}_{hint_flag[1]}")
-        var_index = var.Index()
+        var = model.NewBoolVar(f"{obj_str}_{index_str}")
 
-        # 存储映射关系
-        self.index_to_hint[var_index] = hint_flag
-        self.hint_to_indices[hint_flag].append(var_index)
+        # 存储变量
+        self.var_registry[key] = var
         self.all_vars.append(var)
+        self.obj_switches[obj_str].append((index_str, var))
+        self.var_to_key[var.Index()] = (obj_str, index_str)
+
+        # 尝试更新计数器（仅当索引是数字时）
+        try:
+            idx_val = int(index_str)
+            self.name_counter[obj_str] = max(self.name_counter[obj_str], idx_val + 1)
+        except ValueError:
+            # 非数字索引时不更新计数器
+            pass
 
         return var
 
-    def remap_switch(self, switch: IntVar, target_hint: Tuple[Any, int]):
-        return self.remap_index(switch.index, target_hint)
-
-    def remap_index(self, index: int, target_hint: Tuple[Any, int]):
+    def get_switches_by_obj(
+            self,
+            obj: Union[AbstractRule, AbstractValue, AbstractPosition, str]
+    ) -> List[Tuple[str, cp_model.IntVar]]:
         """
-        将现有变量索引重映射到另一个HintFlag
+        获取指定对象的所有开关
 
         参数:
-        index: 要重映射的变量索引
-        target_hint: 要映射到的目标HintFlag (name, index)
-        """
-        if index not in self.index_to_hint:
-            raise ValueError(f"Index {index} not found in switch")
-
-        # 转换target_hint为字符串形式
-        obj, idx_val = target_hint
-        name_str = self.to_str(obj)
-        target_hint_str = (name_str, idx_val)
-
-        # 移除旧映射
-        old_hint = self.index_to_hint[index]
-        if old_hint in self.hint_to_indices:
-            self.hint_to_indices[old_hint].remove(index)
-            if not self.hint_to_indices[old_hint]:
-                del self.hint_to_indices[old_hint]
-
-        # 添加新映射
-        self.index_to_hint[index] = target_hint_str
-        self.hint_to_indices[target_hint_str].append(index)
-
-        # 更新名称计数器
-        self.name_counter[name_str] = max(self.name_counter[name_str], idx_val + 1)
-
-    def get_hint_by_index(self, index: int) -> Tuple[str, int]:
-        """
-        根据变量索引获取对应的HintFlag
-
-        参数:
-        index: 变量索引
+        obj: 查询的对象
 
         返回:
-        (name, index) 元组
+        该对象的所有开关列表，格式为[(index_str, var), ...]
         """
-        if index not in self.index_to_hint:
-            raise ValueError(f"Index {index} not found in switch")
-        return self.index_to_hint[index]
+        obj_str = self.to_str(obj)
+        return self.obj_switches.get(obj_str, [])
+
+    def get_all_switches(
+            self
+    ) -> Dict[str, List[Tuple[str, cp_model.IntVar]]]:
+        """
+        获取所有对象及其开关
+
+        返回:
+        字典格式: {obj_str: [(index_str, var), ...]}
+        """
+        return dict(self.obj_switches)
 
     def get_all_vars(self) -> List[cp_model.IntVar]:
         """
-        获取所有创建的变量
+        获取所有创建的开关变量
 
         返回:
         变量列表
         """
         return self.all_vars
 
-    def get_var_by_index(self, index: int) -> IntVar | None:
+    def get_obj_and_index_by_var(
+            self,
+            var: cp_model.IntVar
+    ) -> Tuple[str, Optional[str]]:
         """
-        根据index获取它的变量
+        根据开关变量获取对应的对象字符串和索引字符串
 
         参数:
-        hint: (name, index) 元组
+        var: 开关变量
 
         返回:
-        变量索引列表
-        """
-        if len(line := [i for i in self.get_all_vars() if i.index == index]):
-            return line[0]
-        return None
+        元组 (obj_str, index_str)
 
-    def get_indices_by_hint(self, hint: Tuple[str, int]) -> List[int]:
+        如果找不到变量，抛出KeyError
         """
-        根据HintFlag获取所有映射到它的变量索引
-
-        参数:
-        hint: (name, index) 元组
-
-        返回:
-        变量索引列表
-        """
-        return self.hint_to_indices.get(hint, [])
+        var_index = var.Index()
+        if var_index not in self.var_to_key:
+            raise KeyError(f"Variable with index {var_index} not found in switch registry")
+        key = self.var_to_key[var_index]
+        if len(self.get_switches_by_obj(key[0])) == 1:
+            return key[0], None
+        return key
 
 
 def solver_by_csp(
@@ -401,7 +394,7 @@ def hint_by_csp(
     get_logger().trace(f"pos {pos}: {results}\n", end="")
     if results is None:
         return None
-    return [switch.get_hint_by_index(r.index) for r in results]
+    return [switch.get_obj_and_index_by_var(r) for r in results]
 
 
 def _hint_by_csp(

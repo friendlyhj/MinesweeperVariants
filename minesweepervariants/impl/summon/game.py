@@ -230,6 +230,11 @@ class GameSession:
         self.logger.trace("chord")
         if self.board[clue_pos] in [VALUE, MINES, self.clue_tag, self.flag_tag, None]:
             return []
+        if self.board == self.last_hint[0]:
+            for objs, positions in self.last_hint[1].items():
+                if len(objs) == 1 and objs[0] == clue_pos:
+                    return positions
+            return []
         obj = self.board.get_value(clue_pos)
         board: AbstractBoard = self.board.clone()
         chord_positions = []
@@ -395,6 +400,9 @@ class GameSession:
     def hint(self):
         if self.last_hint[0] == self.board:
             return self.last_hint[1]
+
+        if None not in [obj for pos, obj in self.board()]:
+            return {}
 
         deduced = self.deduced()
         if not deduced:
@@ -578,18 +586,15 @@ class GameSession:
                     self.logger.trace(deduced)
                     _result.sort()
                     _result = list(tuple(set(_result)))
-                    result = []
+                    result = set()
                     for k in _result:
                         bes_type = k[0].split("|", 1)[0]
                         name = k[0].split("|", 1)[1]
                         if bes_type == "RULE":
-                            if switch.name_counter[k[0]] > 1:
-                                result.append((name, k[1] + 1))
-                            else:
-                                result.append((name, k[1]))
+                            result.add((name, k[1]))
                         elif bes_type == "POS":
                             info = name.split("|", 2)
-                            result.append(
+                            result.add(
                                 board.get_pos(
                                     int(info[0]),
                                     int(info[1]),

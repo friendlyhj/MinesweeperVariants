@@ -580,16 +580,36 @@ def hint_post():
         t_hint = []
         for b in _b_hint:
             if type(b) is tuple:
-                b_hint.append({
-                    "rule": b[0],
-                    "info": str(b[1])
-                })
+                if b[1] is None:
+                    b_hint.append({
+                        "rule": b[0],
+                        "info": '',
+                    })
+                else:
+                    try:
+                        for info in b_hint:
+                            if info["rule"] != b[0]:
+                                continue
+                            info["info"] += ", " + b[1]
+                            raise
+                        b_hint.append({
+                            "rule": b[0],
+                            "info": "(" + b[1],
+                        })
+                    except:
+                        ...
             elif isinstance(b, AbstractPosition):
                 b_hint.append({
                     "x": b.x,
                     "y": b.y,
                     "boardname": b.board_key,
                 })
+        for b in b_hint:
+            if "rule" not in b:
+                continue
+            if b["info"] == "":
+                continue
+            b["info"] += ")"
         for t in _t_hint:
             t_hint.append({
                 "x": t.x,
@@ -600,7 +620,7 @@ def hint_post():
             "condition": b_hint,
             "conclusion": t_hint
         })
-    print(results)
+    [print("hint:", _results) for _results in results]
     return jsonify({"hints": results}), 200
 
 
