@@ -13,6 +13,7 @@ from ortools.sat.python import cp_model
 
 from ...abs.Mrule import AbstractMinesClueRule
 from ...abs.Rrule import AbstractClueRule
+from ...abs.rule import AbstractRule
 from ...utils.impl_obj import set_total, VALUE_QUESS, MINES_TAG
 from .solver import solver_by_csp, solver_model, Switch
 from ...utils.tool import get_random, get_logger
@@ -71,11 +72,13 @@ class Summon:
         if "R" not in rules:
             rules.append("R")
 
+        rules_info = []
         for rule_id in rules:
             parts = rule_id.split(CONFIG["delimiter"], 1)
             rule_id = parts[0]
             data = parts[1] if len(parts) == 2 else None
-            rule = get_rule(rule_id)(board=self.board, data=data)
+            rule: AbstractRule = get_rule(rule_id)(board=self.board, data=data)
+            rules_info.append((rule, data))
             if rule is None:
                 self.logger.error("键入了一个未知的规则")
             elif isinstance(rule, AbstractClueRule):
@@ -87,6 +90,9 @@ class Summon:
             else:
                 # 如果你不是左线不是中线也不是右线那你怎么混进来的?
                 raise ValueError("Unknown Rule")
+
+        for rule in clue_rules + mines_rules + mines_clue_rules:
+            rule.combine(rules_info)
 
         # 清空列表来让他遍历所有规则名
         rules.clear()

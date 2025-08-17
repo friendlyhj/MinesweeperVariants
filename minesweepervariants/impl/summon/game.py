@@ -75,8 +75,8 @@ class MinesAsterisk(AbstractMinesValue):
         return []
 
 
-VALUE_TAG = ValueAsterisk(POSITION_TAG)
-VALUE_MINES = MinesAsterisk(POSITION_TAG)
+# VALUE_TAG = ValueAsterisk(POSITION_TAG)
+# VALUE_MINES = MinesAsterisk(POSITION_TAG)
 
 
 class Manger:
@@ -132,6 +132,9 @@ class GameSession:
         self.deduced_queue = queue.Queue(maxsize=1)
         self.hint_queue = queue.Queue(maxsize=1)
 
+        self.flag_tag = MinesAsterisk(POSITION_TAG)
+        self.clue_tag = ValueAsterisk(POSITION_TAG)
+
     def unbelievable(self, pos, action: int):
         """
         action
@@ -158,9 +161,9 @@ class GameSession:
             all_rules = [rule for rule in all_rules if not isinstance(rule, Rule0R)]
         board = self.board.clone()
         if action == 0:
-            board[pos] = VALUE_MINES
+            board[pos] = self.flag_tag
         else:
-            board[pos] = VALUE_TAG
+            board[pos] = self.clue_tag
         return solver_board(board, all_rules)
 
     def thread_hint(self):
@@ -206,7 +209,7 @@ class GameSession:
                 if board.get_type(pos) == "C":
                     board.set_value(pos, MINES_TAG)
                 elif board.get_type(pos) == "F":
-                    board.set_value(pos, VALUE_TAG)
+                    board.set_value(pos, self.clue_tag)
                 if solver_by_csp(
                         self.summon.mines_rules,
                         self.summon.clue_rule,
@@ -225,7 +228,7 @@ class GameSession:
         VALUE = self.board.get_config(clue_pos.board_key, "VALUE")
         MINES = self.board.get_config(clue_pos.board_key, "MINES")
         self.logger.trace("chord")
-        if self.board[clue_pos] in [VALUE, MINES, VALUE_TAG, VALUE_MINES, None]:
+        if self.board[clue_pos] in [VALUE, MINES, self.clue_tag, self.flag_tag, None]:
             return []
         obj = self.board.get_value(clue_pos)
         board: AbstractBoard = self.board.clone()
@@ -240,7 +243,7 @@ class GameSession:
             if clue_pos == pos:
                 continue
             if obj_type == "C":
-                board[pos] = VALUE_TAG
+                board[pos] = self.clue_tag
             elif obj_type == "F":
                 board[pos] = MINES_TAG
 
@@ -266,10 +269,10 @@ class GameSession:
         if self.mode == PUZZLE:
             if action == 1:
                 value_tag = self.board.get_config(pos.board_key, "MINES")
-                self.board.set_value(pos, VALUE_MINES if value_tag == VALUE_QUESS else value_tag)
+                self.board.set_value(pos, self.flag_tag if value_tag == VALUE_QUESS else value_tag)
             elif action == 0:
                 value_tag = self.board.get_config(pos.board_key, "VALUE")
-                self.board.set_value(pos, VALUE_TAG if value_tag == VALUE_QUESS else value_tag)
+                self.board.set_value(pos, self.clue_tag if value_tag == VALUE_QUESS else value_tag)
             return self.board
         if self.board.get_type(pos) != "N":
             # 点击了线索
@@ -282,9 +285,9 @@ class GameSession:
                 # 如果是纸笔和专家就放标志
                 for _pos in chord_positions:
                     if self.answer_board.get_type(_pos) == "F":
-                        self.board[_pos] = VALUE_MINES
+                        self.board[_pos] = self.flag_tag
                     elif self.answer_board.get_type(_pos) == "C":
-                        self.board[_pos] = VALUE_TAG
+                        self.board[_pos] = self.clue_tag
         elif self.mode == NORMAL:
             # 普通模式
             if not action and self.answer_board.get_type(pos) == "F":
@@ -304,7 +307,7 @@ class GameSession:
             if not action and self.answer_board.get_type(pos) == "F":
                 return None
             if self.mode in [ULTIMATE, PUZZLE]:
-                self.board[pos] = VALUE_MINES if action else VALUE_TAG
+                self.board[pos] = self.flag_tag if action else self.clue_tag
             else:
                 self.board[pos] = self.answer_board[pos]
         else:
@@ -345,7 +348,7 @@ class GameSession:
             return
         for key in self.board.get_board_keys():
             for pos, obj in self.board(key=key):
-                if obj not in [VALUE_TAG, VALUE_MINES]:
+                if obj not in [self.clue_tag, self.flag_tag]:
                     continue
                 self.board[pos] = self.answer_board[pos]
 
@@ -370,9 +373,9 @@ class GameSession:
                 if board.get_type(pos) != "N":
                     continue
                 if self.answer_board.get_type(pos) == "F":
-                    board[pos] = VALUE_MINES
+                    board[pos] = self.flag_tag
                 elif self.answer_board.get_type(pos) == "C":
-                    board[pos] = VALUE_TAG
+                    board[pos] = self.clue_tag
                 deduced.append(pos)
             all_rules = self.summon.mines_rules.rules[:]
             all_rules += [self.summon.clue_rule, self.summon.mines_clue_rule]

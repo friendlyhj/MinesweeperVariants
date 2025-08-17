@@ -28,7 +28,7 @@ from minesweepervariants.impl.summon.game import NORMAL, EXPERT, ULTIMATE, PUZZL
 from minesweepervariants.impl.summon.game import ULTIMATE_R, ULTIMATE_S, ULTIMATE_F, ULTIMATE_A, ULTIMATE_P
 from datetime import datetime, timedelta
 
-from minesweepervariants.utils.impl_obj import get_seed
+from minesweepervariants.utils.impl_obj import get_seed, VALUE_QUESS, MINES_TAG
 from minesweepervariants.utils.tool import get_logger
 
 # 添加项目路径到系统路径
@@ -227,6 +227,8 @@ def root():
 def generate_board():
     global hypothesis_data
     from minesweepervariants.utils.tool import get_random
+    from minesweepervariants.impl.rule.Rrule.Quess import RuleQuess
+    from minesweepervariants.abs.Mrule import Rule0F
     get_random(new=True)
     # get_random(new=True, seed=1145141919810)
     # get_random(new=True, seed=4096695)
@@ -291,24 +293,31 @@ def generate_board():
     else:
         size = [int(i) for i in request.args.get("size", None).split("x")]
     try:
-        hypothesis_data["summon"] = Summon(
+        summon = Summon(
             size=size,
             total=total,
             rules=rules,
             drop_r=not used_r,
             dye=dye
         )
+        hypothesis_data["summon"] = summon
     except Exception as e:
         return {
             "reason": traceback.format_exc(),
             "success": False
         }
-    hypothesis_data["game"] = Game(
+    game = Game(
         summon=hypothesis_data["summon"],
         mode=mode,
         drop_r=not used_r,
         ultimate_mode=u_mode
     )
+
+    hypothesis_data["game"] = game
+    if isinstance(summon.clue_rule, RuleQuess):
+        game.clue_tag = VALUE_QUESS
+    if isinstance(summon.mines_clue_rule, Rule0F):
+        game.flag_tag = MINES_TAG
     if code:
         hypothesis_data["game"].answer_board = answer_board
         hypothesis_data["game"].board = mask_board
@@ -573,7 +582,7 @@ def hint_post():
             if type(b) is tuple:
                 b_hint.append({
                     "rule": b[0],
-                    "index": b[1]
+                    "info": str(b[1])
                 })
             elif isinstance(b, AbstractPosition):
                 b_hint.append({

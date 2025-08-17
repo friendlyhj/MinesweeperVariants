@@ -69,39 +69,20 @@ class Rule3E(AbstractMinesRule):
             board.set_value(pos2, MINES_TAG if index & 2 else VALUE_QUESS)
             board.set_value(pos3, MINES_TAG if index & 1 else VALUE_QUESS)
         y_col = board.get_col_pos(board.boundary(key=NAME_3E[1]))
-        col = board.get_col_pos(board.boundary(key=NAME_3E[0]))
-        for pos in col:
-            row = board.get_row_pos(pos)
-            for index in range(len(row) - 2):
-                types = board.batch(row[index: index + 3], mode="type")
-                y_type = board.get_type(row[index + 1].down())
-                if y_type == "":
-                    continue
-                index = 4 if types[0] == "F" else 0
-                index += 2 if types[1] == "F" else 0
-                index += 1 if types[2] == "F" else 0
-                board.set_value(y_col[index], MINES_TAG if y_type == "F" else VALUE_QUESS)
-
-        for pos, _ in board("N", key=NAME_3E[1]):
-            board.set_value(pos, VALUE_QUESS)
+        for key in board.get_interactive_keys():
+            col = board.get_col_pos(board.boundary(key=key))
+            for pos in col:
+                row = board.get_row_pos(pos)
+                for index in range(len(row) - 2):
+                    types = board.batch(row[index: index + 3], mode="type")
+                    y_type = board.get_type(row[index + 1].down())
+                    if y_type == "":
+                        continue
+                    index = 4 if types[0] == "F" else 0
+                    index += 2 if types[1] == "F" else 0
+                    index += 1 if types[2] == "F" else 0
+                    board.set_value(y_col[index], MINES_TAG if y_type == "F" else VALUE_QUESS)
 
     def init_clear(self, board: 'AbstractBoard'):
-        y_col = board.get_col_pos(board.boundary(key=NAME_3E[1]))
-        col = board.get_col_pos(board.boundary())
-        for pos in col:
-            row = board.get_row_pos(pos)
-            for index in range(len(row) - 2):
-                types = board.batch(row[index: index + 3], mode="type")
-                y_type = board.get_type(row[index + 1].down())
-                if y_type == "":
-                    continue
-                index = 4 if types[0] == "F" else 0
-                index += 2 if types[1] == "F" else 0
-                index += 1 if types[2] == "F" else 0
-                board.set_value(y_col[index], MINES_TAG)
-
-        for pos, _ in board("N", key=NAME_3E[1]):
-            board.set_value(pos, VALUE_QUESS)
-
-        for pos, _ in board("F", key=NAME_3E[1]):
+        for pos, _ in board(key=NAME_3E[1]):
             board.set_value(pos, None)

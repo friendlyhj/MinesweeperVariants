@@ -48,8 +48,8 @@ def main(
     logger.info(f"total mines: {total}")
     _board = None
     info_list = []
+    print(rule_code)
     for attempt_index in range(attempts):
-        print(rule_code)
         s = Summon(size=size, total=total, rules=rule_code[:], board=board_class,
                    drop_r=drop_r, dye=dye, vice_board=vice_board)
         if unseed:

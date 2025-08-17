@@ -6,8 +6,7 @@
 # @FileName: rule.py
 
 from abc import ABC, abstractmethod
-from typing import List, Union, TYPE_CHECKING, Dict, Tuple
-
+from typing import List, Union, TYPE_CHECKING, Dict, Tuple, Optional
 
 if TYPE_CHECKING:
     from minesweepervariants.abs.board import AbstractBoard, AbstractPosition
@@ -58,6 +57,17 @@ class AbstractRule(ABC):
         """
         在题板生成阶段调用，用于删除题板上必须被清除的线索或对象。
         例如纸笔题目中，某些规则可能要求特定位置不能出现雷或线索。
+        """
+
+    def combine(self, rules: List[Tuple['AbstractRule', Optional[str]]]):
+        """
+        尝试在规则层面进行特判合并。
+
+        当多条规则同时生效时，单独逐条建立约束可能会导致效率低下。
+        本方法会接收当前所有已启用的规则，并允许具体规则实现自行检查、
+        判断是否存在可以进行联合优化的情况（如剪枝、约束合并、特解处理等）。
+
+        :param rules: 已启用的规则列表，每项为 (规则对象, 规则的参数(无参为None))。
         """
 
     def get_name(self):

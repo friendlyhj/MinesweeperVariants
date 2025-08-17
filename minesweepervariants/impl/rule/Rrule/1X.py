@@ -7,10 +7,10 @@
 """
 [1X] 十字 (Cross)：线索表示半径为 2 的十字范围内的雷数
 """
+from minesweepervariants.impl.summon.solver import Switch
 from ....abs.Rrule import AbstractClueRule, AbstractClueValue
 from ....abs.board import AbstractBoard, AbstractPosition
 
-from ....utils.tool import get_logger
 from ....utils.impl_obj import VALUE_QUESS, MINES_TAG
 
 
@@ -18,16 +18,53 @@ class Rule1X(AbstractClueRule):
     name = ["1X", "十字", "Cross"]
     doc = "线索表示半径为 2 的十字范围内的雷数"
 
+    def __init__(self, board: "AbstractBoard" = None, data=None) -> None:
+        super().__init__(board, data)
+        self.nei_values = []
+        self.rule_name = self.name[0]
+        if data is None:
+            self.nei_values = [tuple([1, 1]), tuple([4, 4])]
+            return
+        self.rule_name += "(" + data[:] + ")"
+        nei_values = data.split(";")
+        for nei_value in nei_values:
+            if ":" in nei_value:
+                self.nei_values.append(tuple([
+                    int(nei_value.split(":")[0]),
+                    int(nei_value.split(":")[1])
+                ]))
+            else:
+                self.nei_values.append(tuple([int(nei_value)]))
+
+    def get_name(self):
+        return self.rule_name
+
+    def nei_pos(self, pos: AbstractPosition):
+        positions = []
+        for nei_value in self.nei_values:
+            if len(nei_value) == 1:
+                positions.extend(
+                    pos.neighbors(nei_value[0], nei_value[0])
+                )
+            elif len(nei_value) == 2:
+                positions.extend(
+                    pos.neighbors(nei_value[0], nei_value[1])
+                )
+        return positions
+
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':
-        logger = get_logger()
         for pos, _ in board("N"):
-            value = len([_pos for _pos in (pos.neighbors(1) + pos.neighbors(4, 4)) if board.get_type(_pos) == "F"])
-            board.set_value(pos, Value1X(pos, count=value))
-            logger.debug(f"Set {pos} to 1X[{value}]")
+            value = len([_pos for _pos in self.nei_pos(pos) if board.get_type(_pos) == "F"])
+            obj = Value1X(pos, count=value)
+            obj.neighbor = self.nei_pos(pos)
+            board.set_value(pos, obj)
         return board
 
-    def clue_class(self):
-        return Value1X
+    def create_constraints(self, board: 'AbstractBoard', switch: 'Switch'):
+        for pos, obj in board():
+            if not isinstance(obj, Value1X):
+                continue
+            obj.neighbor = self.nei_pos(pos)
 
 
 class Value1X(AbstractClueValue):
@@ -39,7 +76,7 @@ class Value1X(AbstractClueValue):
         else:
             # 直接初始化
             self.count = count
-        self.neighbor = self.pos.neighbors(1) + self.pos.neighbors(4, 4)
+        self.neighbor = []
 
     def __repr__(self):
         return f"{self.count}"
@@ -90,3 +127,4 @@ class Value1X(AbstractClueValue):
         # 添加约束：周围雷数等于count
         if neighbor_vars:
             model.Add(sum(neighbor_vars) == self.count).OnlyEnforceIf(s)
+            print(self.pos, self, neighbor_vars)
