@@ -30,18 +30,28 @@ def main(
         size: tuple[int, int],  # 题板尺寸
         total: int,  # 总雷数
         rules: list[str],  # 规则id集合
-        dye: str,  # 染色规则
+        dye: list[str],  # 染色规则
         drop_r: bool,  # 在推理时候是否隐藏R推理
         board_class: str,  # 题板的名称
         vice_board: bool,  # 启用删除副板
         unseed: bool,
 ):
+    mask_dye = [s for s in dye if s.startswith("&")]
+    if len(mask_dye) == 0:
+        mask_dye = ""
+    else:
+        mask_dye = mask_dye[0]
+    dye = [s for s in dye if not s.startswith("&")]
+    if len(dye) == 0:
+        dye = ""
+    else:
+        dye = dye[0]
     rule_code = rules[:]
     logger = get_logger(log_lv=log_lv)
     get_random(seed, new=True)
     attempts = 20 if attempts == -1 else attempts
     s = Summon(size=size, total=total, rules=rules, board=board_class,
-               drop_r=drop_r, dye=dye, vice_board=vice_board)
+               drop_r=drop_r, mask=mask_dye, dye=dye, vice_board=vice_board)
     if unseed:
         s.unseed = True
     total = s.total
@@ -51,7 +61,7 @@ def main(
     print(rule_code)
     for attempt_index in range(attempts):
         s = Summon(size=size, total=total, rules=rule_code[:], board=board_class,
-                   drop_r=drop_r, dye=dye, vice_board=vice_board)
+                   drop_r=drop_r, mask=mask_dye, dye=dye, vice_board=vice_board)
         if unseed:
             s.unseed = True
         print(f"尝试第{attempt_index}次minesweepervariants..", end="\r")
@@ -98,6 +108,8 @@ def main(
         rule_text = "[V]"
     if dye:
         rule_text += f"[@{dye}]"
+    if mask_dye:
+        rule_text += f"[{mask_dye}]"
     size_a = 0
     size_b = 0
     size_c = len(_board.get_interactive_keys())

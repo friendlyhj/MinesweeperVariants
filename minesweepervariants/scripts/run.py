@@ -36,7 +36,7 @@ parser.add_argument("-t", "--total", type=int, default=defaults.get("total"),
                     help="总雷数")
 parser.add_argument("-c", "--rules", nargs="+", default=[],
                     help="所有规则名")
-parser.add_argument("-d", "--dye", default=defaults.get("dye"),
+parser.add_argument("-d", "--dye",  nargs="+", default=[defaults.get("dye")],
                     help="染色规则名称，如 @c")
 parser.add_argument("-r", "--used-r", action="store_true", default=defaults.get("used_r"),
                     help="推理是否加R")
@@ -138,7 +138,7 @@ if args.test:
         size=size,
         total=args.total,
         rules=args.rules,
-        dye=args.dye.lower(),
+        dye=args.dye,
         board_class=args.board_class,
         unseed=not args.onseed,
     )
@@ -150,7 +150,7 @@ elif args.query == defaults.get("query"):
         size=size,
         total=args.total,
         rules=args.rules,
-        dye=args.dye.lower(),
+        dye=args.dye,
         drop_r=(not args.used_r),
         board_class=args.board_class,
         vice_board=args.vice_board,
@@ -165,7 +165,7 @@ else:
         rules=args.rules,
         query=args.query,
         attempts=args.attempts,
-        dye=args.dye.lower(),
+        dye=args.dye,
         drop_r=(not args.used_r),
         early_stop=args.early_stop,
         board_class=args.board_class,

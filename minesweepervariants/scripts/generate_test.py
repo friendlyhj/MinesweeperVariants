@@ -31,10 +31,20 @@ def main(
         board_class: str,  # 题板的名称
         unseed: bool
 ):
+    mask = [s for s in dye if s.startswith("&")]
+    if len(mask) == 0:
+        mask = ""
+    else:
+        mask = mask[0]
+    dye = [s for s in dye if not s.startswith("&")]
+    if len(dye) == 0:
+        dye = ""
+    else:
+        dye = dye[0]
     logger = get_logger(log_lv=log_lv)
     get_random(seed, new=True)
     attempt_index = 0
-    s = Summon(size=size, total=total, rules=rules, board=board_class, dye=dye)
+    s = Summon(size=size, total=total, rules=rules, board=board_class, mask=mask, dye=dye)
     if unseed:
         s.unseed = unseed
     total = s.total

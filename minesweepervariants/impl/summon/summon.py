@@ -40,6 +40,7 @@ class Summon:
         total: int,
         rules: list[str],
         drop_r: bool = False,
+        mask: str = "",
         dye: str = "",
         board: str = "Board1",
         vice_board: bool = False,
@@ -131,6 +132,13 @@ class Summon:
 
         if not rules:
             rules.append("V")
+
+        # 掩码规则
+        if mask:
+            _board: AbstractBoard = self.board.clone()
+            _board.dyed(mask[1:] if mask.startswith("&") else mask)
+            for pos, is_dyed in _board(mode="dye"):
+                if is_dyed: self.board.set_mask(pos)
 
         # 染色规则
         if dye:

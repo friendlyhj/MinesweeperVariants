@@ -41,11 +41,21 @@ def main(
         vice_board: bool,  # 启用删除副板
         unseed: bool  # 是否禁用种子来快速生成题目
 ):
+    mask_dye = [s for s in dye if s.startswith("&")]
+    if len(mask_dye) == 0:
+        mask_dye = ""
+    else:
+        mask_dye = mask_dye[0]
+    dye = [s for s in dye if not s.startswith("&")]
+    if len(dye) == 0:
+        dye = ""
+    else:
+        dye = dye[0]
     rule_code = rules[:]
     logger = get_logger(log_lv=log_lv)
     get_random(seed, new=True)
     s = Summon(size=size, total=total, rules=rules, board=board_class,
-               drop_r=drop_r, dye=dye, vice_board=vice_board)
+               drop_r=drop_r, mask=mask_dye, dye=dye, vice_board=vice_board)
 
     rule_text = ""
     for rule in rules:
@@ -55,6 +65,8 @@ def main(
         rule_text = "[V]"
     if dye:
         rule_text += f"[{dye}]"
+    if mask_dye:
+        rule_text += f"[{mask_dye}]"
 
     size_a = 0
     size_b = 0
@@ -73,7 +85,7 @@ def main(
 
     while True:
         s = Summon(size=size, total=total, rules=rule_code[:], board=board_class,
-                   drop_r=drop_r, dye=dye, vice_board=vice_board)
+                   drop_r=drop_r, mask=mask_dye, dye=dye, vice_board=vice_board)
         if unseed:
             s.unseed = True
         get_random(seed, new=True)
