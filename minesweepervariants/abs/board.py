@@ -300,7 +300,12 @@ class AbstractBoard(ABC):
         :param pos: 输入位置
         :return: 是否在范围内
         """
-        return pos.in_bounds(self.boundary(pos.board_key))
+        return self.is_valid(pos)
+
+    def set_mask(self, pos):
+        """
+        挖去题板的指定位置
+        """
 
     @staticmethod
     @abstractmethod

@@ -30,16 +30,17 @@ class Rulen1M(AbstractMinesRule):
             for index_x in range(pos_bound.x + 1):
                 for index_y in range(pos_bound.y + 1):
                     var = board.get_variable(board.get_pos(index_x, index_y, key))
+                    if var is None:
+                        continue
                     var_a = board.get_variable(board.get_pos(index_x, pos_bound.y-index_y, key))
                     var_b = board.get_variable(board.get_pos(pos_bound.x-index_x, index_y, key))
                     var_c = board.get_variable(board.get_pos(pos_bound.y-index_y, pos_bound.x-index_x, key))
                     var_d = board.get_variable(board.get_pos(index_y, index_x, key))
                     var_e = board.get_variable(board.get_pos(pos_bound.x-index_x, pos_bound.y-index_y, key))
-
-                    model.Add(var == var_a).OnlyEnforceIf(tmp_a)
-                    model.Add(var == var_b).OnlyEnforceIf(tmp_b)
-                    model.Add(var == var_c).OnlyEnforceIf(tmp_c)
-                    model.Add(var == var_d).OnlyEnforceIf(tmp_d)
-                    model.Add(var == var_e).OnlyEnforceIf(tmp_e)
+                    if var_a is not None: model.Add(var == var_a).OnlyEnforceIf(tmp_a)
+                    if var_b is not None: model.Add(var == var_b).OnlyEnforceIf(tmp_b)
+                    if var_c is not None: model.Add(var == var_c).OnlyEnforceIf(tmp_c)
+                    if var_d is not None: model.Add(var == var_d).OnlyEnforceIf(tmp_d)
+                    if var_e is not None: model.Add(var == var_e).OnlyEnforceIf(tmp_e)
 
         model.AddBoolOr([tmp_a, tmp_b, tmp_c, tmp_d, tmp_e]).OnlyEnforceIf(s)

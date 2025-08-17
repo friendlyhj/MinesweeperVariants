@@ -6,7 +6,7 @@
 import math
 import os
 from concurrent.futures import ThreadPoolExecutor
-from concurrent.futures._base import as_completed
+from concurrent.futures import as_completed
 from multiprocessing import Queue, Process
 from pathlib import Path
 import yaml
