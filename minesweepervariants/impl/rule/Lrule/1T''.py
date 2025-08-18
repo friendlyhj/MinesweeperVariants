@@ -58,10 +58,6 @@ class Rule1Tpp(AbstractMinesRule):
                 # 若位置没有任何三连覆盖，则不能为雷
                 model.Add(var == 0).OnlyEnforceIf(s)
 
-    @classmethod
-    def method_choose(cls) -> int:
-        return 1
-
     def suggest_total(self, info: dict):
 
         def hard_constraint(m, total):

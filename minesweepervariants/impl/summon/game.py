@@ -324,6 +324,7 @@ class GameSession:
             if self.last_deduced[0] != _board:
                 print("last0 uneq board")
                 self.step()
+                self.thread_deduced()
             elif not [_pos for _pos in self.last_deduced[1] if _pos != pos]:
                 print("last1 unfind")
                 if not self.deduced():

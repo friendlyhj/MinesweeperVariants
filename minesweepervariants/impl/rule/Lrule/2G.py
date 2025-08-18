@@ -19,7 +19,7 @@ class Rule2G(AbstractMinesRule):
         super().__init__(board, data)
         self.nei_values = []
         self.rule_name = self.name[0]
-        if board is None:
+        if data is None:
             self.nei_values = [tuple([1])]
             self.value = 4
             return
