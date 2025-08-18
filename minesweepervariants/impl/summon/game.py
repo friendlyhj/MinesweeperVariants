@@ -580,7 +580,7 @@ class GameSession:
                 try:
                     self.logger.trace(f"pos[{pos}]: start")
                     _result = fut.result()
-                    self.logger.trace(f"pos[{pos}]: {result}")
+                    self.logger.trace(f"pos[{pos}]: {_result}")
                     if _result is None:
                         continue
                     self.logger.trace(deduced)
