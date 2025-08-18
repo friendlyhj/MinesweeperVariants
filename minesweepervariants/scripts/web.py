@@ -382,9 +382,11 @@ def generate_board():
 
 @app.route('/api/metadata')
 def metadata():
+    print('metadata')
     if "game" not in hypothesis_data \
             or hypothesis_data["game"].board is None \
             or hypothesis_data["game"].answer_board is None:
+        print("fail")
         return {}, 200
     game = hypothesis_data["game"]
     if game.board is None:
@@ -588,6 +590,8 @@ def hint_post():
                 else:
                     try:
                         for info in b_hint:
+                            if "rule" not in info.keys():
+                                continue
                             if info["rule"] != b[0]:
                                 continue
                             info["info"] += ", " + b[1]
@@ -596,8 +600,8 @@ def hint_post():
                             "rule": b[0],
                             "info": "(" + b[1],
                         })
-                    except:
-                        ...
+                    except Exception as e:
+                        print(e)
             elif isinstance(b, AbstractPosition):
                 b_hint.append({
                     "x": b.x,
