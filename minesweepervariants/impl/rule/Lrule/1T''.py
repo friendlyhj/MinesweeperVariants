@@ -6,7 +6,7 @@
 # @FileName: 1T''.py
 
 """
-[1T'']纯三连：所有雷格必须与其他雷组成三连，且最终题板可以为每一个雷构造唯一的三连组（我又表达困难了，淦）
+[1T'']纯三连：每个雷属于唯一的三连组(横/竖/斜)
 """
 
 from ....abs.Lrule import AbstractMinesRule
@@ -15,7 +15,7 @@ from ....abs.board import AbstractBoard
 
 class Rule1Tpp(AbstractMinesRule):
     name = ["1T''", "纯三连"]
-    doc = "所有雷格必须与其他雷组成三连，且最终题板可以为每一个雷构造唯一的三连组（我又表达困难了，淦）"
+    doc = "每个雷属于唯一的三连组(横/竖/斜)"
 
     def create_constraints(self, board: 'AbstractBoard', switch):
         model = board.get_model()
