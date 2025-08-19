@@ -291,8 +291,9 @@ class Board(AbstractBoard):
         flag_byte = 0
         mask = 0
         if code is not None:
-            config, mask, ture_code, false_code, code\
+            config, mask, ture_code, false_code, *code\
                 = code.split(b"\xff", 4)
+            code = b''.join(code)
             *size, flag_byte = config
             size = (size[0], size[1])
             mask = decode_bytes_7bit(mask)
@@ -416,7 +417,6 @@ class Board(AbstractBoard):
                 i += count - 1
             encoded_bytes.extend(parts[i])
             i += 1
-
         return encoded_bytes[:-2]
 
     def boundary(self, key=MASTER_BOARD) -> "Position":
