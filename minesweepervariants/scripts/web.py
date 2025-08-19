@@ -37,7 +37,22 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # 导入项目核心模块
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
+CORS(app, resources={r"/*": {"origins": "*"}})
+
+
+@app.after_request
+def add_cors_headers(response):
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = 'GET,POST,OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization'
+    response.headers['Referrer-Policy'] = 'unsafe-url'
+    if 'Access-Control-Allow-Credentials' in response.headers:
+        try:
+            del response.headers['Access-Control-Allow-Credentials']
+        except Exception:
+            pass
+    return response
+
 hypothesis_data = dict()
 github_web = "https://koolshow.github.io"
 
