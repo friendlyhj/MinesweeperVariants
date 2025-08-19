@@ -13,7 +13,7 @@ from minesweepervariants.impl.summon.solver import Switch
 
 
 class Rule4C(AbstractMinesRule):
-    name = ["4C", "十字路口", "Crossing"]
+    # name = ["4C", "十字路口", "Crossing"]
 
     def suggest_total(self, info: dict):
         def a(model, total):

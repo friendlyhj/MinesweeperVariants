@@ -21,13 +21,10 @@ class RuleV(AbstractClueRule):
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':
         logger = get_logger()
         for pos, _ in board("N"):
-            value = len([_pos for _pos in pos.neighbors(2) if board.get_type(_pos) == "F"])
+            value = board.batch(pos.neighbors(2), "type").count("F")
             board.set_value(pos, ValueV(pos, count=value))
             logger.debug(f"Set {pos} to V[{value}]")
         return board
-
-    def clue_class(self):
-        return ValueV
 
 
 class ValueV(AbstractClueValue):
