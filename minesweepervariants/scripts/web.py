@@ -372,7 +372,7 @@ def generate_board():
     }
     hypothesis_data["game"].thread_hint()
     hypothesis_data["data"] = {}
-    hypothesis_data["data"]["noFails"] = True
+    hypothesis_data["data"]["noFail"] = True
     hypothesis_data["data"]["noHint"] = True
     # hypothesis_data["game"].thread_deduced()
     print(f"生成用时: {time.time() - t}s")
@@ -408,7 +408,7 @@ def metadata():
         count["remains"] = len([_ for pos, _ in a_board("F") if board.get_type(pos) == "N"])
     board_data["rules"] = hypothesis_data["rules"]
     board_data["count"] = count
-    board_data["noFails"] = hypothesis_data["data"]["noFails"]
+    board_data["noFail"] = hypothesis_data["data"]["noFail"]
     board_data["noHint"] = hypothesis_data["data"]["noHint"]
     board_data["u_mode"] = []
     gamemode = game.mode
@@ -488,7 +488,7 @@ def click():
             unbelievable = game.unbelievable(pos, 1)
         if unbelievable is None:
             return {}, 500
-        hypothesis_data["data"]["noFails"] = False
+        hypothesis_data["data"]["noFail"] = False
         print("*unbelievable*", unbelievable)
         refresh["mines"] = [
             {"x": _pos.x, "y": _pos.y,
@@ -549,7 +549,7 @@ def click():
         count["known"] = len([_ for pos, _ in a_board("F")])
         count["remains"] = len([_ for pos, _ in a_board("F") if _board.get_type(pos) == "N"])
     refresh["count"] = count
-    refresh["noFails"] = hypothesis_data["data"]["noFails"]
+    refresh["noFail"] = hypothesis_data["data"]["noFail"]
     refresh["noHint"] = hypothesis_data["data"]["noHint"]
     print("refresh: " + str(refresh))
     return refresh, 200
@@ -660,7 +660,7 @@ def reset():
         print("board is None")
         return {}, 500
     game.board = mask_board
-    hypothesis_data["data"]["noFails"] = True
+    hypothesis_data["data"]["noFail"] = True
     hypothesis_data["data"]["noHint"] = True
     game.last_deduced = [None, []]
     game.last_hint = [None, {}]
