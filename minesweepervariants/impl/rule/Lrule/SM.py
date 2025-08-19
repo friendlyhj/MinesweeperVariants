@@ -5,7 +5,7 @@
 # @Author  : xxx
 # @FileName: 1D.py
 """
-[???]神秘: 这是一条会让男娘感到困惑的规则
+[SM]神秘: 这是一条会让男娘感到困惑的规则
 """
 
 from ....abs.Lrule import AbstractMinesRule

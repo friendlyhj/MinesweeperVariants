@@ -489,7 +489,7 @@ def click():
         if unbelievable is None:
             return {}, 500
         hypothesis_data["data"]["noFails"] = False
-        print(unbelievable)
+        print("*unbelievable*", unbelievable)
         refresh["mines"] = [
             {"x": _pos.x, "y": _pos.y,
              "boardname": _pos.board_key}

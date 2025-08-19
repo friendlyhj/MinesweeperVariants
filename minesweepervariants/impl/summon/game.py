@@ -17,7 +17,7 @@ from ...abs.Rrule import AbstractClueValue
 from ...abs.board import AbstractBoard
 from ...abs.board import AbstractPosition
 from . import Summon
-from .solver import solver_by_csp, hint_by_csp, Switch, deduced_by_csp, solver_board
+from .solver import solver_by_csp, hint_by_csp, Switch, deduced_by_csp, solver_board, solver_model
 from ...utils.impl_obj import MINES_TAG, VALUE_QUESS, POSITION_TAG
 from ...utils.tool import get_logger, get_random
 
@@ -141,20 +141,20 @@ class GameSession:
             0: 左键点击/翻开/设置非雷
             1: 右键点击/标雷/设置必雷
         """
-        if self.answer_board.get_type(pos) == "F" and action == 0:
-            return [
-                pos for key in self.answer_board.get_board_keys()
-                for pos, _ in self.answer_board(key=key)
-                if (self.board.get_type(pos) == "N" and
-                    self.answer_board.get_type(pos) == "F")
-            ]
-        if self.answer_board.get_type(pos) == "C" and action == 1:
-            return [
-                pos for key in self.answer_board.get_board_keys()
-                for pos, _ in self.answer_board(key=key)
-                if (self.board.get_type(pos) == "N" and
-                    self.answer_board.get_type(pos) == "C")
-            ]
+        # if self.answer_board.get_type(pos) == "F" and action == 0:
+        #     return [
+        #         pos for key in self.answer_board.get_board_keys()
+        #         for pos, _ in self.answer_board(key=key)
+        #         if (self.board.get_type(pos) == "N" and
+        #             self.answer_board.get_type(pos) == "F")
+        #     ]
+        # if self.answer_board.get_type(pos) == "C" and action == 1:
+        #     return [
+        #         pos for key in self.answer_board.get_board_keys()
+        #         for pos, _ in self.answer_board(key=key)
+        #         if (self.board.get_type(pos) == "N" and
+        #             self.answer_board.get_type(pos) == "C")
+        #     ]
         all_rules = self.summon.mines_rules.rules[:]
         all_rules += [self.summon.clue_rule, self.summon.mines_clue_rule]
         if self.drop_r:
@@ -164,7 +164,42 @@ class GameSession:
             board[pos] = self.flag_tag
         else:
             board[pos] = self.clue_tag
-        return solver_board(board, all_rules)
+        board: AbstractBoard
+        print("="*20)
+        print(board)
+        print(board)
+        print("="*20)
+        model = board.get_model()
+        switch = Switch()
+        for rule in all_rules:
+            rule.create_constraints(board, switch)
+        for key in board.get_board_keys():
+            for pos, obj in board(key=key):
+                obj_type = board.get_type(pos)
+                var = board.get_variable(pos)
+                if obj_type == "F":
+                    model.Add(var == 1)
+                if obj_type == "C":
+                    model.Add(var == 0)
+                if obj in [
+                    None, MINES_TAG, VALUE_QUESS,
+                    self.clue_tag, self.flag_tag
+                ]:
+                    continue
+                obj.create_constraints(board, switch)
+        model.AddBoolAnd(switch.get_all_vars())
+        state, solver = solver_model(model, True)
+        print("unbelievable state:", state)
+        if not state:
+            return None
+        mines_list = []
+        for pos, var in board(mode="var"):
+            if self.board.get_type(pos) != "N":
+                continue
+            if solver.Value(var) == 0:
+                continue
+            mines_list.append(pos)
+        return mines_list
 
     def thread_hint(self):
         threading.Thread(target=self.hintManger.wait).start()
