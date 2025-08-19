@@ -136,8 +136,8 @@ def format_cell(_board, pos, hint=0):
             "type": "row",
             "children": [obj.compose(_board, True)]
         })
-    if dye:
-        cell_data["style"] += " background-color: rgb(from var(--foreground-color) r g b / 29%);"
+    # if dye:
+    #     cell_data["style"] += " background-color: rgb(from var(--foreground-color) r g b / 29%);"
     if hint == 1:
         cell_data["style"] += " background-color: rgb(from var(--hint2-color) r g b / 40%);"
     if hint == 2:
@@ -193,10 +193,25 @@ def format_board(_board: AbstractBoard):
     }
     count = 0
     for key in _board.get_board_keys():
+        dye_list = [
+            [_board.get_dyed(pos) if _board.is_valid(pos) else False
+             for pos in _board.get_row_pos(col_pos)]
+            for col_pos in _board.get_col_pos(
+                _board.boundary(key=key)
+            )
+        ]
+        mask_list = [
+            [not _board.is_valid(pos) for pos in _board.get_row_pos(col_pos)]
+            for col_pos in _board.get_col_pos(
+                _board.boundary(key=key)
+            )
+        ]
         board_data["boards"][key] = {
             "size": _board.get_config(key, "size"),
             "position": [_board.get_board_keys().index(key), 0],
-            "showLabel": _board.get_config(key, "row_col")
+            "showLabel": _board.get_config(key, "row_col"),
+            "mask": mask_list,
+            "dye": dye_list,
             # TODO X=N, poslabel
         }
         for pos, obj in _board(key=key):

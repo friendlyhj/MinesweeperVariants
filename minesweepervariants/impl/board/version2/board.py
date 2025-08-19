@@ -499,35 +499,37 @@ class Board(AbstractBoard):
         self.get_config(pos.board_key, "mask").append(pos)
 
     def get_row_pos(self, pos: 'Position') -> List["Position"]:
+        bound = self.boundary(pos.board_key)
         _pos = pos.clone()
         pos_list = [_pos]
         while True:
             _pos = _pos.left()
-            if not self.is_valid(_pos):
+            if not _pos.in_bounds(bound):
                 break
             pos_list.append(_pos)
         _pos = pos.clone()
         pos_list = pos_list[::-1]
         while True:
             _pos = _pos.right()
-            if not self.in_bounds(_pos):
+            if not _pos.in_bounds(bound):
                 break
             pos_list.append(_pos)
         return pos_list
 
     def get_col_pos(self, pos: 'Position') -> List["Position"]:
+        bound = self.boundary(pos.board_key)
         _pos = pos.clone()
         pos_list = [_pos]
         while True:
             _pos = _pos.up()
-            if not self.in_bounds(_pos):
+            if not _pos.in_bounds(bound):
                 break
             pos_list.append(_pos)
         _pos = pos.clone()
         pos_list = pos_list[::-1]
         while True:
             _pos = _pos.down()
-            if not self.in_bounds(_pos):
+            if not _pos.in_bounds(bound):
                 break
             pos_list.append(_pos)
         return pos_list
