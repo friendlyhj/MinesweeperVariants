@@ -210,10 +210,16 @@ def format_board(_board: AbstractBoard):
             "size": _board.get_config(key, "size"),
             "position": [_board.get_board_keys().index(key), 0],
             "showLabel": _board.get_config(key, "row_col"),
-            "mask": mask_list,
-            "dye": dye_list,
             # TODO X=N, poslabel
         }
+        if any(any(i) for i in mask_list):
+            board_data["boards"][key].update({
+                "mask": mask_list
+            })
+        if any(any(i) for i in dye_list):
+            board_data["boards"][key].update({
+                "dye": dye_list,
+            })
         for pos, obj in _board(key=key):
             board_data["cells"].append(
                 format_cell(_board, pos))
