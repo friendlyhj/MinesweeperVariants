@@ -378,6 +378,8 @@ def generate_board():
                 }
     if dye:
         rules += [f"@{dye}"]
+    if mask:
+        rules += [f"&{mask}"]
         # answer_board = hypothesis_data["game"].answer_board
     # print(hypothesis_data)
     # print(answer_board.show_board())
