@@ -524,8 +524,8 @@ def click():
                 print(pos, obj, data)
                 refresh["cells"].append(data)
         if not any(
-                _board.has("N", key=key) for
-                key in _board.get_interactive_keys()
+            _board.has("N", key=key) for
+            key in _board.get_interactive_keys()
         ):
             refresh["gameover"] = True
             refresh["reason"] = "你过关!!!(震声)"
