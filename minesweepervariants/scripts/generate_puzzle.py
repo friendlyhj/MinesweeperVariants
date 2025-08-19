@@ -30,22 +30,13 @@ def main(
         size: tuple[int, int],  # 题板尺寸
         total: int,  # 总雷数
         rules: list[str],  # 规则id集合
-        dye: list[str],  # 染色规则
+        dye: str,  # 染色规则
+        mask_dye: str,   # 异形题板
         drop_r: bool,  # 在推理时候是否隐藏R推理
         board_class: str,  # 题板的名称
         vice_board: bool,  # 启用删除副板
         unseed: bool,
 ):
-    mask_dye = [s for s in dye if s.startswith("&")]
-    if len(mask_dye) == 0:
-        mask_dye = ""
-    else:
-        mask_dye = mask_dye[0]
-    dye = [s for s in dye if not s.startswith("&")]
-    if len(dye) == 0:
-        dye = ""
-    else:
-        dye = dye[0]
     rule_code = rules[:]
     logger = get_logger(log_lv=log_lv)
     get_random(seed, new=True)

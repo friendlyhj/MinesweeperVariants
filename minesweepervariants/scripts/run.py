@@ -10,9 +10,6 @@ import sys
 import argparse
 import textwrap
 
-import yaml
-from pathlib import Path
-
 from minesweepervariants import puzzle_query
 from minesweepervariants import puzzle
 from minesweepervariants import test
@@ -36,7 +33,9 @@ parser.add_argument("-t", "--total", type=int, default=defaults.get("total"),
                     help="总雷数")
 parser.add_argument("-c", "--rules", nargs="+", default=[],
                     help="所有规则名")
-parser.add_argument("-d", "--dye",  nargs="+", default=[defaults.get("dye")],
+parser.add_argument("-d", "--dye", default=defaults.get("dye"),
+                    help="染色规则名称，如 @c")
+parser.add_argument("-m", "--mask",  default=defaults.get("dye"),
                     help="染色规则名称，如 @c")
 parser.add_argument("-r", "--used-r", action="store_true", default=defaults.get("used_r"),
                     help="推理是否加R")
@@ -139,6 +138,7 @@ if args.test:
         total=args.total,
         rules=args.rules,
         dye=args.dye,
+        mask_dye=args.mask,
         board_class=args.board_class,
         unseed=not args.onseed,
     )
@@ -151,6 +151,7 @@ elif args.query == defaults.get("query"):
         total=args.total,
         rules=args.rules,
         dye=args.dye,
+        mask_dye=args.mask,
         drop_r=(not args.used_r),
         board_class=args.board_class,
         vice_board=args.vice_board,
@@ -166,6 +167,7 @@ else:
         query=args.query,
         attempts=args.attempts,
         dye=args.dye,
+        mask_dye=args.mask,
         drop_r=(not args.used_r),
         early_stop=args.early_stop,
         board_class=args.board_class,

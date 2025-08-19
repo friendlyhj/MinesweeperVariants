@@ -242,6 +242,7 @@ def generate_board():
     ultimate_mode = request.args.get("u_mode", "+A")
     total = int(request.args.get("total", -1))
     dye = request.args.get("dye", "")
+    mask = request.args.get("mask", "")
     seed = request.args.get("seed", None)
     if rules:
         rules = rules.split(",")
@@ -277,17 +278,17 @@ def generate_board():
     print(mode)
     # print(123456)
     if code:
-        code, mask, *rules = code.split(":")
+        code, mask_code, *rules = code.split(":")
         rules = [base64.urlsafe_b64decode(rule_code.encode("utf-8")).decode("utf-8") for rule_code in rules]
-        print(code, mask, rules)
+        print(code, mask_code, rules)
         answer_board = decode_board(code, None)
-        mask = int.from_bytes(bytes.fromhex(mask), "big", signed=False)
+        mask_code = int.from_bytes(bytes.fromhex(mask), "big", signed=False)
         mask_board = answer_board.clone()
         for key in answer_board.get_board_keys():
             for pos, _ in answer_board(key=key):
-                if mask & 1:
+                if mask_code & 1:
                     mask_board[pos] = None
-                mask >>= 1
+                mask_code >>= 1
         master_key = mask_board.get_board_keys()[0]
         size = mask_board.get_config(master_key, "size")
     else:
@@ -298,6 +299,7 @@ def generate_board():
             total=total,
             rules=rules,
             drop_r=not used_r,
+            mask=mask,
             dye=dye
         )
         hypothesis_data["summon"] = summon

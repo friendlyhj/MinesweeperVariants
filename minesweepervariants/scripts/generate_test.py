@@ -28,23 +28,14 @@ def main(
         total: int,  # 总雷数
         rules: list[str],  # 规则id集合
         dye: str,  # 染色规则
+        mask_dye: str,   # 异形题板
         board_class: str,  # 题板的名称
         unseed: bool
 ):
-    mask = [s for s in dye if s.startswith("&")]
-    if len(mask) == 0:
-        mask = ""
-    else:
-        mask = mask[0]
-    dye = [s for s in dye if not s.startswith("&")]
-    if len(dye) == 0:
-        dye = ""
-    else:
-        dye = dye[0]
     logger = get_logger(log_lv=log_lv)
     get_random(seed, new=True)
     attempt_index = 0
-    s = Summon(size=size, total=total, rules=rules, board=board_class, mask=mask, dye=dye)
+    s = Summon(size=size, total=total, rules=rules, board=board_class, mask=mask_dye, dye=dye)
     if unseed:
         s.unseed = unseed
     total = s.total
