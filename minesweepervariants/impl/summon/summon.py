@@ -241,7 +241,8 @@ class Summon:
         [_board.set_value(pos, None) for pos, _ in _board("C")]
         _board = self.clue_rule.fill(_board)
         _board = self.mines_clue_rule.fill(_board)
-        if "N" in _board:
+        if any([_board.has("N", key=key)
+                for key in self.board.get_board_keys()]):
             for rule in self.mines_rules.rules:
                 rule.init_board(_board)
             self.answer_board_str = "\n" + _board.show_board()

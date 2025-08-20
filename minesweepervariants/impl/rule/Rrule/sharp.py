@@ -7,8 +7,11 @@
 """
 [#]标签: 线索会有不同的规则, 每个线索的规则会单独标出
 """
+from typing import List, Tuple, Optional
+
 from ....abs.Rrule import AbstractClueRule
 from ....abs.board import AbstractBoard
+from ....abs.rule import AbstractRule
 from ....utils.tool import get_random
 
 
@@ -43,6 +46,10 @@ class RuleSharp(AbstractClueRule):
     def init_board(self, board: 'AbstractBoard'):
         for rule in self.rules:
             rule.init_board(board)
+
+    def combine(self, rules: List[Tuple['AbstractRule', Optional[str]]]):
+        for rule in self.rules:
+            rule.combine(rules)
 
     def init_clear(self, board: 'AbstractBoard'):
         for rule in self.rules:
