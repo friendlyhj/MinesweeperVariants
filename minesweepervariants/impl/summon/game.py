@@ -81,7 +81,7 @@ class MinesAsterisk(AbstractMinesValue):
 
 class Manger:
     def __init__(self, fn):
-        self.fn: Callable[[], None] = fn
+        self.fn: Callable = fn
         self.wait_args = None
         self.lock = threading.Lock()
         self.fn_lock = threading.Lock()
@@ -91,7 +91,7 @@ class Manger:
 
         if not self.fn_lock.locked():
             with self.fn_lock:
-                self.fn()
+                self.fn(thread=True)
             return
         with self.lock:
             self.wait_args = my_id
@@ -102,7 +102,7 @@ class Manger:
                 break
             time.sleep(0.1)
         with self.fn_lock:
-            self.fn()
+            self.fn(thread=True)
 
 
 class GameSession:
@@ -141,20 +141,20 @@ class GameSession:
             0: 左键点击/翻开/设置非雷
             1: 右键点击/标雷/设置必雷
         """
-        # if self.answer_board.get_type(pos) == "F" and action == 0:
-        #     return [
-        #         pos for key in self.answer_board.get_board_keys()
-        #         for pos, _ in self.answer_board(key=key)
-        #         if (self.board.get_type(pos) == "N" and
-        #             self.answer_board.get_type(pos) == "F")
-        #     ]
-        # if self.answer_board.get_type(pos) == "C" and action == 1:
-        #     return [
-        #         pos for key in self.answer_board.get_board_keys()
-        #         for pos, _ in self.answer_board(key=key)
-        #         if (self.board.get_type(pos) == "N" and
-        #             self.answer_board.get_type(pos) == "C")
-        #     ]
+        if self.answer_board.get_type(pos) == "F" and action == 0:
+            return [
+                pos for key in self.answer_board.get_board_keys()
+                for pos, _ in self.answer_board(key=key)
+                if (self.board.get_type(pos) == "N" and
+                    self.answer_board.get_type(pos) == "F")
+            ]
+        if self.answer_board.get_type(pos) == "C" and action == 1:
+            return [
+                pos for key in self.answer_board.get_board_keys()
+                for pos, _ in self.answer_board(key=key)
+                if (self.board.get_type(pos) == "N" and
+                    self.answer_board.get_type(pos) == "C")
+            ]
         all_rules = self.summon.mines_rules.rules[:]
         all_rules += [self.summon.clue_rule, self.summon.mines_clue_rule]
         if self.drop_r:
@@ -384,6 +384,7 @@ class GameSession:
         return self.apply(pos, 1)
 
     def step(self):
+        print("step")
         # 没有可推格了
         # TODO 检查终极的+F+S
         if self.deduced():
@@ -394,13 +395,11 @@ class GameSession:
                     continue
                 self.board[pos] = self.answer_board[pos]
 
-        if not self.deduced():
-            self.drop_r = False
         self.last_deduced[0] = None
         self.last_hint[0] = None
         self.thread_hint()
 
-    def deduced(self):
+    def deduced(self, thread=True):
         """
         收集所有必然能推出的位置及其不可能的值
         """
@@ -434,7 +433,7 @@ class GameSession:
             self.deduced_queue.get()
             self.deduced_queue.task_done()
 
-    def hint(self):
+    def hint(self, thread=False):
         if self.last_hint[0] == self.board:
             return self.last_hint[1]
 
@@ -442,14 +441,23 @@ class GameSession:
             return {}
 
         deduced = self.deduced()
+        print(deduced, thread)
+        if not deduced and thread:
+            return {}
         if not deduced:
+            _board = self.board.clone()
             self.step()
-            if not self.deduced():
+            positions = []
+            if not (self.drop_r and self.deduced()):
                 self.drop_r = False
+                positions.append(("R", None))
             self.last_deduced[0] = None
             self.last_hint[0] = None
-            self.step()
-            return {}
+            for pos, obj in _board():
+                if type(obj) in [type(self.clue_tag), type(self.flag_tag)]:
+                    positions.append(pos)
+            print("step: ", positions)
+            return {tuple(positions): []}
 
         self.hint_queue.put("process")  # 请求处理权
         try:

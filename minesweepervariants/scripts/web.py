@@ -201,7 +201,7 @@ def format_board(_board: AbstractBoard):
             "size": _board.get_config(key, "size"),
             "position": [_board.get_board_keys().index(key), 0],
             "showLabel": _board.get_config(key, "row_col"),
-            "showName": not _board.get_config(key, "row_col"), # TODO 何时不显示Name?
+            "showName": not _board.get_config(key, "row_col"),  # TODO 何时不显示Name?
             # TODO X=N, poslabel
         }
         print(mask_list)
@@ -566,7 +566,6 @@ def click():
                         isinstance(obj, ValueAsterisk) or
                         isinstance(obj, MinesAsterisk)
                     )
-
                 )
                 data = format_cell(_board, pos, label)
                 print(pos, obj, data)
@@ -609,20 +608,22 @@ def click():
 def hint_post():
     global hypothesis_data
     game = hypothesis_data["game"]
-    hypothesis_data["data"]["noHint"] = False
     print("hint start")
     hint_list = game.hint()
+    if not [k for k in hint_list.keys()][0]:
+        hypothesis_data["data"]["noHint"] = False
     for hint in hint_list.items():
         print(hint[0], "->", hint[1])
     print("hint end")
     # return {}, 200  # 格式和click返回应一样
-    hint_list = game.hint().items()
+    hint_list = hint_list.items()
     min_length = min(len(tup[0]) for tup in hint_list)
     print(min_length)
     # 步骤2: 收集所有第一个列表长度等于最小长度的二元组
     hint_list = [tup for tup in hint_list if len(tup[0]) == min_length]
 
-    hint_list = [([], game.deduced())] + hint_list
+    if not hint_list[0][0]:
+        hint_list = [([], game.deduced())] + hint_list
     results = []
 
     # print(hint_list)
@@ -675,7 +676,32 @@ def hint_post():
             "conclusion": t_hint
         })
     [print("hint:", _results) for _results in results]
-    return jsonify({"hints": results}), 200
+    cells = []
+    for pos in hint_list[0][0]:
+        obj = game.board[pos]
+        label = obj not in [
+            VALUE_QUESS, MINES_TAG,
+            game.board.get_config(pos.board_key, "MINES"),
+            game.board.get_config(pos.board_key, "VALUE"),
+        ]
+        label = (
+            game.board.get_config(pos.board_key, "by_mini") and
+            label and
+            not (
+                    isinstance(obj, ValueAsterisk) or
+                    isinstance(obj, MinesAsterisk)
+            )
+        )
+        cells.append(
+            format_cell(game.board, pos, label)
+        )
+    data = {
+        "hints": results,
+        "noHint": hypothesis_data["data"]["noHint"],
+        "cells": cells
+    }
+    print("hint back: ", data)
+    return jsonify(data), 200
 
 
 @app.route('/api/rules', methods=['POST', 'GET'])
