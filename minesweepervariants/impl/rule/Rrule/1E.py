@@ -14,35 +14,37 @@ class Rule1E(AbstractClueRule):
     name = ["1E", "E", "视野", "Eyesight"]
     doc = "线索表示四方向上能看到的非雷格数量（包括自身），雷会阻挡视线"
 
+    def clue_class(self):
+        return Value1E
+
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':
+        for pos, _ in board("N"):
+            value = 1  # 包括自身
+            # 四方向的函数
+            direction_funcs = [
+                lambda n: type(pos)(pos.x + n, pos.y, pos.board_key),  # 右
+                lambda n: type(pos)(pos.x - n, pos.y, pos.board_key),  # 左
+                lambda n: type(pos)(pos.x, pos.y + n, pos.board_key),  # 上
+                lambda n: type(pos)(pos.x, pos.y - n, pos.board_key)   # 下
+            ]
+
+            for fn in direction_funcs:
+                n = 1
+                while True:
+                    next_pos = fn(n)
+                    if not board.in_bounds(next_pos):
+                        break
+                    if board.get_type(next_pos) == "F":  # 遇到雷，视线被阻挡
+                        break
+                    value += 1
+                    n += 1
+
+            obj = Value1E(pos, bytes([value]))
+            board.set_value(pos, obj)
         return board
-        # for pos, _ in board("N"):
-        #     value = 1  # 包括自身
-        #     # 四个斜向方向的函数
-        #     direction_funcs = [
-        #         lambda n: type(pos)(pos.x + n, pos.y + n, pos.board_key),  # 右上
-        #         lambda n: type(pos)(pos.x - n, pos.y - n, pos.board_key),  # 左下
-        #         lambda n: type(pos)(pos.x - n, pos.y + n, pos.board_key),  # 左上
-        #         lambda n: type(pos)(pos.x + n, pos.y - n, pos.board_key)   # 右下
-        #     ]
-        #
-        #     for fn in direction_funcs:
-        #         n = 1
-        #         while True:
-        #             next_pos = fn(n)
-        #             if not board.in_bounds(next_pos):
-        #                 break
-        #             if board.get_type(next_pos) == "F":  # 遇到雷，视线被阻挡
-        #                 break
-        #             value += 1
-        #             n += 1
-        #
-        #     obj = Value1EX(pos, bytes([value]))
-        #     board.set_value(pos, obj)
-        # return board
 
 
-class Value1EX(AbstractClueValue):
+class Value1E(AbstractClueValue):
     def __init__(self, pos: 'AbstractPosition', code: bytes = b''):
         self.value = code[0]
         self.pos = pos
@@ -53,14 +55,15 @@ class Value1EX(AbstractClueValue):
     def high_light(self, board: 'AbstractBoard') -> list['AbstractPosition']:
         positions = []
         for i in [
-            (0, 1), (0, -1),
-            (-1, 0), (1, 0),
+            (1, 0), (0, 1),
+            (-1, 0), (0, -1),
         ]:
             n = 0
             while board.get_type(pos := self.pos.shift(i[0] * n, i[1] * n)) not in "F":
                 n += 1
                 positions.append(pos)
         return positions
+
 
     @classmethod
     def type(cls) -> bytes:
@@ -78,12 +81,12 @@ class Value1EX(AbstractClueValue):
                     possible_list.append((set(info["T"]), [var for var in info["F"] if var is not None]))
                 return
 
-            # 四个斜向方向的函数
+            # 四方向的函数
             direction_funcs = [
-                lambda n: type(self.pos)(self.pos.x + n, self.pos.y, self.pos.board_key),  # 右上
-                lambda n: type(self.pos)(self.pos.x - n, self.pos.y, self.pos.board_key),  # 左下
-                lambda n: type(self.pos)(self.pos.x, self.pos.y + n, self.pos.board_key),  # 左上
-                lambda n: type(self.pos)(self.pos.x, self.pos.y - n, self.pos.board_key)   # 右下
+                lambda n: type(self.pos)(self.pos.x + n, self.pos.y, self.pos.board_key),  # 右
+                lambda n: type(self.pos)(self.pos.x - n, self.pos.y, self.pos.board_key),  # 左
+                lambda n: type(self.pos)(self.pos.x, self.pos.y + n, self.pos.board_key),  # 上
+                lambda n: type(self.pos)(self.pos.x, self.pos.y - n, self.pos.board_key)   # 下
             ]
 
             fn = direction_funcs[index]
