@@ -193,12 +193,13 @@ class GameSession:
         if not state:
             return None
         mines_list = []
-        for pos, var in board(mode="var"):
-            if self.board.get_type(pos) != "N":
-                continue
-            if solver.Value(var) == 0:
-                continue
-            mines_list.append(pos)
+        for key in board.get_board_keys():
+            for pos, var in board(mode="var", key=key):
+                if self.board.get_type(pos) != "N":
+                    continue
+                if solver.Value(var) == 0:
+                    continue
+                mines_list.append(pos)
         return mines_list
 
     def thread_hint(self):
