@@ -83,7 +83,7 @@ class Rule3D1Tp(Abstract3DMinesRule):
             if coverage_list:  # 确保该位置有三连组覆盖
                 # 雷 => 至少属于一个三连组
                 model.AddBoolOr(coverage_list).OnlyEnforceIf([var, s])
-                logger.debug(f"Pos {pos}:雷必须属于{len(coverage_list)}个三连组之一")
+                logger.trace(f"Pos {pos}:雷必须属于{len(coverage_list)}个三连组之一")
             else:
                 # 无三连组覆盖的位置不能是雷
                 model.Add(var == 0).OnlyEnforceIf(s)

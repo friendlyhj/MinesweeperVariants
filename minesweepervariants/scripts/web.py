@@ -6,27 +6,21 @@
 # @FileName: app.py.py
 import base64
 import hashlib
-import threading
 import time
-from pathlib import Path
 import traceback
-from typing import Union
 
 from flask import jsonify, request, redirect
-import webbrowser
 from flask_cors import CORS
 import sys
 
 from minesweepervariants.abs.board import AbstractPosition, AbstractBoard
-from minesweepervariants.abs.rule import AbstractRule
-from minesweepervariants.impl.summon.game import GameSession as Game
+from minesweepervariants.impl.summon.game import GameSession as Game, ValueAsterisk, MinesAsterisk
 from minesweepervariants.impl.summon.summon import Summon
 from minesweepervariants.impl.impl_obj import decode_board
 from flask import Flask
 import os
 from minesweepervariants.impl.summon.game import NORMAL, EXPERT, ULTIMATE, PUZZLE
 from minesweepervariants.impl.summon.game import ULTIMATE_R, ULTIMATE_S, ULTIMATE_F, ULTIMATE_A, ULTIMATE_P
-from datetime import datetime, timedelta
 
 from minesweepervariants.utils.impl_obj import get_seed, VALUE_QUESS, MINES_TAG
 from minesweepervariants.utils.tool import get_logger
@@ -53,11 +47,12 @@ def add_cors_headers(response):
             pass
     return response
 
+
 hypothesis_data = dict()
 github_web = "https://koolshow.github.io"
 
 
-def format_cell(_board, pos, hint=0):
+def format_cell(_board, pos, label):
     def init_component(data) -> dict:
         if data["type"] in ["col", "row"]:
             style = "display: flex; "
@@ -131,32 +126,13 @@ def format_cell(_board, pos, hint=0):
     dye = _board.get_dyed(pos)
     primary_color = "--flag-color" if _board.get_type(pos) == "F" else "--foreground-color"
     invalid = False if obj is None else obj.invalid(_board)
-    if obj is None:
-        if hint == 2:
-            cell_data = init_component({
-                "type": "row",
-                "children": [{
-                    "type": "text",
-                    "text": "!"
-                }]
-            })
-        else:
-            cell_data = init_component({
-                "type": "row",
-                "children": []
-            })
-    else:
-        # print(obj.compose(_board, True))
-        cell_data = init_component({
-            "type": "row",
-            "children": [obj.compose(_board, True)]
-        })
+    # print(obj.compose(_board, True))
+    cell_data = init_component({
+        "type": "row",
+        "children": [obj.compose(_board, True)]
+    })
     # if dye:
     #     cell_data["style"] += " background-color: rgb(from var(--foreground-color) r g b / 29%);"
-    if hint == 1:
-        cell_data["style"] += " background-color: rgb(from var(--hint2-color) r g b / 40%);"
-    if hint == 2:
-        cell_data["style"] += " background-color: rgb(from var(--hint-color) r g b / 40%); color: var(--hint-color);"
     cell_data["style"] += " width: 100%; height: 100%; align-items: center; justify-content: center;"
     VALUE = _board.get_config(pos.board_key, "VALUE")
     MINES = _board.get_config(pos.board_key, "MINES")
@@ -190,7 +166,7 @@ def format_cell(_board, pos, hint=0):
         "component": cell_data,
         "highlight": hightlight,
         "clickable": True,
-        "overlayText": overlayText
+        "overlayText": overlayText if label else ""
     }
     # import json
     # json_str = json.dumps(cell_data, separators=(",", ":"))
@@ -228,6 +204,7 @@ def format_board(_board: AbstractBoard):
             "showName": not _board.get_config(key, "row_col"), # TODO 何时不显示Name?
             # TODO X=N, poslabel
         }
+        print(mask_list)
         if any(any(i) for i in mask_list):
             board_data["boards"][key].update({
                 "mask": mask_list
@@ -237,8 +214,23 @@ def format_board(_board: AbstractBoard):
                 "dye": dye_list,
             })
         for pos, obj in _board(key=key):
+            if obj is None:
+                continue
+            label = obj not in [
+                VALUE_QUESS, MINES_TAG,
+                _board.get_config(key, "MINES"),
+                _board.get_config(key, "VALUE"),
+            ]
+            label = (
+                _board.get_config(key, "by_mini") and
+                label and
+                not (
+                    isinstance(obj, ValueAsterisk) or
+                    isinstance(obj, MinesAsterisk)
+                )
+            )
             board_data["cells"].append(
-                format_cell(_board, pos))
+                format_cell(_board, pos, label))
             count += 1
     board_data["count"] = count
     import json
@@ -476,6 +468,7 @@ def metadata():
     else:
         board_data["mode"] = "UNKNOWN"
     board_data["seed"] = str(get_seed())
+    print(board_data)
     return jsonify(board_data)
 
 
@@ -493,6 +486,7 @@ def click():
     print(data)
     # print(hypothesis_data)
     game: Game = hypothesis_data["game"]
+    summon = hypothesis_data["summon"]
     if game.mode == ULTIMATE:
         deduced = game.deduced()
         refresh["u_hint"] = {
@@ -552,14 +546,29 @@ def click():
                 if obj is None and board[pos] is None:
                     continue
                 if (
-                        not (obj is None or board[pos] is None) and
-                        obj.type() == board[pos].type() and
-                        obj.code() == board[pos].code() and
-                        obj.high_light(_board) == board[pos].high_light(board) and
-                        obj.invalid(_board) == board[pos].invalid(board)
+                    not (obj is None or board[pos] is None) and
+                    obj.type() == board[pos].type() and
+                    obj.code() == board[pos].code() and
+                    obj.high_light(_board) == board[pos].high_light(board) and
+                    obj.invalid(_board) == board[pos].invalid(board)
                 ):
                     continue
-                data = format_cell(_board, pos)
+
+                label = obj not in [
+                    VALUE_QUESS, MINES_TAG,
+                    _board.get_config(key, "MINES"),
+                    _board.get_config(key, "VALUE"),
+                ]
+                label = (
+                    _board.get_config(key, "by_mini") and
+                    label and
+                    not (
+                        isinstance(obj, ValueAsterisk) or
+                        isinstance(obj, MinesAsterisk)
+                    )
+
+                )
+                data = format_cell(_board, pos, label)
                 print(pos, obj, data)
                 refresh["cells"].append(data)
         if not any(
@@ -724,4 +733,5 @@ if __name__ == '__main__':
     # threading.Thread(target=lambda: webbrowser.open(f"http://localhost:{port}", new=2)).start()
     import waitress
 
+    print(f"server start at 0.0.0.0:{port}")
     waitress.serve(app, host='0.0.0.0', port=port)
