@@ -19,7 +19,8 @@ class Rule2T(AbstractMinesRule):
 
     def create_constraints(self, board: 'AbstractBoard', switch):
         model = board.get_model()
-        s = switch.get(model, self)
+        s1 = switch.get(model, self)
+        s2 = switch.get(model, self)
 
         for pos, _ in board():
             for positions in [
@@ -29,8 +30,8 @@ class Rule2T(AbstractMinesRule):
                 var_list = board.batch(positions, mode="variable")
                 if True in [None is i for i in var_list]:
                     continue
-                model.Add(sum(var_list) != 0).OnlyEnforceIf(s)
-                model.Add(sum(var_list) != 3).OnlyEnforceIf(s)
+                model.Add(sum(var_list) != 3).OnlyEnforceIf(s2)
+                model.Add(sum(var_list) != 0).OnlyEnforceIf(s1)
 
     def suggest_total(self, info: dict):
         ub = 0
