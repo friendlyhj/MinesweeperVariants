@@ -201,7 +201,7 @@ def format_board(_board: AbstractBoard):
             "size": _board.get_config(key, "size"),
             "position": [_board.get_board_keys().index(key), 0],
             "showLabel": _board.get_config(key, "row_col"),
-            "showName": True,
+            "showName": len(_board.get_board_keys()) > 2,
             # TODO X=N, poslabel
         }
         print(mask_list)
