@@ -236,7 +236,9 @@ class Renderer:
 
     def _calculate_image_size(self, element: Dict, max_width: float, max_height: float) -> Tuple[float, float]:
         """计算图像尺寸 - 考虑主导方向"""
-        path = os.path.join(self.assets_path, f"{element['image']}.png")
+        path = pathlib.Path(minesweepervariants.__path__[0])
+        path /= self.assets_path
+        path /= f"{element['image']}.png"
         if not os.path.exists(path):
             return 0.0, 0.0
         img = Image.open(path).convert("RGBA")
@@ -387,7 +389,9 @@ class Renderer:
 
     def _render_image(self, image: Image.Image, element: Dict,
                       box: Tuple[float, float, float, float]):
-        path = os.path.join(self.assets_path, f"{element['image']}.png")
+        path = pathlib.Path(minesweepervariants.__path__[0])
+        path /= self.assets_path
+        path /= f"{element['image']}.png"
         if not os.path.exists(path):
             return None
         img = Image.open(path).convert("RGBA")
