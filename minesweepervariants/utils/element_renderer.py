@@ -21,6 +21,7 @@ class Renderer:
         except Exception as e:
             get_logger().error(traceback.format_exc())
             get_logger().error("Font loading failed. Path: {}".format(font_path))
+            get_logger().error("cwd: {}".format(os.getcwd()))
             raise e
 
         # 创建用于文本测量的临时图像和绘图对象
