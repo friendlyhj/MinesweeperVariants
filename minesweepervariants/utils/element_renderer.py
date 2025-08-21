@@ -18,9 +18,10 @@ class Renderer:
         self.font_path = os.path.join(assets, font_path)
         try:
             ImageFont.truetype(self.font_path, 1)
-        except Exception:
+        except Exception as e:
             get_logger().error(traceback.format_exc())
             get_logger().error("Font loading failed. Path: {}".format(font_path))
+            raise e
 
         # 创建用于文本测量的临时图像和绘图对象
         self.temp_img = Image.new('RGB', (1, 1))
