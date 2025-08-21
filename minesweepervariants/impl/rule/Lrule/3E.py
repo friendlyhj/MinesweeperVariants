@@ -30,15 +30,16 @@ class Rule3E(AbstractMinesRule):
 
     def create_constraints(self, board: 'AbstractBoard', switch):
         model = board.get_model()
-        s = switch.get(model, self)
 
         vals_list = []
 
         for i in range(8):
             x = model.NewIntVar(i, i, f"[3E]{i}_x")
             y = board.get_variable(board.get_pos(i, 0, NAME_3E[1]))
-            model.Add(x == i).OnlyEnforceIf(s)
-            vals_list.append([x, y])
+            s_pos = board.get_pos(i, 1, NAME_3E[0])
+            model.Add(x == i)
+            s = switch.get(model, s_pos)
+            vals_list.append([x, y, s])
 
         for key in board.get_interactive_keys():
             col = board.get_col_pos(board.boundary(key=key))
@@ -51,14 +52,15 @@ class Rule3E(AbstractMinesRule):
                     if y_variables is None:
                         continue
                     for vals in vals_list:
+                        var_x, var_y, s = vals
                         cond = model.NewBoolVar(f"[3E]{bool_var_index}")
                         model.Add(
-                            vals[0] == 4 * variables[0] + 2 * variables[1] + variables[2]
+                            var_x == 4 * variables[0] + 2 * variables[1] + variables[2]
                         ).OnlyEnforceIf([cond, s])
                         model.Add(
-                            vals[0] != 4 * variables[0] + 2 * variables[1] + variables[2]
+                            var_x != 4 * variables[0] + 2 * variables[1] + variables[2]
                         ).OnlyEnforceIf([cond.Not(), s])
-                        model.Add(y_variables == vals[1]).OnlyEnforceIf([cond, s])
+                        model.Add(y_variables == var_y).OnlyEnforceIf([cond, s])
                         bool_var_index += 1
 
     def init_board(self, board: 'AbstractBoard'):

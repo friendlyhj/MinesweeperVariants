@@ -26,7 +26,7 @@ DEFAULT_CONFIG = {
 
     "output_path": ".\\output",   # 保存路径，默认为工作目录下的output
     "timeout": 0,                 # 求解器超时时间（秒），0为无限制
-    "workes_number": 8           # 多线程数量
+    "workes_number": 5           # 多线程数量
 }
 
 IMAGE_CONFIG = config = {
@@ -70,7 +70,7 @@ IMAGE_CONFIG = config = {
         "size": 0.25
     },
 
-    "assets": "minesweepervariants/assets",
+    "assets": "assets",
 
     # 字体设置
     "font": {

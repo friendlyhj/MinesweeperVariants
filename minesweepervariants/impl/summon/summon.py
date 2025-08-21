@@ -271,23 +271,28 @@ class Summon:
         solver = None
         t = time.time()
         __count = 0
-        random_k = 5 ** (1 - len(self.mines_rules.rules))
+        random_total = int(total * (2 ** (1 - len(self.mines_rules.rules))))
         while time.time() - t < 60:
             __count += 1
-            print(f"正在随机放雷 正在尝试第{__count}次", end="\r", flush=True)
+            print(f"正在随机放雷 正在尝试第{__count}次 (随机放置{random_total}颗雷)", end="\r", flush=True)
             _model = model.clone()
-            model.AddBoolAnd(random.sample(var_list, int(total * random_k)))
+            model.AddBoolAnd(random.sample(var_list, random_total))
             status, solver = solver_model(model, True)
+            print(f"第{__count}次求解完毕 status: {status}", end="\r", flush=True)
             if status:
                 break
+            if random_total <= 0:
+                return None
             del model
             model = _model
+            random_total = int(0.5 * random_total)
         for pos, var in board(mode="variable"):
             if solver.Value(var):
                 board[pos] = MINES_TAG
             else:
                 board[pos] = VALUE_QUESS
-        print(f"随机放雷完毕 共尝试了{__count}次 ", end="\r", flush=True)
+        print("\n\n", board)
+        print(f"随机放雷完毕 共尝试了{__count}次 ", end="\n", flush=True)
         return board
 
     def fill_valid(self, board: 'AbstractBoard', total: int, model=None) -> Union[AbstractBoard, None]:
@@ -335,15 +340,20 @@ class Summon:
         return None
 
     def dig_unique(self, board: 'AbstractBoard'):
-        if solver_by_csp(
-                self.mines_rules,
-                self.clue_rule,
-                self.mines_clue_rule,
-                board.clone(),
-                drop_r=self.drop_r
-        ) != 1:
-            self.logger.warn("题板存在错误 需要重新设计")
-            self.logger.debug("warn board:\n" + board.show_board())
+        state = solver_by_csp(
+            self.mines_rules,
+            self.clue_rule,
+            self.mines_clue_rule,
+            board.clone(),
+            drop_r=self.drop_r
+        )
+        if state == 0:
+            self.logger.warn("题板无解 需要重新设计")
+            self.logger.warn("warn board:\n" + board.show_board())
+            return None
+        if state == 2:
+            self.logger.warn("题板多解 需要重新设计/+R")
+            self.logger.warn("warn board:\n" + board.show_board())
             return None
 
         # 初始统计

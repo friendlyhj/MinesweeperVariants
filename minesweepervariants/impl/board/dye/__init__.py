@@ -29,7 +29,7 @@ def get_dye(name: str) -> type[AbstractDye] | None:
     for cls in AbstractDye.__subclasses__():
         if cls.name == name:
             return cls
-    return None
+    raise ValueError(f"未知的染色规则[@{name[1:] if name.startswith('@') else name}]")
 
 
 def get_all_dye():
