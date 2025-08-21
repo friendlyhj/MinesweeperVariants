@@ -40,12 +40,20 @@ def get_logger(name="logger", log_lv="INFO") -> 'Logger':
             LOGGER.print_level = LOGGER.CRITICAL
     return LOGGER
 
+def hash_str(s):
+    try:
+        return int(s)
+    except ValueError:
+        h = hashlib.sha256(s.encode('utf-8')).hexdigest()
+        return int(h[:4], 16)
+
 
 def get_random(seed: int = -1, new: bool = False) -> Random:
     global RANDOM, SEED
     if RANDOM is None or new:
         if seed == -1:
             seed = int((time.time() * 1e10) % (1e7 + 7))
+            seed = hash_str(seed)
         SEED = seed
         get_logger().info("random seed: {}".format(seed))
         RANDOM = Random(seed)
