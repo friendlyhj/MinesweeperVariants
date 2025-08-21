@@ -165,7 +165,7 @@ class Value2P(AbstractClueValue):
                 if t not in ["F", "N"]:
                     continue
                 positions.append(pos)
-            if v > 2:
+            if v >= 2:
                 break
             n += 1
         return positions
@@ -190,6 +190,8 @@ class Value2P(AbstractClueValue):
             if par_a == par_b:
                 nei = self.pos.neighbors(par_a, par_a)
                 model.Add(sum(board.batch(nei, mode="variable", drop_none=True)) >= 2).OnlyEnforceIf([var, s])
+                none_var = self.pos.neighbors(1, par_a - 1)
+                model.Add(sum(board.batch(none_var, mode="variable", drop_none=True)) == 0).OnlyEnforceIf([var, s])
             else:
                 nei_a = self.pos.neighbors(par_a, par_a)
                 model.Add(sum(board.batch(nei_a, mode="variable", drop_none=True)) == 1).OnlyEnforceIf([var, s])
