@@ -1,7 +1,10 @@
 import os
+import traceback
 
 from PIL import Image, ImageDraw, ImageFont
 from typing import Dict, Tuple
+
+from minesweepervariants.utils.tool import get_logger
 
 
 class Renderer:
@@ -13,6 +16,11 @@ class Renderer:
         self.origin = origin
         self.assets_path = assets
         self.font_path = os.path.join(assets, font_path)
+        try:
+            ImageFont.truetype(self.font_path, 1)
+        except Exception:
+            get_logger().error(traceback.format_exc())
+            get_logger().error("Font loading failed. Path: {}".format(font_path))
 
         # 创建用于文本测量的临时图像和绘图对象
         self.temp_img = Image.new('RGB', (1, 1))
