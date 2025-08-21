@@ -25,7 +25,7 @@ from minesweepervariants.impl.summon.game import NORMAL, EXPERT, ULTIMATE, PUZZL
 from minesweepervariants.impl.summon.game import ULTIMATE_R, ULTIMATE_S, ULTIMATE_F, ULTIMATE_A, ULTIMATE_P
 
 from minesweepervariants.utils.impl_obj import get_seed, VALUE_QUESS, MINES_TAG
-from minesweepervariants.utils.tool import get_logger
+from minesweepervariants.utils.tool import get_logger, hash_str
 
 # 添加项目路径到系统路径
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -243,15 +243,6 @@ def format_board(_board: AbstractBoard):
     json_str = json.dumps(board_data, separators=(",", ":"))
     print(json_str)
     return board_data
-
-
-def hash_str(s):
-    try:
-        return int(s)
-    except ValueError:
-        h = hashlib.sha256(s.encode('utf-8')).hexdigest()
-        return int(h[:4], 16)
-
 
 @app.route('/')
 def root():
