@@ -103,7 +103,6 @@ class Value2P(AbstractClueValue):
         s = switch.get(model, self)
 
         var_list = []
-        print(self.pos, self)
         for a in range(1, self.value // 2 + 1):
             b = self.value - a
             var = model.NewBoolVar("[2P']")
