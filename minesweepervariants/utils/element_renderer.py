@@ -1,21 +1,25 @@
 import os
+import pathlib
 import traceback
 
 from PIL import Image, ImageDraw, ImageFont
 from typing import Dict, Tuple
 
+import minesweepervariants
 from minesweepervariants.utils.tool import get_logger
 
 
 class Renderer:
     def __init__(self, cell_size: float, background_white: bool,
                  origin: Tuple[float, float], font_path: str,
-                 assets:str,debug=False):
+                 assets: str, debug=False):
         self.cell_size = cell_size
         self.background_white = background_white
         self.origin = origin
         self.assets_path = assets
-        self.font_path = os.path.join(os.getcwd(), assets, font_path)
+        self.font_path = pathlib.Path(minesweepervariants.__path__[0])
+        self.font_path /= assets
+        self.font_path /= font_path
         try:
             ImageFont.truetype(self.font_path, 1)
         except Exception as e:
