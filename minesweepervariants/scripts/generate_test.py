@@ -43,7 +43,7 @@ def main(
     _board = None
     while True:
         attempt_index += 1
-        print(f"尝试第{attempt_index}次minesweepervariants..", end="\r")
+        logger.info(f"尝试第{attempt_index}次minesweepervariants..", end="\r")
         get_random(seed, new=True)
         a_time = time.time()
         _board = s.summon_board()

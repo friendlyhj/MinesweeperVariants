@@ -127,4 +127,3 @@ class Value1X(AbstractClueValue):
         # 添加约束：周围雷数等于count
         if neighbor_vars:
             model.Add(sum(neighbor_vars) == self.count).OnlyEnforceIf(s)
-            print(self.pos, self, neighbor_vars)

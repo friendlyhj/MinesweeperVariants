@@ -23,9 +23,7 @@ class DyeC(AbstractDye):
             if key in (first, last):
                 continue
             for pos, _ in board(key=key):
-                print(pos)
                 if pos.x == 0 or pos.y == 0 or pos.x == boundary.x or pos.y == boundary.y:
                     continue
                 _dye = dye
                 board.set_dyed(pos, _dye)
-                print(f"dyed {pos.x}, {pos.y}")

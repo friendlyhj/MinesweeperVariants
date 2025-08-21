@@ -10,6 +10,8 @@ import importlib.util
 from pathlib import Path
 import traceback
 
+from minesweepervariants.utils.tool import get_logger
+
 from ..utils.impl_obj import VALUE_QUESS, MINES_TAG
 
 from ..abs.rule import AbstractValue, AbstractRule
@@ -54,7 +56,7 @@ def recursive_import(module):
                     sys.modules[mod_name] = mod  # 先注册到 sys.modules，避免循环导入问题
                     spec.loader.exec_module(mod)  # 执行模块代码
                 except Exception as e:
-                    print(f"Failed to import {mod_name}: {e}")  # 打印错误信息（可选）
+                    get_logger().error(f"Failed to import {mod_name}: {e}")  # 打印错误信息（可选）
                     continue  # 跳过失败的模块
 
 

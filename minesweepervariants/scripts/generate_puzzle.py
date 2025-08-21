@@ -55,7 +55,7 @@ def main(
                    drop_r=drop_r, mask=mask_dye, dye=dye, vice_board=vice_board)
         if unseed:
             s.unseed = True
-        print(f"尝试第{attempt_index}次minesweepervariants..", end="\r")
+        logger.info(f"尝试第{attempt_index}次minesweepervariants..", end="\r")
         get_random(seed, new=True)
         a_time = time.time()
         try:

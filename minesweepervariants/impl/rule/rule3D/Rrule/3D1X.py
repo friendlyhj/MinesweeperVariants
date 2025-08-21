@@ -20,7 +20,7 @@ class Rule3D1X(Abstract3DClueRule):
 
     def __init__(self, board: AbstractBoard, data: str = None):
         super().__init__(board, data)
-        print(board.show_board())
+        # print(board.show_board())
 
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':
         for pos, _ in board("N"):

@@ -8,6 +8,7 @@ import base64
 import hashlib
 import threading
 import time
+import trace
 import traceback
 
 from flask import jsonify, request, redirect
@@ -314,7 +315,7 @@ def generate_board():
     if code:
         code, mask_code, *rules = code.split(":")
         rules = [base64.urlsafe_b64decode(rule_code.encode("utf-8")).decode("utf-8") for rule_code in rules]
-        print(code, mask_code, rules)
+        print("[new]", code, mask_code, rules)
         answer_board = decode_board(code, None)
         mask_code = int.from_bytes(bytes.fromhex(mask), "big", signed=False)
         mask_board = answer_board.clone()
@@ -413,18 +414,18 @@ def generate_board():
     hypothesis_data["data"]["noFail"] = True
     hypothesis_data["data"]["noHint"] = True
     # hypothesis_data["game"].thread_deduced()
-    print(f"生成用时: {time.time() - t}s")
-    print(data)
+    print(f"[new] 生成用时: {time.time() - t}s")
+    print("[new]", data)
     return jsonify(data), 200
 
 
 @app.route('/api/metadata')
 def metadata():
-    print('metadata')
+    print("[metadata] start")
     if "game" not in hypothesis_data \
             or hypothesis_data["game"].board is None \
             or hypothesis_data["game"].answer_board is None:
-        print("fail")
+        print("[metadata] fail")
         return {}, 200
     game = hypothesis_data["game"]
     if game.board is None:
@@ -473,7 +474,7 @@ def metadata():
     else:
         board_data["mode"] = "UNKNOWN"
     board_data["seed"] = str(get_seed())
-    print(board_data)
+    print("[metadata]", board_data)
     return jsonify(board_data)
 
 
@@ -488,7 +489,7 @@ def click():
         "reason": "",
         "count": {}
     }
-    print(data)
+    print("[click] data:", data)
     # print(hypothesis_data)
     game: Game = hypothesis_data["game"]
     summon = hypothesis_data["summon"]
@@ -506,7 +507,7 @@ def click():
     #     print(hypothesis_data["game"].hint(wait=True))
     #     print(hypothesis_data["game"].deduced(wait=True))
     #     return {}
-    print("start click")
+    print("[click] start click")
     t = time.time()
     if data["button"] == "left":
         _board = game.click(pos)
@@ -514,7 +515,7 @@ def click():
         _board = game.mark(pos)
     else:
         _board = None
-    print(f"end click used time:{time.time() - t}s")
+    print(f"[click] end click used time:{time.time() - t}s")
     hypothesis_data["game"].thread_hint()
     hypothesis_data["game"].thread_deduced()
 
@@ -529,7 +530,7 @@ def click():
         if unbelievable is None:
             return {}, 500
         hypothesis_data["data"]["noFail"] = False
-        print("*unbelievable*", unbelievable)
+        print("[click] *unbelievable*", unbelievable)
         refresh["mines"] = [
             {"x": _pos.x, "y": _pos.y,
              "boardname": _pos.board_key}
@@ -573,7 +574,7 @@ def click():
                     )
                 )
                 data = format_cell(_board, pos, label)
-                print(pos, obj, data)
+                print("[click]", pos, obj, data)
                 refresh["cells"].append(data)
         if not any(
             _board.has("N", key=key) for
@@ -582,7 +583,7 @@ def click():
             refresh["gameover"] = True
             refresh["reason"] = "你过关!!!(震声)"
             refresh["win"] = True
-    print(game.board)
+    print("[click] game.board:", game.board)
     # print(game.deduced())
     # print(game.hint())
     # print(refresh)
@@ -605,7 +606,7 @@ def click():
     refresh["count"] = count
     refresh["noFail"] = hypothesis_data["data"]["noFail"]
     refresh["noHint"] = hypothesis_data["data"]["noHint"]
-    print("refresh: " + str(refresh))
+    print("[click] refresh: " + str(refresh))
     return refresh, 200
 
 
@@ -613,18 +614,18 @@ def click():
 def hint_post():
     global hypothesis_data
     game = hypothesis_data["game"]
-    print("hint start")
+    print("[hint] hint start")
     t = time.time()
     hint_list = game.hint()
     if not [k for k in hint_list.keys()][0]:
         hypothesis_data["data"]["noHint"] = False
-    print(f"hint end: {time.time() - t}s")
+    print(f"[hint] hint end: {time.time() - t}s")
     for hint in hint_list.items():
-        print(hint[0], "->", hint[1])
+        print("[hint]", hint[0], "->", hint[1])
     # return {}, 200  # 格式和click返回应一样
     hint_list = hint_list.items()
     min_length = min(len(tup[0]) for tup in hint_list)
-    print(min_length)
+    print("[hint]", min_length)
     # 步骤2: 收集所有第一个列表长度等于最小长度的二元组
     hint_list = [tup for tup in hint_list if len(tup[0]) == min_length]
 
@@ -634,7 +635,7 @@ def hint_post():
 
     # print(hint_list)
     for _b_hint, _t_hint in hint_list:
-        print(_b_hint, "->", _t_hint)
+        print("[hint]", _b_hint, "->", _t_hint)
         b_hint = []
         t_hint = []
         for b in _b_hint:
@@ -658,7 +659,7 @@ def hint_post():
                             "info": "(" + b[1],
                         })
                     except Exception as e:
-                        print(e)
+                        print("[hint] Error:", traceback.format_exc())
             elif isinstance(b, AbstractPosition):
                 b_hint.append({
                     "x": b.x,
@@ -681,7 +682,7 @@ def hint_post():
             "condition": b_hint,
             "conclusion": t_hint
         })
-    [print("hint:", _results) for _results in results]
+    [print("[hint] hint:", _results) for _results in results]
     cells = []
     for pos in hint_list[0][0]:
         obj = game.board[pos]
@@ -706,7 +707,7 @@ def hint_post():
         "noHint": hypothesis_data["data"]["noHint"],
         "cells": cells
     }
-    print("hint back: ", data)
+    print("[hint] hint back: ", data)
     return jsonify(data), 200
 
 
@@ -736,10 +737,10 @@ def reset():
     global hypothesis_data
     game: Game = hypothesis_data["game"]
     mask_board = hypothesis_data["board"].clone()
-    print("reset start")
-    print(mask_board)
+    print("[reset] reset start")
+    print("[reset]", mask_board)
     if mask_board is None:
-        print("board is None")
+        print("[reset] board is None!")
         return {}, 500
     game.board = mask_board
     hypothesis_data["data"]["noFail"] = True
@@ -760,10 +761,11 @@ def reset():
 if __name__ == '__main__':
     get_logger(log_lv="DEBUG")
     port = int(sys.argv[1] if len(sys.argv) == 2 else "5050")
+    host = "0.0.0.0"
     # 允许所有来源跨域，或根据需要设置 origins=["*"]
 
     # threading.Thread(target=lambda: webbrowser.open(f"http://localhost:{port}", new=2)).start()
     import waitress
 
-    print(f"server start at 0.0.0.0:{port}")
-    waitress.serve(app, host='0.0.0.0', port=port)
+    print(f"server start at {host}:{port}")
+    waitress.serve(app, host=host, port=port)
