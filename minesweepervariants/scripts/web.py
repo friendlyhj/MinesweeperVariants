@@ -612,7 +612,7 @@ def hint_post():
     print("hint start")
     t = time.time()
     hint_list = game.hint()
-    if not [k for k in hint_list.keys()][0]:
+    if [k for k in hint_list.keys()][0]:
         hypothesis_data["data"]["noHint"] = False
     print(f"hint end: {time.time() - t}s")
     for hint in hint_list.items():
@@ -679,6 +679,7 @@ def hint_post():
         })
     [print("hint:", _results) for _results in results]
     cells = []
+    print(hint_list)
     for pos in hint_list[0][0]:
         obj = game.board[pos]
         label = obj not in [
