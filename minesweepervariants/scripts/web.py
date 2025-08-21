@@ -128,13 +128,17 @@ def format_cell(_board, pos, label):
     primary_color = "--flag-color" if _board.get_type(pos) == "F" else "--foreground-color"
     invalid = False if obj is None else obj.invalid(_board)
     # print(obj.compose(_board, True))
-    cell_data = init_component({
-        "type": "row",
-        "children": [obj.compose(_board, True)]
-    })
+    if hasattr(obj, "web_component"):
+        cell_data = obj.web_component(_board)
+    else:
+        cell_data = init_component({
+            "type": "row",
+            "children": [obj.compose(_board, True)]
+        })
+        cell_data["style"] += " width: 100%; height: 100%; align-items: center; justify-content: center;"
     # if dye:
     #     cell_data["style"] += " background-color: rgb(from var(--foreground-color) r g b / 29%);"
-    cell_data["style"] += " width: 100%; height: 100%; align-items: center; justify-content: center;"
+
     VALUE = _board.get_config(pos.board_key, "VALUE")
     MINES = _board.get_config(pos.board_key, "MINES")
     if obj in [VALUE, MINES, None]:
