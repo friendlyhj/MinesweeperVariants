@@ -6,6 +6,7 @@
 # @FileName: app.py.py
 import base64
 import hashlib
+import threading
 import time
 import traceback
 
@@ -609,12 +610,13 @@ def hint_post():
     global hypothesis_data
     game = hypothesis_data["game"]
     print("hint start")
+    t = time.time()
     hint_list = game.hint()
     if not [k for k in hint_list.keys()][0]:
         hypothesis_data["data"]["noHint"] = False
+    print(f"hint end: {time.time() - t}s")
     for hint in hint_list.items():
         print(hint[0], "->", hint[1])
-    print("hint end")
     # return {}, 200  # 格式和click返回应一样
     hint_list = hint_list.items()
     min_length = min(len(tup[0]) for tup in hint_list)
@@ -622,7 +624,7 @@ def hint_post():
     # 步骤2: 收集所有第一个列表长度等于最小长度的二元组
     hint_list = [tup for tup in hint_list if len(tup[0]) == min_length]
 
-    if not hint_list[0][0]:
+    if hint_list[0][1]:
         hint_list = [([], game.deduced())] + hint_list
     results = []
 

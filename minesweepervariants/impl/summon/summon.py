@@ -271,23 +271,28 @@ class Summon:
         solver = None
         t = time.time()
         __count = 0
-        random_k = 5 ** (1 - len(self.mines_rules.rules))
+        random_total = int(total * (2 ** (1 - len(self.mines_rules.rules))))
         while time.time() - t < 60:
+            if random_total < 0:
+                return None
             __count += 1
-            print(f"正在随机放雷 正在尝试第{__count}次", end="\r", flush=True)
+            print(f"正在随机放雷 正在尝试第{__count}次 (随机放置{random_total}颗雷)", end="\r", flush=True)
             _model = model.clone()
-            model.AddBoolAnd(random.sample(var_list, int(total * random_k)))
+            model.AddBoolAnd(random.sample(var_list, random_total))
             status, solver = solver_model(model, True)
+            print(f"第{__count}次求解完毕 status: {status}", end="\r", flush=True)
             if status:
                 break
             del model
             model = _model
+            random_total -= 2
         for pos, var in board(mode="variable"):
             if solver.Value(var):
                 board[pos] = MINES_TAG
             else:
                 board[pos] = VALUE_QUESS
-        print(f"随机放雷完毕 共尝试了{__count}次 ", end="\r", flush=True)
+        print("\n\n", board)
+        print(f"随机放雷完毕 共尝试了{__count}次 ", end="\n", flush=True)
         return board
 
     def fill_valid(self, board: 'AbstractBoard', total: int, model=None) -> Union[AbstractBoard, None]:

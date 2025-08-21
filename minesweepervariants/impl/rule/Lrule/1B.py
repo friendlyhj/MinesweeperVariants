@@ -7,7 +7,6 @@
 """
 [1B]平衡: 每行每列雷数相同
 """
-from functools import reduce
 from math import gcd
 
 from ....abs.Lrule import AbstractMinesRule
