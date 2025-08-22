@@ -12,7 +12,7 @@ from typing import List
 
 from ....abs.Rrule import AbstractClueValue, AbstractClueRule
 from ....abs.board import AbstractBoard, AbstractPosition
-from ....utils.tool import get_logger, get_random
+from ....utils.tool import get_random
 
 
 def block(a_pos: AbstractPosition, board: AbstractBoard) -> List[AbstractPosition]:
@@ -58,9 +58,6 @@ class Rule1Q1L(AbstractClueRule):
             else:
                 board.set_value(pos, Value1Q1L(pos, count=value))
         return board
-
-    def clue_class(self):
-        return Value1Q1L
 
     def create_constraints(self, board: 'AbstractBoard', switch) -> bool:
         block_map = {}

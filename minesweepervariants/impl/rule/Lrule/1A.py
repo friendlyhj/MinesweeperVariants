@@ -29,7 +29,3 @@ class Rule1A(AbstractMinesRule):
             var_list = board.batch(pos_list, mode="variable", drop_none=True)
             for _var in var_list:
                 model.AddBoolOr([_var.Not(), var.Not()]).OnlyEnforceIf(b)
-
-    @classmethod
-    def method_choose(cls) -> int:
-        return 1

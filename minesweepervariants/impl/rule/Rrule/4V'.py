@@ -9,6 +9,7 @@
 """
 from typing import Dict
 
+from minesweepervariants.utils.web_template import MultiNumber
 from ....abs.Rrule import AbstractClueRule, AbstractClueValue
 from ....abs.board import AbstractBoard, AbstractPosition, MASTER_BOARD
 from ....utils.image_create import get_text, get_row
@@ -83,7 +84,12 @@ class Value4Vp(AbstractClueValue):
                 self.neighbors_list[1] +
                 self.neighbors_list[2])
 
-    def compose(self, board, web) -> Dict:
+    def web_component(self, board) -> Dict:
+        value = [self.value_a, self.value_b]
+        value.sort()
+        return MultiNumber(value)
+
+    def compose(self, board) -> Dict:
         value = [self.value_a, self.value_b]
         value.sort()
         text_a = get_text(str(value[0]))

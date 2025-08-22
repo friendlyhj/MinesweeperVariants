@@ -5,17 +5,16 @@
 from ....abs.board import AbstractBoard, AbstractPosition
 from ....abs.Rrule import AbstractClueRule, AbstractClueValue
 from ....utils.tool import get_logger
-from ....utils.impl_obj import VALUE_QUESS, MINES_TAG
 
 
 def manhattan_neighbors(pos: AbstractPosition, distance: int) -> list[AbstractPosition]:
     neighbors = []
     for dx in range(distance + 1):
         dy = distance - dx
-        if (dx == 0):
+        if dx == 0:
             neighbors.append(pos.left(dy))
             neighbors.append(pos.right(dy))
-        elif (dy == 0):
+        elif dy == 0:
             neighbors.append(pos.up(dx))
             neighbors.append(pos.down(dx))
         else:
@@ -47,13 +46,13 @@ class Rule2P(AbstractClueRule):
                 r += 1
                 neighbors = manhattan_neighbors(pos, r)
                 count = board.batch(neighbors, mode="type").count("F")
-                if (count >= 2):
+                if count >= 2:
                     if a_lay == -1:
                         a_lay = b_lay = r
                     else:
                         b_lay = r
-                elif (count == 1):
-                    if (a_lay == -1):
+                elif count == 1:
+                    if a_lay == -1:
                         a_lay = r
                     else:
                         b_lay = r

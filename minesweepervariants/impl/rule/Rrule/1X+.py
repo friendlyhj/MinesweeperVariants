@@ -12,6 +12,28 @@ from ....utils.tool import get_logger
 from ....utils.impl_obj import VALUE_QUESS, MINES_TAG
 
 
+def _get_row_col_positions(board: 'AbstractBoard', pos: AbstractPosition):
+    """获取与给定位置同行或同列的所有位置"""
+    positions = []
+    # 获取棋盘的边界
+    boundary = board.boundary()
+    max_x, max_y = boundary.x, boundary.y
+
+    # 同行的所有位置（相同x，不同y）
+    for y in range(max_y + 1):
+        other_pos = type(pos)(pos.x, y, pos.board_key)
+        if other_pos != pos and board.in_bounds(other_pos):
+            positions.append(other_pos)
+
+    # 同列的所有位置（相同y，不同x）
+    for x in range(max_x + 1):
+        other_pos = type(pos)(x, pos.y, pos.board_key)
+        if other_pos != pos and board.in_bounds(other_pos):
+            positions.append(other_pos)
+
+    return positions
+
+
 class Rule1XPlus(AbstractClueRule):
     name = ["1X+", "城堡", "Castle"]
     doc = "线索数表示与其同行或同列的所有格子中的雷数"
@@ -20,32 +42,11 @@ class Rule1XPlus(AbstractClueRule):
         logger = get_logger()
         for pos, _ in board("N"):
             # 计算同行和同列所有格子中的雷数
-            row_col_positions = self._get_row_col_positions(board, pos)
+            row_col_positions = _get_row_col_positions(board, pos)
             value = len([_pos for _pos in row_col_positions if board.get_type(_pos) == "F"])
             board.set_value(pos, Value1XPlus(pos, count=value))
             logger.debug(f"Set {pos} to 1X+[{value}]")
         return board
-
-    def _get_row_col_positions(self, board: 'AbstractBoard', pos: AbstractPosition):
-        """获取与给定位置同行或同列的所有位置"""
-        positions = []
-        # 获取棋盘的边界
-        boundary = board.boundary()
-        max_x, max_y = boundary.x, boundary.y
-
-        # 同行的所有位置（相同x，不同y）
-        for y in range(max_y + 1):
-            other_pos = type(pos)(pos.x, y, pos.board_key)
-            if other_pos != pos and board.in_bounds(other_pos):
-                positions.append(other_pos)
-
-        # 同列的所有位置（相同y，不同x）
-        for x in range(max_x + 1):
-            other_pos = type(pos)(x, pos.y, pos.board_key)
-            if other_pos != pos and board.in_bounds(other_pos):
-                positions.append(other_pos)
-
-        return positions
 
 
 class Value1XPlus(AbstractClueValue):

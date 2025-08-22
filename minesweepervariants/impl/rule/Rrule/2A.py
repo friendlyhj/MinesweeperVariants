@@ -42,7 +42,7 @@ class Rule2A(AbstractClueRule):
                 name = name[0] if name else None
 
             if (name in ["1S", "3Y", "1S'", "1S^"] and
-                (data is None or all(x == "1" or "1:1" in x for x in data.split(";")))):
+               (data is None or all(x == "1" or "1:1" in x for x in data.split(";")))):
                 self.flag_1S = True
 
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':

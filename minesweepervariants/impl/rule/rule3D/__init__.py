@@ -91,34 +91,36 @@ class Abstract3DRule:
             return []
 
         # 定义移动函数（单位向量移动）
-        def move_by_vector(p: AbstractPosition, dx: int, dy: int, dz: int) -> Optional[AbstractPosition]:
+        def move_by_vector(
+                _p: AbstractPosition, _dx: int, _dy: int, _dz: int
+        ) -> Optional[AbstractPosition]:
             """按向量(dx, dy, dz)移动位置（每步移动1格）"""
-            temp = p
+            temp = _p
 
             # x轴移动
-            if dx != 0:
-                if dx > 0:
-                    temp = temp.right(n=dx)
+            if _dx != 0:
+                if _dx > 0:
+                    temp = temp.right(n=_dx)
                 else:
-                    temp = temp.left(n=-dx)
+                    temp = temp.left(n=-_dx)
                 if temp is None:
                     return None
 
             # y轴移动（二维方向）
-            if dy != 0:
-                if dy > 0:
-                    temp = temp.down(n=dy)
+            if _dy != 0:
+                if _dy > 0:
+                    temp = temp.down(n=_dy)
                 else:
-                    temp = temp.up(n=-dy)
+                    temp = temp.up(n=-_dy)
                 if temp is None:
                     return None
 
             # z轴移动（三维方向）
-            if dz != 0:
-                if dz > 0:
-                    temp = Abstract3DRule.up(board, temp, n=dz)
+            if _dz != 0:
+                if _dz > 0:
+                    temp = Abstract3DRule.up(board, temp, n=_dz)
                 else:
-                    temp = Abstract3DRule.down(board, temp, n=-dz)
+                    temp = Abstract3DRule.down(board, temp, n=-_dz)
                 if temp is None:
                     return None
 

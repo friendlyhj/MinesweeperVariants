@@ -5,10 +5,7 @@
 # @Author  : Wu_RH
 # @FileName: app.py.py
 import base64
-import hashlib
-import threading
 import time
-import trace
 import traceback
 
 from flask import jsonify, request, redirect
@@ -130,10 +127,9 @@ def format_cell(_board, pos, label):
     dye = _board.get_dyed(pos)
     primary_color = "--flag-color" if _board.get_type(pos) == "F" else "--foreground-color"
     invalid = False if obj is None else obj.invalid(_board)
-    # print(obj.compose(_board, True))
     cell_data = init_component({
         "type": "row",
-        "children": [obj.compose(_board, True)]
+        "children": [obj.web_component(_board)]
     })
     cell_data["style"] += " width: 100%; height: 100%; align-items: center; justify-content: center;"
     cell_data["style"] += (f"color: rgb(from var({primary_color}) r g b /"
@@ -230,12 +226,12 @@ def format_board(_board: AbstractBoard):
                 _board.get_config(key, "VALUE"),
             ]
             label = (
-                _board.get_config(key, "by_mini") and
-                label and
-                not (
-                    isinstance(obj, ValueAsterisk) or
-                    isinstance(obj, MinesAsterisk)
-                )
+                    _board.get_config(key, "by_mini") and
+                    label and
+                    not (
+                            isinstance(obj, ValueAsterisk) or
+                            isinstance(obj, MinesAsterisk)
+                    )
             )
             board_data["cells"].append(
                 format_cell(_board, pos, label))
@@ -245,6 +241,7 @@ def format_board(_board: AbstractBoard):
     json_str = json.dumps(board_data, separators=(",", ":"))
     print(json_str)
     return board_data
+
 
 @app.route('/')
 def root():
@@ -545,11 +542,11 @@ def click():
                 if obj is None and board[pos] is None:
                     continue
                 if (
-                    not (obj is None or board[pos] is None) and
-                    obj.type() == board[pos].type() and
-                    obj.code() == board[pos].code() and
-                    obj.high_light(_board) == board[pos].high_light(board) and
-                    obj.invalid(_board) == board[pos].invalid(board)
+                        not (obj is None or board[pos] is None) and
+                        obj.type() == board[pos].type() and
+                        obj.code() == board[pos].code() and
+                        obj.high_light(_board) == board[pos].high_light(board) and
+                        obj.invalid(_board) == board[pos].invalid(board)
                 ):
                     continue
 
@@ -559,19 +556,19 @@ def click():
                     _board.get_config(key, "VALUE"),
                 ]
                 label = (
-                    _board.get_config(key, "by_mini") and
-                    label and
-                    not (
-                        isinstance(obj, ValueAsterisk) or
-                        isinstance(obj, MinesAsterisk)
-                    )
+                        _board.get_config(key, "by_mini") and
+                        label and
+                        not (
+                                isinstance(obj, ValueAsterisk) or
+                                isinstance(obj, MinesAsterisk)
+                        )
                 )
                 data = format_cell(_board, pos, label)
                 print("[click]", pos, obj, data)
                 refresh["cells"].append(data)
         if not any(
-            _board.has("N", key=key) for
-            key in _board.get_interactive_keys()
+                _board.has("N", key=key) for
+                key in _board.get_interactive_keys()
         ):
             refresh["gameover"] = True
             refresh["reason"] = "你过关!!!(震声)"
@@ -686,12 +683,12 @@ def hint_post():
             game.board.get_config(pos.board_key, "VALUE"),
         ]
         label = (
-            game.board.get_config(pos.board_key, "by_mini") and
-            label and
-            not (
-                    isinstance(obj, ValueAsterisk) or
-                    isinstance(obj, MinesAsterisk)
-            )
+                game.board.get_config(pos.board_key, "by_mini") and
+                label and
+                not (
+                        isinstance(obj, ValueAsterisk) or
+                        isinstance(obj, MinesAsterisk)
+                )
         )
         cells.append(
             format_cell(game.board, pos, label)

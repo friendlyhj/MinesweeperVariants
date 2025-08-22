@@ -11,7 +11,6 @@
 
 from ....abs.Lrule import AbstractMinesRule
 from ....abs.board import AbstractBoard
-from ....utils.tool import get_logger
 
 
 class Rule1Tp(AbstractMinesRule):

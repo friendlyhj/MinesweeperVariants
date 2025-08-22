@@ -14,7 +14,7 @@ class DyeC(AbstractDye):
 
     def dye(self, board):
         dye = True
-        keys: list[str] = board.get_interactive_keys()
+        keys = board.get_interactive_keys()
         keys = set(filter(lambda k: k.isdigit(), keys))
         last = max(keys)
         first = min(keys)

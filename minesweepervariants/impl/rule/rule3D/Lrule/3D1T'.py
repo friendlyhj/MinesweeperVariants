@@ -65,12 +65,12 @@ class Rule3D1Tp(Abstract3DMinesRule):
                     continue  # 跳过无效位置
 
                 # 获取位置对应的变量
-                vars = [board.get_variable(p) for p in positions]
+                var_list = [board.get_variable(p) for p in positions]
 
                 # 创建三连组变量：当且仅当三个位置都是雷时为真
                 b = model.NewBoolVar(f"triple_{pos}_{dx}_{dy}_{dz}")
-                model.AddBoolAnd(vars).OnlyEnforceIf([b, s])
-                model.AddBoolOr([v.Not() for v in vars]).OnlyEnforceIf([b.Not(), s])
+                model.AddBoolAnd(var_list).OnlyEnforceIf([b, s])
+                model.AddBoolOr([v.Not() for v in var_list]).OnlyEnforceIf([b.Not(), s])
 
                 # 记录此三连组覆盖的所有位置
                 for p in positions:

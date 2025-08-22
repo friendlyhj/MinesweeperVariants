@@ -8,7 +8,6 @@
 [1S] 蛇 (Snake)：所有雷构成一条蛇。蛇是一条宽度为 1 的四连通路径，不存在分叉、环、交叉
 """
 from ....abs.Lrule import AbstractMinesRule
-from ....utils.impl_obj import get_total
 
 from .connect import connect
 

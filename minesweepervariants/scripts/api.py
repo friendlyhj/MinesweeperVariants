@@ -34,8 +34,8 @@ def kill_process_tree(process):
 
 
 class TerminalEmulator:
-    def __init__(self, port=5000, host='0.0.0.0', bat_file='run.bat'):
-        self.port = port
+    def __init__(self, _port=5000, host='0.0.0.0', bat_file='run.bat'):
+        self.port = _port
         self.host = host
         self.bat_file = bat_file
         self.server_socket = None
@@ -186,7 +186,8 @@ class TerminalEmulator:
                 pass
             print("客户端连接已关闭")
 
-    def _capture_output(self, client_socket, process, output_queue):
+    @staticmethod
+    def _capture_output(process, output_queue):
         """捕获子进程输出"""
         try:
             while True:
@@ -204,7 +205,8 @@ class TerminalEmulator:
             print(f"捕获输出时出错: {str(e)}")
         print("退出")
 
-    def _send_output(self, client_socket, output_queue):
+    @staticmethod
+    def _send_output(client_socket, output_queue):
         """发送输出队列中的所有内容给客户端"""
         if client_socket.fileno() == -1:
             return  # 套接字已关闭
@@ -231,7 +233,7 @@ if __name__ == "__main__":
     # 创建并启动终端仿真器
     port = sys.argv[1] if len(sys.argv) > 1 else 31408
     emulator = TerminalEmulator(
-        port=int(port),  # 监听端口
+        _port=int(port),  # 监听端口
         host='0.0.0.0',  # 监听所有接口
         bat_file='run.bat'  # 要执行的批处理文件
     )

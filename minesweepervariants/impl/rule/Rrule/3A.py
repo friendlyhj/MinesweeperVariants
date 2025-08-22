@@ -66,9 +66,6 @@ class Rule3A(AbstractClueRule):
             obj.end(random.random())
         return board
 
-    def clue_class(self):
-        return Value3A
-
 
 class Value3A(AbstractClueValue):
     def __init__(self, pos: 'AbstractPosition', code: bytes = b''):
@@ -87,18 +84,19 @@ class Value3A(AbstractClueValue):
     def __repr__(self) -> str:
         return f"{self.value}{'^>v<'[self.dir]}"
 
-    def compose(self, board, web) -> Dict:
-        if web:
-            if self.dir in [3, 1]:
-                return get_col(
-                    get_text("↑→↓←"[self.dir]),
-                    get_text(str(self.value))
-                )
-            else:
-                return get_row(
-                    get_text("↑→↓←"[self.dir]),
-                    get_text(str(self.value))
-                )
+    def web_component(self, board) -> Dict:
+        if self.dir in [3, 1]:
+            return get_col(
+                get_text("↑→↓←"[self.dir]),
+                get_text(str(self.value))
+            )
+        else:
+            return get_row(
+                get_text("↑→↓←"[self.dir]),
+                get_text(str(self.value))
+            )
+
+    def compose(self, board) -> Dict:
         match self.dir:
             case 0:
                 # 上 ↑ ^

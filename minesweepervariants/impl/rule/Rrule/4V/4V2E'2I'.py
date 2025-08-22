@@ -8,8 +8,6 @@
 [4V2E'2I']映射自指残缺(2X'plus+2E'+2I'): 字母X是两个题板中相同位置为中心其中一个的3x3区域中某?格的雷总数为N。则该对应位置所属的题板在标有X=N的位置必然是雷, 且?格的位置全局共享
 (注:生成不知道是不是概率问题 会出现大量的生成失败 不过也不是人玩的反正 加个-r估计会好)
 """
-from typing import List
-
 from .....abs.Rrule import AbstractClueRule, AbstractClueValue
 from .....abs.board import AbstractBoard, AbstractPosition, MASTER_BOARD
 from .....utils.impl_obj import VALUE_QUESS, MINES_TAG, VALUE_CIRCLE, VALUE_CROSS
@@ -90,7 +88,8 @@ class Rule4V2Ep2Ip(AbstractClueRule):
                 board.set_value(_pos, obj)
             _pos.board_key = NAME
             if board.get_type(_pos) != "F":
-                obj = Value4V2Ep2Ip(pos=_pos, code=bytes([values[1 - r_value]])) if values[1 - r_value] != -1 else VALUE_QUESS
+                obj = Value4V2Ep2Ip(pos=_pos, code=bytes([values[1 - r_value]])) \
+                    if values[1 - r_value] != -1 else VALUE_QUESS
                 board.set_value(_pos, obj)
         return board
 

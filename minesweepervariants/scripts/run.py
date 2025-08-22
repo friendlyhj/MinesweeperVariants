@@ -87,7 +87,11 @@ if args.command == "list":
         split_symbol = ''.join([chr(random.randint(33, 126)) for _ in range(50)])
         result = split_symbol.encode(encode)
         for rule_line in ["L", "M", "R"]:
-            result += split_symbol.join([rule_list[rule_line][name]['module_doc'] for name in rule_list[rule_line].keys() if rule_list[rule_line][name]['module_doc'] is not None]).encode(encode)
+            result += split_symbol.join([
+                rule_list[rule_line][name]['module_doc']
+                for name in rule_list[rule_line].keys()
+                if rule_list[rule_line][name]['module_doc'] is not None
+            ]).encode(encode)
             result += (split_symbol * 2).encode(encode)
         print("hex_start:" + result.hex() + ":hex_end", end="", flush=True)
         # print(result.decode(encode))

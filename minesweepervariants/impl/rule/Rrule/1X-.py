@@ -89,7 +89,37 @@ class Value1X_(AbstractClueValue):
     def high_light(self, board: 'AbstractBoard') -> List['AbstractPosition']:
         return self.target_positions
 
-    def compose(self, board, web) -> Dict:
+    def web_component(self, board) -> Dict:
+        direction_images = ['up', 'right', 'down', 'left']
+
+        if self.direction in [0, 2]:  # 上或下
+            if self.count == 1:
+                return get_row(
+                        get_dummy(width=0.175),
+                        get_text("1"),
+                        get_image(direction_images[self.direction]),
+                        get_dummy(width=0.175),
+                    )
+
+            return get_row(
+                    get_text(str(self.count)),
+                    get_image(direction_images[self.direction]),
+                    spacing=-0.1,
+                )
+        else:  # 左或右
+            return get_col(
+                    get_dummy(height=0.1),
+                    get_image(
+                        direction_images[self.direction],
+                        image_height=0.2,
+                        image_width=0.7
+                    ),
+                    get_dummy(height=-0.05),
+                    get_text(str(self.count)),
+                    get_dummy(height=0.2)
+                )
+
+    def compose(self, board) -> Dict:
         """生成可视化组件"""
         direction_images = ['up', 'right', 'down', 'left']
 

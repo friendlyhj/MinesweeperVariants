@@ -7,7 +7,7 @@
 """
 [2X] 线索代表相邻的8个格子中，染色和非染色格里的雷数(顺序不确定)
 """
-from typing import List, Dict
+from typing import Dict
 
 from minesweepervariants.utils.web_template import MultiNumber
 from ....abs.Rrule import AbstractClueRule, AbstractClueValue
@@ -49,11 +49,14 @@ class Value2X(AbstractClueValue):
     def high_light(self, board: 'AbstractBoard') -> list['AbstractPosition']:
         return self.neighbor
 
-    def compose(self, board, web) -> Dict:
+    def web_component(self, board) -> Dict:
         value = [self.count // 10, self.count % 10]
         value.sort()
-        if web:
-            return MultiNumber(value)
+        return MultiNumber(value)
+
+    def compose(self, board) -> Dict:
+        value = [self.count // 10, self.count % 10]
+        value.sort()
         text_a = get_text(str(value[0]))
         text_b = get_text(str(value[1]))
         return get_row(

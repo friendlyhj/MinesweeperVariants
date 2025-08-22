@@ -14,11 +14,6 @@ from ....utils.tool import get_logger
 from ....utils.impl_obj import VALUE_QUESS, MINES_TAG
 
 
-from ....utils.image_create import get_image, get_text, get_row, get_col, get_dummy
-
-from ....utils.web_template import Number
-
-
 class RuleV(AbstractClueRule):
     name = ["V", "标准扫雷", "Vanlia"]
     doc = "每个数字标明周围八格内雷的数量。"

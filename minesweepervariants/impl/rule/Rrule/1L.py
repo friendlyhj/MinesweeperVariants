@@ -8,7 +8,6 @@
 [1L]误差：所有线索均比真实值大1或小1
 """
 
-
 from ....abs.Rrule import AbstractClueRule, AbstractClueValue
 from ....abs.board import AbstractBoard, AbstractPosition
 

@@ -76,9 +76,6 @@ class Rule2Ep2I(AbstractClueRule):
                 continue
             board[pos] = None
 
-    def clue_class(self):
-        return Value2Ep2I
-
 
 class Value2Ep2I(AbstractClueValue):
     def __init__(self, pos: 'AbstractPosition', code: bytes = b''):
@@ -158,10 +155,6 @@ class Value2Ep2I_Quess(AbstractClueValue):
 
     def __repr__(self) -> str:
         return "?"
-
-    @classmethod
-    def method_choose(cls) -> int:
-        return 1
 
     @classmethod
     def type(cls) -> bytes:

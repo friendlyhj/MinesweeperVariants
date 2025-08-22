@@ -47,23 +47,30 @@ class AbstractMinesValue(AbstractValue, ABC):
         """
         return "F"
 
-    def compose(self, board: 'AbstractBoard', web) -> Dict:
+    def compose(self, board: 'AbstractBoard') -> Dict:
         """
         返回一个可渲染对象列表
         默认使用__repr__
         """
-        if web:
-            if self.__repr__().isnumeric():
-                data = Number(int(self.__repr__()))
-                data["style"] += ""
-                return data
-            return get_text(self.__repr__())
         return get_col(
             get_dummy(height=0.175),
             get_text(self.__repr__(),
                      color=("#FFFF00", "#FF7F00")),
             get_dummy(height=0.175),
         )
+
+    def web_component(self, board: 'AbstractBoard') -> Dict:
+        """
+        返回一个可渲染对象列表
+        默认使用__repr__
+        """
+        if "compose" in type(self).__dict__:
+            return self.compose(board)
+        if self.__repr__().isnumeric():
+            data = Number(int(self.__repr__()))
+            data["style"] += ""
+            return data
+        return get_text(self.__repr__())
 
 
 # --------实例类-------- #
@@ -81,7 +88,7 @@ class MinesTag(AbstractMinesValue):
     def __repr__(self):
         return "雷"
 
-    def compose(self, board, web) -> Dict:
+    def compose(self, board) -> Dict:
         return get_image(
             "flag",
             cover_pos_label=False
@@ -122,7 +129,10 @@ class ValueCircle(AbstractMinesValue):
     def __repr__(self):
         return "O"
 
-    def compose(self, board, web) -> Dict:
+    def web_component(self, board: 'AbstractBoard') -> Dict:
+        return get_image("circle", cover_pos_label=False)
+
+    def compose(self, board) -> Dict:
         return get_image("circle", cover_pos_label=False)
 
     def code(self) -> bytes:

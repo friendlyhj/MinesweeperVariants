@@ -72,18 +72,19 @@ class Value3P(AbstractMinesValue):
     def __repr__(self):
         return "><V^"[self.dir] + str(self.value)
 
-    def compose(self, board, web) -> Dict:
-        if web:
-            if self.dir in [0, 1]:
-                return get_col(
-                    get_text("→←↓↑"[self.dir]),
-                    get_text(str(self.value))
-                )
-            else:
-                return get_row(
-                    get_text("→←↓↑"[self.dir]),
-                    get_text(str(self.value))
-                )
+    def web_component(self, board: 'AbstractBoard') -> Dict:
+        if self.dir in [0, 1]:
+            return get_col(
+                get_text("→←↓↑"[self.dir]),
+                get_text(str(self.value))
+            )
+        else:
+            return get_row(
+                get_text("→←↓↑"[self.dir]),
+                get_text(str(self.value))
+            )
+
+    def compose(self, board) -> Dict:
         match self.dir:
             case 3:
                 # 上 ↑ ^

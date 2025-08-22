@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*-coding:utf-8 -*-
 # Version:1.1.8
-
+import hashlib
 # time:2025.6.3
 # from 10:/D:/tool.py
 
@@ -39,6 +39,7 @@ def get_logger(name="logger", log_lv="INFO") -> 'Logger':
         if log_lv == "CRITICAL":
             LOGGER.print_level = LOGGER.CRITICAL
     return LOGGER
+
 
 def hash_str(s):
     try:

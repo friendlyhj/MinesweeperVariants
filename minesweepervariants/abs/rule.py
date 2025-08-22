@@ -91,7 +91,14 @@ class AbstractValue(ABC):
     def __repr__(self):
         ...
 
-    def compose(self, board: 'AbstractBoard', web) -> Dict:
+    def compose(self, board: 'AbstractBoard') -> Dict:
+        """
+        返回一个可渲染对象列表
+        默认使用__repr__
+        """
+        ...
+
+    def web_component(self, board: 'AbstractBoard') -> Dict:
         """
         返回一个可渲染对象列表
         默认使用__repr__

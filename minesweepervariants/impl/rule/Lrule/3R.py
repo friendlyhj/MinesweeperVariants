@@ -2,9 +2,9 @@
 [3R]引用：在第 X 行或第 X 列的格子的周围八格不能恰好有 X 个雷
 """
 
-from ....abs.board import AbstractBoard, AbstractPosition
+from ....abs.board import AbstractBoard
 from ....abs.Lrule import AbstractMinesRule
-from ....utils.tool import get_logger
+
 
 class Rule1T(AbstractMinesRule):
     name = ["3R", "引用", "Reference"]

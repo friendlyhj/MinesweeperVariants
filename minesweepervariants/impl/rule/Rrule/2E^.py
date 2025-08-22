@@ -63,9 +63,6 @@ class Rule2Eq(AbstractClueRule):
 
         return board
 
-    def clue_class(self):
-        return Value2Eq
-
     def create_constraints(self, board: 'AbstractBoard', switch):
         model = board.get_model()
         s = switch.get(model, self)

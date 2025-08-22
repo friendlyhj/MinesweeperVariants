@@ -28,9 +28,6 @@ class Rule1K(AbstractClueRule):
             logger.debug(f"Set {pos} to 1K[{value}]")
         return board
 
-    def clue_class(self):
-        return Value1K
-
 
 class Value1K(AbstractClueValue):
     def __init__(self, pos: AbstractPosition, count: int = 0, code: bytes = None):
