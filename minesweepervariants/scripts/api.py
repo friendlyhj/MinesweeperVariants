@@ -135,7 +135,7 @@ class TerminalEmulator:
             # 启动输出捕获线程
             threading.Thread(
                 target=self._capture_output,
-                args=(client_socket, process, output_queue),
+                args=(process, output_queue),
                 daemon=True
             ).start()
 
