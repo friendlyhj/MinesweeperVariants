@@ -4,10 +4,6 @@
 """
 [1E'] 视差 (Eyesight')：线索表示纵向和横向的视野之差，箭头指示视野更长的方向
 """
-from typing import Callable
-
-from Cython import cdiv
-
 from ....abs.Rrule import AbstractClueRule, AbstractClueValue
 from ....abs.board import AbstractBoard, AbstractPosition
 
