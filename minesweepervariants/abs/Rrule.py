@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, List, Dict
 
 from .rule import AbstractRule, AbstractValue
 from ..utils.image_create import get_text, get_image, get_dummy, get_col
+from ..utils.web_template import Number
 
 if TYPE_CHECKING:
     from minesweepervariants.abs.board import AbstractBoard, AbstractPosition
@@ -48,6 +49,8 @@ class AbstractClueValue(AbstractValue, ABC):
         默认使用__repr__
         """
         if web:
+            if self.__repr__().isnumeric():
+                return Number(int(self.__repr__()))
             return get_text(self.__repr__())
         return get_col(
             get_dummy(height=0.3),

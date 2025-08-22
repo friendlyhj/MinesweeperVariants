@@ -12,6 +12,8 @@ from .rule import AbstractRule, AbstractValue
 from ..utils.image_create import get_image, get_col, get_dummy, get_text
 from abc import abstractmethod, ABC
 
+from ..utils.web_template import Number
+
 if TYPE_CHECKING:
     from minesweepervariants.abs.board import AbstractPosition, AbstractBoard
 
@@ -50,6 +52,12 @@ class AbstractMinesValue(AbstractValue, ABC):
         返回一个可渲染对象列表
         默认使用__repr__
         """
+        if web:
+            if self.__repr__().isnumeric():
+                data = Number(int(self.__repr__()))
+                data["style"] += ""
+                return data
+            return get_text(self.__repr__())
         return get_col(
             get_dummy(height=0.175),
             get_text(self.__repr__(),
@@ -105,9 +113,6 @@ class Rule0F(AbstractMinesClueRule):
 
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':
         return board
-
-    def mines_class(self):
-        return MinesTag
 
 
 class ValueCircle(AbstractMinesValue):

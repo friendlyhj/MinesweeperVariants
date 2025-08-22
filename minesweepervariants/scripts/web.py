@@ -123,20 +123,22 @@ def format_cell(_board, pos, label):
                 "value": [],
                 "style": style
             }
+        elif data["type"] == "template":
+            return data
 
     obj = _board[pos]
     dye = _board.get_dyed(pos)
     primary_color = "--flag-color" if _board.get_type(pos) == "F" else "--foreground-color"
     invalid = False if obj is None else obj.invalid(_board)
     # print(obj.compose(_board, True))
-    if hasattr(obj, "web_component"):
-        cell_data = obj.web_component(_board)
-    else:
-        cell_data = init_component({
-            "type": "row",
-            "children": [obj.compose(_board, True)]
-        })
-        cell_data["style"] += " width: 100%; height: 100%; align-items: center; justify-content: center;"
+    cell_data = init_component({
+        "type": "row",
+        "children": [obj.compose(_board, True)]
+    })
+    cell_data["style"] += " width: 100%; height: 100%; align-items: center; justify-content: center;"
+    cell_data["style"] += (f"color: rgb(from var({primary_color}) r g b /"
+                           f" {50 if invalid else 100}%);"
+                           f" flex: 1; min-width: 0;")
     # if dye:
     #     cell_data["style"] += " background-color: rgb(from var(--foreground-color) r g b / 29%);"
 

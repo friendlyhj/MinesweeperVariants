@@ -8,6 +8,7 @@ def Number(n: int | float):
         }
     }
 
+
 def MultiNumber(n: list[int | float]):
     return {
         'type': 'template',

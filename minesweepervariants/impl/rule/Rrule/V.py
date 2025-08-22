@@ -95,6 +95,3 @@ class ValueV(AbstractClueValue):
         if neighbor_vars:
             model.Add(sum(neighbor_vars) == self.count).OnlyEnforceIf(switch.get(model, self.pos))
             get_logger().trace(f"[V] Value[{self.pos}: {self.count}] add: {neighbor_vars} == {self.count}")
-
-    def web_component(self, board):
-        return Number(self.count)

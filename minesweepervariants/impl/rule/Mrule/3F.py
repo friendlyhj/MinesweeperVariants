@@ -34,15 +34,7 @@ class MinesValue3F(AbstractMinesValue):
         self.pos = pos
 
     def __repr__(self):
-        return "["+str(self.value)+"]"
-
-    def compose(self, board, web) -> Dict:
-        return get_col(
-            get_dummy(height=0.175),
-            get_text(str(self.value),
-                     color=("#FFFF00", "#FF7F00")),
-            get_dummy(height=0.175),
-        )
+        return str(self.value)
 
     def high_light(self, board: 'AbstractBoard') -> list['AbstractPosition']:
         return self.nei

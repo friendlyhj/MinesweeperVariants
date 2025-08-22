@@ -4,10 +4,12 @@
 """
 [1E'] 视差 (Eyesight')：线索表示纵向和横向的视野之差，箭头指示视野更长的方向
 """
+from minesweepervariants.utils.web_template import Number
 from ....abs.Rrule import AbstractClueRule, AbstractClueValue
 from ....abs.board import AbstractBoard, AbstractPosition
 
 from ....utils.image_create import get_image, get_text, get_row, get_col, get_dummy
+
 
 class Rule1E(AbstractClueRule):
     name = ["1E'", "E'", "视差", "Eyesight'"]
@@ -74,7 +76,6 @@ class Value1E(AbstractClueValue):
                 n += 1
                 positions.append(pos)
         return positions
-
 
     @classmethod
     def type(cls) -> bytes:
@@ -198,6 +199,26 @@ class Value1E(AbstractClueValue):
             model.AddBoolOr(tmp_list).OnlyEnforceIf(s)
 
     def compose(self, board, web):
+        if web:
+            if self.value == 0:
+                return Number(0)
+            if self.value < 0:
+                return get_col(
+                    get_image(
+                        "double_horizontal_arrow",
+                        image_height=0.4,
+                    ),
+                    get_dummy(height=-0.1),
+                    get_text(str(-self.value))
+                )
+            if self.value > 0:
+                return get_row(
+                    get_dummy(width=0.15),
+                    get_image("double_vertical_arrow", ),
+                    get_dummy(width=-0.15),
+                    get_text(str(self.value)),
+                    get_dummy(width=0.15),
+                )
         if self.value == 0:
             return super().compose(board, web)
         if self.value < 0:
@@ -217,7 +238,3 @@ class Value1E(AbstractClueValue):
                     get_text(str(self.value)),
                     get_dummy(width=0.15),
             )
-
-    @classmethod
-    def method_choose(cls) -> int:
-        return 1

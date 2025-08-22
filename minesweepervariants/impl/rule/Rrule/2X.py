@@ -9,6 +9,7 @@
 """
 from typing import List, Dict
 
+from minesweepervariants.utils.web_template import MultiNumber
 from ....abs.Rrule import AbstractClueRule, AbstractClueValue
 from ....abs.board import AbstractBoard, AbstractPosition
 from ....utils.image_create import get_text, get_row
@@ -51,6 +52,8 @@ class Value2X(AbstractClueValue):
     def compose(self, board, web) -> Dict:
         value = [self.count // 10, self.count % 10]
         value.sort()
+        if web:
+            return MultiNumber(value)
         text_a = get_text(str(value[0]))
         text_b = get_text(str(value[1]))
         return get_row(
