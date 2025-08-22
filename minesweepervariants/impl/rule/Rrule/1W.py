@@ -139,6 +139,8 @@ class Value1W(AbstractClueValue):
         return self.pos.neighbors(2)
 
     def compose(self, board, web) -> Dict:
+        if web:
+            return MultiNumber(self.values)
         if len(self.values) <= 1:
             value = 0
             if len(self.values) == 1:
@@ -189,8 +191,6 @@ class Value1W(AbstractClueValue):
         else:
             # 我也不知道为什么会出现>5个数字的情况
             return get_text("")
-    def web_component(self, board):
-        return MultiNumber(self.values)
 
     @classmethod
     def type(cls) -> bytes:
