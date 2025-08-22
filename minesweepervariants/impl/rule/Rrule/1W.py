@@ -140,7 +140,9 @@ class Value1W(AbstractClueValue):
 
     def compose(self, board, web) -> Dict:
         if web:
-            return MultiNumber(self.values)
+            if self.values:
+                return MultiNumber(self.values)
+            return MultiNumber([0])
         if len(self.values) <= 1:
             value = 0
             if len(self.values) == 1:
