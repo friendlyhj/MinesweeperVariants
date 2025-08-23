@@ -1,5 +1,6 @@
 from minesweepervariants.abs.board import AbstractBoard
-from minesweepervariants.impl.summon.game import ValueAsterisk, MinesAsterisk
+from minesweepervariants.impl.summon.game import Mode, UMode, ValueAsterisk, MinesAsterisk
+from minesweepervariants.server._typing import BoardMetadata
 from minesweepervariants.utils.impl_obj import VALUE_QUESS, MINES_TAG
 
 
@@ -134,11 +135,9 @@ def format_cell(_board, pos, label):
 def format_board(_board: AbstractBoard):
     if _board is None:
         return
-    # board: Board
-    board_data: dict = {
-        "boards": {},
-        "cells": [],
-    }
+
+    boards = {}
+    cells = []
     count = 0
     for key in _board.get_board_keys():
         dye_list = [
@@ -154,7 +153,7 @@ def format_board(_board: AbstractBoard):
                 _board.boundary(key=key)
             )
         ]
-        board_data["boards"][key] = {
+        boards[key] = {
             "size": _board.get_config(key, "size"),
             "position": [_board.get_board_keys().index(key), 0],
             "showLabel": _board.get_config(key, "row_col"),
@@ -163,11 +162,11 @@ def format_board(_board: AbstractBoard):
         }
         print(mask_list)
         if any(any(i) for i in mask_list):
-            board_data["boards"][key].update({
+            boards[key].update({
                 "mask": mask_list
             })
         if any(any(i) for i in dye_list):
-            board_data["boards"][key].update({
+            boards[key].update({
                 "dye": dye_list,
             })
         for pos, obj in _board(key=key):
@@ -186,11 +185,30 @@ def format_board(_board: AbstractBoard):
                             isinstance(obj, MinesAsterisk)
                     )
             )
-            board_data["cells"].append(
+            cells.append(
                 format_cell(_board, pos, label))
             count += 1
-    board_data["count"] = count
-    import json
-    json_str = json.dumps(board_data, separators=(",", ":"))
-    print(json_str)
-    return board_data
+    return boards, cells, count
+
+def format_gamemode(gamemode: Mode, u_gamemode: UMode):
+    u_mode: list[str] = []
+
+    if gamemode == Mode.NORMAL:
+        mode = "NORMAL"
+    elif gamemode == Mode.EXPERT:
+        mode = "EXPERT"
+    elif gamemode == Mode.ULTIMATE:
+        mode = "ULTIMATE"
+        if u_gamemode & UMode.ULTIMATE_A:
+            u_mode.append("+A")
+        if u_gamemode & UMode.ULTIMATE_F:
+            u_mode.append("+F")
+        if u_gamemode & UMode.ULTIMATE_S:
+            u_mode.append("+S")
+        if u_gamemode & UMode.ULTIMATE_R:
+            u_mode.append("+R")
+        if u_gamemode & UMode.ULTIMATE_P:
+            u_mode.append("+!")
+    else:
+        mode = "UNKNOWN"
+    return mode, u_mode

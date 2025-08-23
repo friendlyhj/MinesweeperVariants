@@ -18,7 +18,7 @@ from minesweepervariants.abs.Mrule import Rule0F
 from minesweepervariants.utils.impl_obj import get_seed, VALUE_QUESS, MINES_TAG
 from minesweepervariants.utils.tool import hash_str
 
-from .format import format_board, format_cell
+from .format import format_board, format_cell, format_gamemode
 from ._typing import CellType, CellState, Board, CountInfo, ComponentTemplate, ComponentConfig, CellConfig, BoardMetadata, CreateGameParams, GenerateBoardResult, ResponseType, U_Hint, ClickResponse
 __all__ = ["generate_board", "metadata", "click", "hint_post", "get_rule_list", "reset"]
 
@@ -157,61 +157,44 @@ class Model():
         return data, 200
 
 
-    def metadata(self):
+    def metadata(self) -> ResponseType[BoardMetadata]:
+        board_data: BoardMetadata
         print("[metadata] start")
 
         if self.game is None \
             or self.game.board is None \
             or self.game.answer_board is None:
             print("[metadata] board is None!")
-            return {}, 200
+            return {}, 200 # type: ignore
 
         game = self.game
         board = game.board
         a_board = game.answer_board
 
-        board_data = format_board(board)
+        boards, cells, countint = format_board(board)
 
-        count = {}
-        count["total"] = len([_ for pos, _ in a_board("F")])
-        count["unknown"] = len([_ for _ in board("N")])
-        if self.game.drop_r:
-            count["known"] = None
-            count["remains"] = None
-        else:
-            count["known"] = len([_ for pos, _ in a_board("F")])
-            count["remains"] = len([_ for pos, _ in a_board("F") if board.get_type(pos) == "N"])
-        board_data["rules"] = self.rules
-        board_data["count"] = count
-        board_data["noFail"] = self.noFail
-        board_data["noHint"] = self.noHint
-        board_data["u_mode"] = []
-        gamemode = game.mode
-        u_gamemode = game.ultimate_mode
-        if gamemode == NORMAL:
-            board_data["mode"] = "NORMAL"
-        elif gamemode == EXPERT:
-            board_data["mode"] = "EXPERT"
-        elif gamemode == ULTIMATE:
-            board_data["mode"] = "ULTIMATE"
-            board_data["u_mode"] = []
-            if u_gamemode & ULTIMATE_A:
-                board_data["u_mode"].append("+A")
-            if u_gamemode & ULTIMATE_F:
-                board_data["u_mode"].append("+F")
-            if u_gamemode & ULTIMATE_S:
-                board_data["u_mode"].append("+S")
-            if u_gamemode & ULTIMATE_R:
-                board_data["u_mode"].append("+R")
-            if u_gamemode & ULTIMATE_P:
-                board_data["u_mode"].append("+!")
-        elif gamemode == PUZZLE:
-            board_data["mode"] = "PUZZLE"
-        else:
-            board_data["mode"] = "UNKNOWN"
-        board_data["seed"] = str(get_seed())
+        count: CountInfo = {
+            "total": len([_ for pos, _ in a_board("F")]),
+            "known": None if self.game.drop_r else len([_ for pos, _ in a_board("F")]),
+            "unknown": len([_ for _ in board("N")]),
+            "remains": None if self.game.drop_r else len([_ for pos, _ in a_board("F") if board.get_type(pos) == "N"])
+        }
+
+        mode, u_mode = format_gamemode(game.mode, game.ultimate_mode)
+
+        board_data = {
+            "seed": str(get_seed()),
+            "mode": mode,
+            "rules": self.rules,
+            "count": count,
+            "noFail": self.noFail,
+            "noHint": self.noHint,
+            "u_mode": u_mode,
+            "boards": boards,
+            "cells": cells
+        }
         print("[metadata]", board_data)
-        return jsonify(board_data)
+        return board_data
 
 
     def click(self):

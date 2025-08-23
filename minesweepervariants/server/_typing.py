@@ -1,4 +1,4 @@
-from typing import Literal, TypedDict, Optional, List, Tuple, Dict, Union
+from typing import Literal, Never, TypedDict, Optional, List, Tuple, Dict, Union
 
 __all__ = ["CellType", "CellState", "Board", "CountInfo", "ComponentTemplate", "ComponentConfig", "CellConfig", "BoardMetadata", "U_Hint", "ClickResponse"]
 
@@ -55,7 +55,7 @@ class BoardMetadata(TypedDict):
     seed: Optional[str]
     noFail: Optional[bool]
     noHint: Optional[bool]
-    mode: Literal["NORMAL", "EXPERT", "ULTIMATE"]
+    mode: Literal["NORMAL", "EXPERT", "ULTIMATE", "PUZZLE", "UNKNOWN"]
     u_mode: Optional[List[str]]
 
 class U_Hint(TypedDict):
@@ -88,5 +88,7 @@ class CreateGameParams(TypedDict):
     dye: Optional[str]
     mask: Optional[str]
     seed: Optional[str]
+
+type MetadataResult = BoardMetadata
 
 type ResponseType[T] = T | tuple[T, int]
