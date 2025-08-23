@@ -4,8 +4,6 @@
 """
 [1EQ] 皇后视野 (Queen Eyesight)：线索表示八个方向上能看到的非雷格数量（包括自身），雷会阻挡视线
 """
-from typing import Callable
-
 from ....abs.Rrule import AbstractClueRule, AbstractClueValue
 from ....abs.board import AbstractBoard, AbstractPosition
 
@@ -14,22 +12,19 @@ class Rule1EQ(AbstractClueRule):
     name = ["1EQ", "皇后视野", "Queen Eyesight"]
     doc = "线索表示八个方向上能看到的非雷格数量（包括自身），雷会阻挡视线"
 
-    def clue_class(self):
-        return Value1EQ
-
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':
         for pos, _ in board("N"):
             value = 1  # 包括自身
             # 八个方向的函数：四个正交方向 + 四个斜向方向
             direction_funcs = [
-                lambda n: type(pos)(pos.x, pos.y + n, pos.board_key),     # 上
-                lambda n: type(pos)(pos.x, pos.y - n, pos.board_key),     # 下
-                lambda n: type(pos)(pos.x - n, pos.y, pos.board_key),     # 左
-                lambda n: type(pos)(pos.x + n, pos.y, pos.board_key),     # 右
-                lambda n: type(pos)(pos.x + n, pos.y + n, pos.board_key), # 右上
-                lambda n: type(pos)(pos.x - n, pos.y - n, pos.board_key), # 左下
-                lambda n: type(pos)(pos.x - n, pos.y + n, pos.board_key), # 左上
-                lambda n: type(pos)(pos.x + n, pos.y - n, pos.board_key)  # 右下
+                lambda _n: type(pos)(pos.x, pos.y + _n, pos.board_key),  # 上
+                lambda _n: type(pos)(pos.x, pos.y - _n, pos.board_key),  # 下
+                lambda _n: type(pos)(pos.x - _n, pos.y, pos.board_key),  # 左
+                lambda _n: type(pos)(pos.x + _n, pos.y, pos.board_key),  # 右
+                lambda _n: type(pos)(pos.x + _n, pos.y + _n, pos.board_key),  # 右上
+                lambda _n: type(pos)(pos.x - _n, pos.y - _n, pos.board_key),  # 左下
+                lambda _n: type(pos)(pos.x - _n, pos.y + _n, pos.board_key),  # 左上
+                lambda _n: type(pos)(pos.x + _n, pos.y - _n, pos.board_key)  # 右下
             ]
 
             for fn in direction_funcs:
@@ -60,7 +55,7 @@ class Value1EQ(AbstractClueValue):
         positions = []
         for i in [
             (-1, -1), (-1, 0), (-1, +1),
-            (0, -1),           (0, +1),
+            (0, -1), (0, +1),
             (1, -1), (1, 0), (+1, +1),
         ]:
             n = 0
@@ -87,13 +82,13 @@ class Value1EQ(AbstractClueValue):
 
             # 八个方向的函数：四个正交方向 + 四个斜向方向
             direction_funcs = [
-                lambda n: type(self.pos)(self.pos.x, self.pos.y + n, self.pos.board_key),     # 上
-                lambda n: type(self.pos)(self.pos.x, self.pos.y - n, self.pos.board_key),     # 下
-                lambda n: type(self.pos)(self.pos.x - n, self.pos.y, self.pos.board_key),     # 左
-                lambda n: type(self.pos)(self.pos.x + n, self.pos.y, self.pos.board_key),     # 右
-                lambda n: type(self.pos)(self.pos.x + n, self.pos.y + n, self.pos.board_key), # 右上
-                lambda n: type(self.pos)(self.pos.x - n, self.pos.y - n, self.pos.board_key), # 左下
-                lambda n: type(self.pos)(self.pos.x - n, self.pos.y + n, self.pos.board_key), # 左上
+                lambda n: type(self.pos)(self.pos.x, self.pos.y + n, self.pos.board_key),  # 上
+                lambda n: type(self.pos)(self.pos.x, self.pos.y - n, self.pos.board_key),  # 下
+                lambda n: type(self.pos)(self.pos.x - n, self.pos.y, self.pos.board_key),  # 左
+                lambda n: type(self.pos)(self.pos.x + n, self.pos.y, self.pos.board_key),  # 右
+                lambda n: type(self.pos)(self.pos.x + n, self.pos.y + n, self.pos.board_key),  # 右上
+                lambda n: type(self.pos)(self.pos.x - n, self.pos.y - n, self.pos.board_key),  # 左下
+                lambda n: type(self.pos)(self.pos.x - n, self.pos.y + n, self.pos.board_key),  # 左上
                 lambda n: type(self.pos)(self.pos.x + n, self.pos.y - n, self.pos.board_key)  # 右下
             ]
 

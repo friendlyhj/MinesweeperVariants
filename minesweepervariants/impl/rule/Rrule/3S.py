@@ -9,11 +9,12 @@
 """
 from typing import Dict
 
+from minesweepervariants.utils.web_template import MultiNumber
 from ....abs.Rrule import AbstractClueRule, AbstractClueValue
 from ....abs.board import AbstractBoard, AbstractPosition
 from ....utils.image_create import get_text, get_row
 
-from ....utils.tool import get_logger, get_random
+from ....utils.tool import get_logger
 
 
 class Rule3S(AbstractClueRule):
@@ -26,14 +27,24 @@ class Rule3S(AbstractClueRule):
             value1 = 0
             value2 = 0
             # 方向判断
-            if board.get_type(pos.left(1)) == "F": value1 += 1; value2 += 1
-            if board.get_type(pos.right(1)) == "F": value1 += 1; value2 += 1
-            if board.get_type(pos.up(1)) == "F": value1 += 1
-            if board.get_type(pos.up(1).left(1)) == "F": value1 += 1
-            if board.get_type(pos.up(1).right(1)) == "F": value1 += 1
-            if board.get_type(pos.down(1)) == "F": value2 += 1
-            if board.get_type(pos.down(1).left(1)) == "F": value2 += 1
-            if board.get_type(pos.down(1).right(1)) == "F": value2 += 1
+            if board.get_type(pos.left(1)) == "F":
+                value1 += 1
+                value2 += 1
+            if board.get_type(pos.right(1)) == "F":
+                value1 += 1
+                value2 += 1
+            if board.get_type(pos.up(1)) == "F":
+                value1 += 1
+            if board.get_type(pos.up(1).left(1)) == "F":
+                value1 += 1
+            if board.get_type(pos.up(1).right(1)) == "F":
+                value1 += 1
+            if board.get_type(pos.down(1)) == "F":
+                value2 += 1
+            if board.get_type(pos.down(1).left(1)) == "F":
+                value2 += 1
+            if board.get_type(pos.down(1).right(1)) == "F":
+                value2 += 1
 
             if value1 > value2: value1, value2 = value2, value1
             board.set_value(pos, Value3S(pos, count=value1 * 10 + value2))
@@ -48,8 +59,8 @@ class Value3S(AbstractClueValue):
             self.count = code[0]
         else:
             self.count = count
-        self.neighbor = ([pos.left(1),pos.right(1),pos.up(1),pos.up(1).left(1),pos.up(1).right(1)],
-                         [pos.left(1),pos.right(1),pos.down(1),pos.down(1).left(1),pos.down(1).right(1)])
+        self.neighbor = ([pos.left(1), pos.right(1), pos.up(1), pos.up(1).left(1), pos.up(1).right(1)],
+                         [pos.left(1), pos.right(1), pos.down(1), pos.down(1).left(1), pos.down(1).right(1)])
 
     def __repr__(self) -> str:
         return f"{self.count // 10} {self.count % 10}"
@@ -57,7 +68,12 @@ class Value3S(AbstractClueValue):
     def high_light(self, board: 'AbstractBoard') -> list['AbstractPosition']:
         return self.neighbor[0] + self.neighbor[1]
 
-    def compose(self, board, web) -> Dict:
+    def web_component(self, board) -> Dict:
+        value = [self.count // 10, self.count % 10]
+        value.sort()
+        return MultiNumber(value)
+
+    def compose(self, board) -> Dict:
         value = [self.count // 10, self.count % 10]
         value.sort()
         text_a = get_text(str(value[0]))

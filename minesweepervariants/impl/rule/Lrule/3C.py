@@ -8,7 +8,7 @@
 [3C]连通（Connected）: 每个雷周围八格中恰有两个雷
 """
 from minesweepervariants.abs.Lrule import AbstractMinesRule
-from minesweepervariants.abs.board import AbstractBoard, AbstractPosition
+from minesweepervariants.abs.board import AbstractBoard
 from minesweepervariants.impl.summon.solver import Switch
 
 

@@ -44,7 +44,6 @@ class Rule1Tpp(AbstractMinesRule):
                     b = model.NewBoolVar(f"triple_{pos}_{dx}_{dy}")
                     model.AddBoolAnd(var_list).OnlyEnforceIf([b, s])
 
-
                     for p in positions:
                         position_coverage[p].append(b)
 

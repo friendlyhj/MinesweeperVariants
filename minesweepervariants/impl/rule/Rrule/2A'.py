@@ -44,7 +44,7 @@ class Rule2A(AbstractClueRule):
                 name = name[0] if name else None
 
             if (name in ["1D'", "1O"] and
-                (data is None or all(x == "1" or "1:1" in x for x in data.split(";")))):
+               (data is None or all(x == "1" or "1:1" in x for x in data.split(";")))):
                 self.flag = True
 
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':
@@ -149,7 +149,9 @@ class Value2A(AbstractClueValue):
                 model.AddBoolAnd(vars_f).OnlyEnforceIf(tmp)
             tmp_list.append(tmp)
         model.AddBoolOr(tmp_list).OnlyEnforceIf(s)
-        get_logger().trace(f"position:{self.pos}, value:{self}, used_time:{time.time() - t}s, 枚举所有可能性共:{len(tmp_list)}个")
+        get_logger().trace(f"position:{self.pos}, value:{self},"
+                           f" used_time:{time.time() - t}s,"
+                           f" 枚举所有可能性共:{len(tmp_list)}个")
         # print()
         # print()
         # print()

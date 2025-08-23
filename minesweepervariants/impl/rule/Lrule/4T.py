@@ -9,11 +9,7 @@
 """
 
 from minesweepervariants.abs.Lrule import AbstractMinesRule
-from minesweepervariants.abs.Rrule import AbstractClueValue
 from minesweepervariants.abs.board import AbstractBoard
-
-from minesweepervariants.impl.rule.Rrule.V import ValueV
-
 from minesweepervariants.impl.summon.solver import Switch
 from minesweepervariants.utils.tool import get_random
 

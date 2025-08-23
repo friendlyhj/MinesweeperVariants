@@ -9,6 +9,7 @@ from ....utils.tool import get_random, get_logger
 
 NAME_2M = "2M''"
 
+
 def select(matrix: list[list[bool]]) -> list[tuple[int, int]]:
     rnd = get_random()
     n = len(matrix)
@@ -39,6 +40,7 @@ def select(matrix: list[list[bool]]) -> list[tuple[int, int]]:
             return []
 
     return [(match_to[j], j) for j in range(n)]
+
 
 class Rule2M(AbstractClueRule):
     name = ["2M''", "多雷", "Multiple"]
@@ -80,7 +82,7 @@ class Rule2M(AbstractClueRule):
             count = 0
             neighbors = pos.neighbors(2)
             for neighbor in neighbors:
-                if (board.get_type(neighbor) == "F"):
+                if board.get_type(neighbor) == "F":
                     if (neighbor.x, neighbor.y) in pos_map:
                         count += 2
                     else:
@@ -97,9 +99,6 @@ class Rule2M(AbstractClueRule):
                 logger.debug(f"[2M]put X to {pos}")
 
         return board
-    
-    def clue_class(self):
-        return Value2M
 
     def init_clear(self, board: 'AbstractBoard'):
         for pos, _ in board(key=NAME_2M):
@@ -166,5 +165,5 @@ class Value2M(AbstractClueValue):
             model.Add(z == 1).OnlyEnforceIf([a, b.Not()])
             model.Add(z == 2).OnlyEnforceIf([a, b])
             vals.append(z)
-        if (vals):
+        if vals:
             model.Add(sum(vals) == self.value).OnlyEnforceIf(s)

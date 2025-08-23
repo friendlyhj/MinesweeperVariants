@@ -4,13 +4,8 @@
 # @Time    : 2025/06/29 16:12
 # @Author  : Wu_RH
 # @FileName: image_create.py
-import os
-
-import yaml
-
 from ..abs.board import AbstractBoard
 from ..config.config import IMAGE_CONFIG, DEFAULT_CONFIG
-from ..utils.tool import get_logger
 from ..utils.element_renderer import *
 
 
@@ -368,12 +363,12 @@ def draw_board(
             renderer = Renderer(
                 cell_size=cell_size,
                 background_white=background_white,
-                origin=(x0_cell,y0_cell),
+                origin=(x0_cell, y0_cell),
                 font_path=CONFIG["font"]["name"],
                 assets=CONFIG["assets"]
             )
 
-            renderer.render(image, value.compose(board, False))
+            renderer.render(image, value.compose(board))
 
         # 渲染角标
         if by_mini:

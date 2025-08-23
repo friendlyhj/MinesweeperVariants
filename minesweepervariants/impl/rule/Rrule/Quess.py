@@ -26,9 +26,6 @@ class RuleQuess(AbstractClueRule):
             board.set_value(pos, VALUE_QUESS)
         return board
 
-    def clue_class(self):
-        return ValueQuess
-
     def init_clear(self, board: 'AbstractBoard'):
         if self.clear:
             for pos, obj in board("C"):

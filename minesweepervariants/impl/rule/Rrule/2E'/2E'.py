@@ -8,7 +8,7 @@
 [2E']自指:如果字母X周围8格内有N个雷，则标有X=N的格子必定是雷。
 """
 from .....utils.impl_obj import VALUE_QUESS
-from .....utils.tool import get_random, get_logger
+from .....utils.tool import get_random
 
 from .....abs.Rrule import AbstractClueValue, AbstractClueRule
 from .....abs.board import AbstractBoard, AbstractPosition, MASTER_BOARD
@@ -19,8 +19,6 @@ def alpha(n: int) -> str:
     if n < 26:
         return alpha_map[n]
     return alpha_map[n // 26 - 1] + alpha_map[n % 26]
-
-
 
 
 class Rule2Ep(AbstractClueRule):
@@ -54,7 +52,7 @@ class Rule2Ep(AbstractClueRule):
 class Value2Ep(AbstractClueValue):
     def __init__(self, pos: 'AbstractPosition', code: bytes = b''):
         super().__init__(pos)
-        self.value = code[0]    # 实际为第几列的字母
+        self.value = code[0]  # 实际为第几列的字母
         self.neighbors = pos.neighbors(2)
 
     def __repr__(self) -> str:

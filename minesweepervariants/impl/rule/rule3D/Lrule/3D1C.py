@@ -13,7 +13,7 @@ from .connect import connect
 
 
 class Rule1C(Abstract3DMinesRule):
-    name = ["3D1C","3DC", "二十六连通"]
+    name = ["3D1C", "3DC", "二十六连通"]
     doc = "雷区域二十六连通"
 
     def create_constraints(self, board, switch):

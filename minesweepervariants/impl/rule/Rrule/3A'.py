@@ -8,6 +8,7 @@
 [3A']兰顿蚂蚁: 数字表示兰顿蚂蚁从线索格出发直至走出题板外所经过的格子总数(不重复计数)。
 箭头表示兰顿蚂蚁的初始方向，经过非雷格顺时针旋转90度(右转)，经过雷格逆时针旋转90度(左转)。
 """
+from minesweepervariants.impl.summon.solver import Switch
 from ....abs.Rrule import AbstractClueRule, AbstractClueValue
 from ....abs.board import AbstractBoard, AbstractPosition
 
@@ -21,9 +22,6 @@ class Rule3Ap(AbstractClueRule):
 
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':
         pass
-
-    def clue_class(self):
-        return Value3Ap
 
 
 class Value3Ap(AbstractClueValue):
@@ -40,8 +38,8 @@ class Value3Ap(AbstractClueValue):
     def code(self) -> bytes:
         pass
 
-    def create_constraints(self, board: 'AbstractBoard'):
-        super().create_constraints(board)
+    def create_constraints(self, board: 'AbstractBoard', switch: 'Switch'):
+        pass
 
     def deduce_cells(self, board: 'AbstractBoard') -> bool:
         pass

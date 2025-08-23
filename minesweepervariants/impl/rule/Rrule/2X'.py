@@ -21,8 +21,10 @@ class Rule2X(AbstractClueRule):
         logger = get_logger()
         r = get_random()
         for pos, _ in board("N"):
-            value1 = len([_pos for _pos in pos.neighbors(3) if board.get_type(_pos) == "F" and board.get_dyed(_pos)])
-            value2 = len([_pos for _pos in pos.neighbors(3) if board.get_type(_pos) == "F" and not board.get_dyed(_pos)])
+            value1 = len([_pos for _pos in pos.neighbors(3) if
+                          board.get_type(_pos) == "F" and board.get_dyed(_pos)])
+            value2 = len([_pos for _pos in pos.neighbors(3) if
+                          board.get_type(_pos) == "F" and not board.get_dyed(_pos)])
             board.set_value(pos, Value2X(pos, bytes([r.choice([value1, value2])])))
             logger.debug(f"Set {pos} to 2X[{value1 * 10 + value2}]")
         return board

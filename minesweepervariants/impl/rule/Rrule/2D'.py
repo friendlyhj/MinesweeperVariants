@@ -27,9 +27,6 @@ class Rule2Dp(AbstractClueRule):
             logger.debug(f"Set {pos} to 2D[{value}]")
         return board
 
-    def clue_class(self):
-        return Value2Dp
-
 
 class Value2Dp(AbstractClueValue):
     def __init__(self, pos: AbstractPosition, count: int = 0, code: bytes = None):

@@ -17,5 +17,5 @@ class DyeC(AbstractDye):
         for key in board.get_interactive_keys():
             dye = not dye
             for pos, _ in board(key=key):
-                _dye = dye ^ ((pos.x%2 + pos.y%2) > 1)
+                _dye = dye ^ ((pos.x % 2 + pos.y % 2) > 1)
                 board.set_dyed(pos, _dye)

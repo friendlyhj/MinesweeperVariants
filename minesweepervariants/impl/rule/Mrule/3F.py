@@ -11,7 +11,6 @@ from typing import List, Dict
 
 from ....abs.Mrule import AbstractMinesClueRule, AbstractMinesValue
 from ....abs.board import AbstractBoard, AbstractPosition
-from ....utils.image_create import get_text, get_col, get_dummy
 from ....utils.tool import get_logger
 
 

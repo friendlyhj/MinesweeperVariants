@@ -18,11 +18,13 @@ offsets = [
     (1, 1)
 ]
 
+
 class Rule3M(AbstractClueRule):
     name = ["3M", "对映", "Mirror"]
     doc = "线索表示周围八格组成四个正好相对的格子组有且仅有一个是雷的组数（题板外视为非雷）"
 
     logger = get_logger()
+
     def fill(self, board: AbstractBoard) -> AbstractBoard:
         logger = get_logger()
         for pos, _ in board("N"):
@@ -33,9 +35,6 @@ class Rule3M(AbstractClueRule):
             board.set_value(pos, Value3M(pos, count=value))
             logger.debug(f"Set value for {pos}: 3M[{value}]")
         return board
-    
-    def clue_class(self):
-        return Value3M
 
 class Value3M(AbstractClueValue):
     def __init__(self, pos: AbstractPosition, count: int = 0, code: bytes = None):
@@ -47,7 +46,7 @@ class Value3M(AbstractClueValue):
             # 直接初始化
             self.count = count
         self.neighbor = self.pos.neighbors(2)
-    
+
     def __repr__(self):
         return f"{self.count}"
 
@@ -63,42 +62,42 @@ class Value3M(AbstractClueValue):
 
     def invalid(self, board: 'AbstractBoard') -> bool:
         return board.batch(self.neighbor, mode="type").count("N") == 0
-    
+
     def deduce_cells(self, board: 'AbstractBoard') -> bool:
         types = []
         for x, y in offsets:
-            type = board.get_type(self.pos.shift(x, y))
-            if (type == "C" or type == ""):
+            type_obj = board.get_type(self.pos.shift(x, y))
+            if type_obj == "C" or type_obj == "":
                 types.append(-1)
-            elif (type == "F"):
+            elif type_obj == "F":
                 types.append(1)
             else:
                 types.append(2)
         defined = 0
         can_be_deduced = []
         for i in range(4):
-            if (types[i] + types[7 - i] == 0):
+            if types[i] + types[7 - i] == 0:
                 defined += 1
-            elif (types[i] == 2 and types[7 - i] != 2):
+            elif types[i] == 2 and types[7 - i] != 2:
                 can_be_deduced.append(i)
-            elif (types[i] != 2 and types[7 - i] == 2):
+            elif types[i] != 2 and types[7 - i] == 2:
                 can_be_deduced.append(7 - i)
-        if (defined == self.count):
+        if defined == self.count:
             for i in can_be_deduced:
                 offsetX, offsetY = offsets[i]
                 mirrorType = board.get_type(self.pos.shift(-offsetX, -offsetY))
-                if (mirrorType == "C" or mirrorType == ""):
+                if mirrorType == "C" or mirrorType == "":
                     board.set_value(self.pos.shift(offsetX, offsetY), VALUE_QUESS)
-                elif (mirrorType == "F"):
+                elif mirrorType == "F":
                     board.set_value(self.pos.shift(offsetX, offsetY), MINES_TAG)
             return True
-        elif (defined + len(can_be_deduced) == self.count):
+        elif defined + len(can_be_deduced) == self.count:
             for i in can_be_deduced:
                 offsetX, offsetY = offsets[i]
                 mirrorType = board.get_type(self.pos.shift(-offsetX, -offsetY))
-                if (mirrorType == "C" or mirrorType == ""):
+                if mirrorType == "C" or mirrorType == "":
                     board.set_value(self.pos.shift(offsetX, offsetY), MINES_TAG)
-                elif (mirrorType == "F"):
+                elif mirrorType == "F":
                     board.set_value(self.pos.shift(offsetX, offsetY), VALUE_QUESS)
             return True
         return False
@@ -113,16 +112,24 @@ class Value3M(AbstractClueValue):
 
         s = switch.get(model, self)
 
-        model.Add(sum(board.batch([self.pos.shift(-1, -1), self.pos.shift(1, 1)], mode="variable", drop_none=True)) == 1).OnlyEnforceIf([g1, s])
-        model.Add(sum(board.batch([self.pos.shift(-1, -1), self.pos.shift(1, 1)], mode="variable", drop_none=True)) != 1).OnlyEnforceIf([g1.Not(), s])
+        model.Add(sum(board.batch([self.pos.shift(-1, -1), self.pos.shift(1, 1)], mode="variable",
+                                  drop_none=True)) == 1).OnlyEnforceIf([g1, s])
+        model.Add(sum(board.batch([self.pos.shift(-1, -1), self.pos.shift(1, 1)], mode="variable",
+                                  drop_none=True)) != 1).OnlyEnforceIf([g1.Not(), s])
 
-        model.Add(sum(board.batch([self.pos.shift(-1, 0), self.pos.shift(1, 0)], mode="variable", drop_none=True)) == 1).OnlyEnforceIf([g2, s])
-        model.Add(sum(board.batch([self.pos.shift(-1, 0), self.pos.shift(1, 0)], mode="variable", drop_none=True)) != 1).OnlyEnforceIf([g2.Not(), s])
+        model.Add(sum(board.batch([self.pos.shift(-1, 0), self.pos.shift(1, 0)], mode="variable",
+                                  drop_none=True)) == 1).OnlyEnforceIf([g2, s])
+        model.Add(sum(board.batch([self.pos.shift(-1, 0), self.pos.shift(1, 0)], mode="variable",
+                                  drop_none=True)) != 1).OnlyEnforceIf([g2.Not(), s])
 
-        model.Add(sum(board.batch([self.pos.shift(-1, 1), self.pos.shift(1, -1)], mode="variable", drop_none=True)) == 1).OnlyEnforceIf([g3, s])
-        model.Add(sum(board.batch([self.pos.shift(-1, 1), self.pos.shift(1, -1)], mode="variable", drop_none=True)) != 1).OnlyEnforceIf([g3.Not(), s])
+        model.Add(sum(board.batch([self.pos.shift(-1, 1), self.pos.shift(1, -1)], mode="variable",
+                                  drop_none=True)) == 1).OnlyEnforceIf([g3, s])
+        model.Add(sum(board.batch([self.pos.shift(-1, 1), self.pos.shift(1, -1)], mode="variable",
+                                  drop_none=True)) != 1).OnlyEnforceIf([g3.Not(), s])
 
-        model.Add(sum(board.batch([self.pos.shift(0, -1), self.pos.shift(0, 1)], mode="variable", drop_none=True)) == 1).OnlyEnforceIf([g4, s])
-        model.Add(sum(board.batch([self.pos.shift(0, -1), self.pos.shift(0, 1)], mode="variable", drop_none=True)) != 1).OnlyEnforceIf([g4.Not(), s])
+        model.Add(sum(board.batch([self.pos.shift(0, -1), self.pos.shift(0, 1)], mode="variable",
+                                  drop_none=True)) == 1).OnlyEnforceIf([g4, s])
+        model.Add(sum(board.batch([self.pos.shift(0, -1), self.pos.shift(0, 1)], mode="variable",
+                                  drop_none=True)) != 1).OnlyEnforceIf([g4.Not(), s])
 
         model.Add(sum([g1, g2, g3, g4]) == self.count).OnlyEnforceIf(s)

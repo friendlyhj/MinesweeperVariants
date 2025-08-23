@@ -115,21 +115,23 @@ class Value2P(AbstractClueValue):
             return f"√{value_b}"
         return f"{value_a}√{value_b}"
 
-    def compose(self, board, web) -> Dict:
+    def web_component(self, board) -> Dict:
         value_a, value_b = sqrt_form(self.value)
-        if web:
-            if value_b == -1:
-                return get_text(str(value_a))
-            if value_a == -1:
-                return get_text(
-                    "$\\sqrt{" + str(value_b) + "}$"
-                )
-            else:
-                return get_text(
-                    "$" + str(value_a) +
-                    "\\sqrt{" + str(value_b) +
-                    "}$"
-                )
+        if value_b == -1:
+            return get_text(str(value_a))
+        if value_a == -1:
+            return get_text(
+                "$\\sqrt{" + str(value_b) + "}$"
+            )
+        else:
+            return get_text(
+                "$" + str(value_a) +
+                "\\sqrt{" + str(value_b) +
+                "}$"
+            )
+
+    def compose(self, board) -> Dict:
+        value_a, value_b = sqrt_form(self.value)
         if value_b == -1:
             return get_col(
                 get_dummy(height=0.175),

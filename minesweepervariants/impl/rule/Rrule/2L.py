@@ -108,9 +108,6 @@ class Rule2L(AbstractClueRule):
 
         return board
 
-    def clue_class(self):
-        return Value2L
-
     def init_clear(self, board: 'AbstractBoard'):
         for pos, _ in board(key=NAME_2L):
             board.set_value(pos, None)

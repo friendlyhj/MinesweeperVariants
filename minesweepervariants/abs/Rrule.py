@@ -43,20 +43,27 @@ class AbstractClueValue(AbstractValue, ABC):
         """
         return "?"
 
-    def compose(self, board, web) -> Dict:
+    def compose(self, board) -> Dict:
         """
         返回一个可渲染对象列表
         默认使用__repr__
         """
-        if web:
-            if self.__repr__().isnumeric():
-                return Number(int(self.__repr__()))
-            return get_text(self.__repr__())
         return get_col(
             get_dummy(height=0.3),
             get_text(self.__repr__()),
             get_dummy(height=0.3),
         )
+
+    def web_component(self, board) -> Dict:
+        """
+        返回一个可渲染对象列表
+        默认使用__repr__
+        """
+        if "compose" in type(self).__dict__:
+            return self.compose(board)
+        if self.__repr__().isnumeric():
+            return Number(int(self.__repr__()))
+        return get_text(self.__repr__())
 
 
 # --------实例类-------- #
@@ -95,7 +102,10 @@ class ValueCross(AbstractClueValue):
     def __repr__(self):
         return "X"
 
-    def compose(self, board, web) -> Dict:
+    def web_component(self, board) -> Dict:
+        return get_image("cross")
+
+    def compose(self, board) -> Dict:
         return get_image("cross")
 
     @classmethod

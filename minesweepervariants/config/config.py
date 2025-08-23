@@ -5,8 +5,6 @@
 # @Author  : Wu_RH
 # @FileName: config.py.py
 
-from pathlib import Path
-
 DEFAULT_CONFIG = {
     # 图片生成默认参数
     "output_file": "output",       # 默认的img文件名(不含后缀)

@@ -108,7 +108,6 @@ class AbstractPosition(ABC):
         :return: 位置列表，按距离从近到远排序。
         """
 
-
     @abstractmethod
     def in_bounds(self, bound_pos: 'AbstractPosition') -> bool:
         """
@@ -189,6 +188,7 @@ class AbstractBoard(ABC):
         :param size: 题板尺寸
         :param code: 题板代码
         """
+        ...
 
     def __repr__(self):
         return self.show_board()

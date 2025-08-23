@@ -9,7 +9,6 @@
 """
 
 from ....abs.Lrule import AbstractMinesRule
-from ....abs.board import AbstractBoard
 
 
 class Rule1D(AbstractMinesRule):

@@ -8,7 +8,6 @@ import os
 import sys
 import importlib.util
 from pathlib import Path
-import traceback
 
 from minesweepervariants.utils.tool import get_logger
 
