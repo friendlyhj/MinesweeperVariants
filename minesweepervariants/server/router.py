@@ -26,9 +26,9 @@ def add_cors_headers(response):
 def root():
     return redirect(github_web)
 
-app.add_url_rule('/api/new', 'generate_board', generate_board)
-app.add_url_rule('/api/metadata', 'metadata', metadata)
-app.add_url_rule('/api/click', 'click', click)
-app.add_url_rule('/api/hint', 'hint_post', hint_post)
-app.add_url_rule('/api/rules', 'get_rule_list', get_rule_list)
-app.add_url_rule('/api/reset', 'reset', reset)
+app.add_url_rule('/api/new', 'generate_board', generate_board, methods=['GET', 'POST'])
+app.add_url_rule('/api/metadata', 'metadata', metadata, methods=['GET', 'POST'])
+app.add_url_rule('/api/click', 'click', click, methods=['GET', 'POST'])
+app.add_url_rule('/api/hint', 'hint_post', hint_post, methods=['GET', 'POST'])
+app.add_url_rule('/api/rules', 'get_rule_list', get_rule_list, methods=['GET', 'POST'])
+app.add_url_rule('/api/reset', 'reset', reset, methods=['GET', 'POST'])

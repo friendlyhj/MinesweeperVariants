@@ -11,14 +11,13 @@ from minesweepervariants.impl.impl_obj import decode_board
 from minesweepervariants.impl.summon.game import NORMAL, EXPERT, ULTIMATE, PUZZLE
 from minesweepervariants.impl.summon.game import ULTIMATE_R, ULTIMATE_S, ULTIMATE_F, ULTIMATE_A, ULTIMATE_P
 
+from .format import format_board, format_cell
 from minesweepervariants.utils.impl_obj import get_seed, VALUE_QUESS, MINES_TAG
 from minesweepervariants.utils.tool import hash_str
 
-from .format import format_board, format_cell
-
 __all__ = ["generate_board", "metadata", "click", "hint_post", "get_rule_list", "reset"]
 
-hypothesis_data = {}
+hypothesis_data = dict()
 
 def generate_board():
     global hypothesis_data
@@ -311,11 +310,11 @@ def click():
                 if obj is None and board[pos] is None:
                     continue
                 if (
-                        not (obj is None or board[pos] is None) and
-                        obj.type() == board[pos].type() and
-                        obj.code() == board[pos].code() and
-                        obj.high_light(_board) == board[pos].high_light(board) and
-                        obj.invalid(_board) == board[pos].invalid(board)
+                    not (obj is None or board[pos] is None) and
+                    obj.type() == board[pos].type() and
+                    obj.code() == board[pos].code() and
+                    obj.high_light(_board) == board[pos].high_light(board) and
+                    obj.invalid(_board) == board[pos].invalid(board)
                 ):
                     continue
 
@@ -325,19 +324,19 @@ def click():
                     _board.get_config(key, "VALUE"),
                 ]
                 label = (
-                        _board.get_config(key, "by_mini") and
-                        label and
-                        not (
-                                isinstance(obj, ValueAsterisk) or
-                                isinstance(obj, MinesAsterisk)
-                        )
+                    _board.get_config(key, "by_mini") and
+                    label and
+                    not (
+                        isinstance(obj, ValueAsterisk) or
+                        isinstance(obj, MinesAsterisk)
+                    )
                 )
                 data = format_cell(_board, pos, label)
                 print("[click]", pos, obj, data)
                 refresh["cells"].append(data)
         if not any(
-                _board.has("N", key=key) for
-                key in _board.get_interactive_keys()
+            _board.has("N", key=key) for
+            key in _board.get_interactive_keys()
         ):
             refresh["gameover"] = True
             refresh["reason"] = "你过关!!!(震声)"
@@ -451,12 +450,12 @@ def hint_post():
             game.board.get_config(pos.board_key, "VALUE"),
         ]
         label = (
-                game.board.get_config(pos.board_key, "by_mini") and
-                label and
-                not (
-                        isinstance(obj, ValueAsterisk) or
-                        isinstance(obj, MinesAsterisk)
-                )
+            game.board.get_config(pos.board_key, "by_mini") and
+            label and
+            not (
+                    isinstance(obj, ValueAsterisk) or
+                    isinstance(obj, MinesAsterisk)
+            )
         )
         cells.append(
             format_cell(game.board, pos, label)
