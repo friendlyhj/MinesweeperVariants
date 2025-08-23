@@ -15,9 +15,6 @@ class Rule1N(AbstractClueRule):
     name = ["1N", "N", "负雷", "Negative"]
     doc = "线索表示 3x3 范围内染色格与非染色格的雷数差"
 
-    def clue_class(self):
-        return Value1N
-
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':
         for pos, _ in board("N"):
             value = sum(board.get_type(_pos) == "F" if

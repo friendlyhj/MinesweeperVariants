@@ -7,8 +7,6 @@
 """
 [1P] 分组 (Partition)：线索表示 3x3 范围内连续雷的组数
 """
-from typing import List, Dict
-
 from ....abs.Rrule import AbstractClueRule, AbstractClueValue
 from ....abs.board import AbstractPosition, AbstractBoard
 from ....utils.tool import get_logger
@@ -21,7 +19,7 @@ def MineStatus_1P(clue: int) -> list[int]:
         将这个二进制数转化为十进制存储到元素当中，如42(10) == 00101010(2)，即这个线索格的右上、右下、左下有雷
     """
     ans = []
-    a = [0 for i in range(8)]  # 决策列表
+    a = [0 for _ in range(8)]  # 决策列表
 
     def dfs(step: int):
         if step >= 8:  # 最终处理
@@ -81,9 +79,6 @@ class Rule1P(AbstractClueRule):
             logger.debug(f"[1P]set {obj} to {pos}")
 
         return board
-
-    def clue_class(self):
-        return Value1P
 
 
 class Value1P(AbstractClueValue):

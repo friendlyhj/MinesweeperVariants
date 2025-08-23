@@ -32,9 +32,6 @@ class Rule3D1X(Abstract3DClueRule):
 
         return board
 
-    def clue_class(self):
-        return Value3D1X
-
 
 class Value3D1X(AbstractClueValue):
 

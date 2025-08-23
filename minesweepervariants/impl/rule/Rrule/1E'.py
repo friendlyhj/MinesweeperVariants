@@ -4,6 +4,8 @@
 """
 [1E'] 视差 (Eyesight')：线索表示纵向和横向的视野之差，箭头指示视野更长的方向
 """
+from typing import Dict
+
 from minesweepervariants.utils.web_template import Number
 from ....abs.Rrule import AbstractClueRule, AbstractClueValue
 from ....abs.board import AbstractBoard, AbstractPosition
@@ -15,18 +17,15 @@ class Rule1E(AbstractClueRule):
     name = ["1E'", "E'", "视差", "Eyesight'"]
     doc = "线索表示纵向和横向的视野之差，箭头指示视野更长的方向"
 
-    def clue_class(self):
-        return Value1E
-
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':
         for pos, _ in board("N"):
             value = 0
             # 四方向的函数
             direction_funcs = [
-                lambda n: type(pos)(pos.x + n, pos.y, pos.board_key),  # 右
-                lambda n: type(pos)(pos.x - n, pos.y, pos.board_key),  # 左
-                lambda n: type(pos)(pos.x, pos.y + n, pos.board_key),  # 上
-                lambda n: type(pos)(pos.x, pos.y - n, pos.board_key)   # 下
+                lambda _n: type(pos)(pos.x + _n, pos.y, pos.board_key),  # 右
+                lambda _n: type(pos)(pos.x - _n, pos.y, pos.board_key),  # 左
+                lambda _n: type(pos)(pos.x, pos.y + _n, pos.board_key),  # 上
+                lambda _n: type(pos)(pos.x, pos.y - _n, pos.board_key)   # 下
             ]
 
             for fn in direction_funcs[:2]:  # 只计算横向
@@ -106,11 +105,11 @@ class Value1E(AbstractClueValue):
                 n += 1
 
         def collect_dir(fn, steps):
-            t_positions = []
+            _t_positions = []
             if steps == 0:
                 p_block = fn(1)
                 f_var = board.get_variable(p_block) if board.in_bounds(p_block) else None
-                return t_positions, f_var, True
+                return _t_positions, f_var, True
 
             for k in range(1, steps + 1):
                 p = fn(k)
@@ -119,11 +118,11 @@ class Value1E(AbstractClueValue):
                 var = board.get_variable(p)
                 if var is None:
                     return [], None, False
-                t_positions.append(p)
+                _t_positions.append(p)
 
             p_block = fn(steps + 1)
             f_var = board.get_variable(p_block) if board.in_bounds(p_block) else None
-            return t_positions, f_var, True
+            return _t_positions, f_var, True
 
         max_right = max_steps(direction_funcs[0])
         max_left = max_steps(direction_funcs[1])
@@ -198,29 +197,30 @@ class Value1E(AbstractClueValue):
         if tmp_list:
             model.AddBoolOr(tmp_list).OnlyEnforceIf(s)
 
-    def compose(self, board, web):
-        if web:
-            if self.value == 0:
-                return Number(0)
-            if self.value < 0:
-                return get_col(
-                    get_image(
-                        "double_horizontal_arrow",
-                        image_height=0.4,
-                    ),
-                    get_dummy(height=-0.1),
-                    get_text(str(-self.value))
-                )
-            if self.value > 0:
-                return get_row(
-                    get_dummy(width=0.15),
-                    get_image("double_vertical_arrow", ),
-                    get_dummy(width=-0.15),
-                    get_text(str(self.value)),
-                    get_dummy(width=0.15),
-                )
+    def web_component(self, board) -> Dict:
         if self.value == 0:
-            return super().compose(board, web)
+            return Number(0)
+        if self.value < 0:
+            return get_col(
+                get_image(
+                    "double_horizontal_arrow",
+                    image_height=0.4,
+                ),
+                get_dummy(height=-0.1),
+                get_text(str(-self.value))
+            )
+        if self.value > 0:
+            return get_row(
+                get_dummy(width=0.15),
+                get_image("double_vertical_arrow", ),
+                get_dummy(width=-0.15),
+                get_text(str(self.value)),
+                get_dummy(width=0.15),
+            )
+
+    def compose(self, board):
+        if self.value == 0:
+            return get_text("0")
         if self.value < 0:
             return get_col(
                 get_image(

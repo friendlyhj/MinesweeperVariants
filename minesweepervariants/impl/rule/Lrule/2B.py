@@ -43,13 +43,15 @@ class Rule2B(AbstractMinesRule):
                         model.Add(
                             sum(col_c[index_a+1:index_b]) ==
                             sum(board.batch(col_b[index_a+2:index_b-1], mode="variable"))
-                        ).OnlyEnforceIf(col_var[index_a+1:index_b-1] + [col_var[index_a].Not(), col_var[index_b-1].Not(), s])
+                        ).OnlyEnforceIf(col_var[index_a+1:index_b-1] +
+                                        [col_var[index_a].Not(), col_var[index_b-1].Not(), s])
                     if -1 < index + 1 < len(last_row):
                         col_a = board.batch(board.get_col_pos(last_row[index + 1]), mode="variable")
                         model.Add(
                             sum(col_a[index_a+1:index_b]) ==
                             sum(board.batch(col_b[index_a+2:index_b-1], mode="variable"))
-                        ).OnlyEnforceIf(col_var[index_a+1:index_b-1] + [col_var[index_a].Not(), col_var[index_b-1].Not(), s])
+                        ).OnlyEnforceIf(col_var[index_a+1:index_b-1] +
+                                        [col_var[index_a].Not(), col_var[index_b-1].Not(), s])
 
             for index_t in range(1, len(col_b) - 1):
                 if -1 < index - 1 < len(last_row):

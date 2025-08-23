@@ -8,7 +8,8 @@ import os
 import sys
 import importlib.util
 from pathlib import Path
-import traceback
+from turtle import st
+from typing import Optional
 
 from minesweepervariants.utils.tool import get_logger
 
@@ -74,7 +75,7 @@ def get_all_subclasses(cls):
     return subclasses
 
 
-def get_board(name=None) -> type | None:
+def get_board(name: Optional[str] = None) -> type:
     if name is None:
         v = -1
         b = None
@@ -82,6 +83,8 @@ def get_board(name=None) -> type | None:
             if v < i.version:
                 v = i.version
                 b = i
+        if b is None:
+            raise ValueError("未找到棋盘")
         return b
     else:
         for i in AbstractBoard.__subclasses__():
@@ -90,6 +93,7 @@ def get_board(name=None) -> type | None:
 
 
 def get_rule(name: str) -> type | None:
+
     for i in get_all_subclasses(AbstractRule):
         if i in [
             AbstractClueRule,
@@ -136,7 +140,7 @@ def encode_board(code: bytes) -> str:
     return base64.urlsafe_b64encode(code).decode("ascii")
 
 
-def decode_board(base64data: str, name: str = None):
+def decode_board(base64data: str, name: Optional[str] = None):
     board_bytes = base64.urlsafe_b64decode(base64data.encode("ascii"))
     board_bytes = board_bytes.rstrip(b"\xff")
     return get_board(name)(code=board_bytes)

@@ -9,14 +9,13 @@
 """
 from ....abs.Mrule import AbstractMinesClueRule, AbstractMinesValue
 from ....abs.board import AbstractPosition, AbstractBoard
+
 COUNT = 0
+
 
 class Rule4T(AbstractMinesClueRule):
     name = ["*3T", "雷三连"]
     doc = "雷线索指示包含自身的雷三连数量。雷三连允许部分重合"
-
-    def mines_class(self):
-        return Value4T
 
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':
         for _pos, _ in board("F"):

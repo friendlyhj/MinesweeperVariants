@@ -4,8 +4,6 @@
 """
 [1E] 视野 (Eyesight)：线索表示四方向上能看到的非雷格数量（包括自身），雷会阻挡视线
 """
-from typing import Callable
-
 from ....abs.Rrule import AbstractClueRule, AbstractClueValue
 from ....abs.board import AbstractBoard, AbstractPosition
 
@@ -14,18 +12,15 @@ class Rule1E(AbstractClueRule):
     name = ["1E", "E", "视野", "Eyesight"]
     doc = "线索表示四方向上能看到的非雷格数量（包括自身），雷会阻挡视线"
 
-    def clue_class(self):
-        return Value1E
-
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':
         for pos, _ in board("N"):
             value = 1  # 包括自身
             # 四方向的函数
             direction_funcs = [
-                lambda n: type(pos)(pos.x + n, pos.y, pos.board_key),  # 右
-                lambda n: type(pos)(pos.x - n, pos.y, pos.board_key),  # 左
-                lambda n: type(pos)(pos.x, pos.y + n, pos.board_key),  # 上
-                lambda n: type(pos)(pos.x, pos.y - n, pos.board_key)   # 下
+                lambda _n: type(pos)(pos.x + _n, pos.y, pos.board_key),  # 右
+                lambda _n: type(pos)(pos.x - _n, pos.y, pos.board_key),  # 左
+                lambda _n: type(pos)(pos.x, pos.y + _n, pos.board_key),  # 上
+                lambda _n: type(pos)(pos.x, pos.y - _n, pos.board_key)   # 下
             ]
 
             for fn in direction_funcs:
@@ -63,7 +58,6 @@ class Value1E(AbstractClueValue):
                 n += 1
                 positions.append(pos)
         return positions
-
 
     @classmethod
     def type(cls) -> bytes:

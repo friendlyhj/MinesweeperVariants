@@ -11,7 +11,6 @@
 from ....abs.board import AbstractBoard, AbstractPosition
 from ....abs.Rrule import AbstractClueRule, AbstractClueValue
 from ....utils.tool import get_logger
-from ....utils.impl_obj import VALUE_QUESS, MINES_TAG
 
 
 class Rule1M(AbstractClueRule):
@@ -37,9 +36,6 @@ class Rule1M(AbstractClueRule):
             board.set_value(pos, obj)
             logger.debug(f"[1M]: put {obj} to {pos}")
         return board
-
-    def clue_class(self):
-        return Value1M
 
 
 class Value1M(AbstractClueValue):

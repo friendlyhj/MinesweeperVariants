@@ -3,19 +3,15 @@
 # @Time    : 2025/06/07 19:40
 # @Author  : Wu_RH
 # @FileName: solver.py
-import math
 import os
 from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import as_completed
-from multiprocessing import Queue, Process
-from pathlib import Path
-import yaml
 from ortools.sat.python.cp_model import IntVar
 
 from ...abs.rule import AbstractRule, AbstractValue
 from ortools.sat.python import cp_model
 from collections import defaultdict
-from typing import Dict, List, Tuple, Union, Optional, Any
+from typing import Dict, List, Tuple, Union, Optional
 
 from ...utils.tool import get_logger
 
@@ -67,7 +63,8 @@ class Switch:
     def __call__(self, *args, **kwargs):
         return self.get(*args, **kwargs)
 
-    def to_str(self, obj: Union[AbstractRule, AbstractValue, AbstractPosition, str]) -> str:
+    @staticmethod
+    def to_str(obj: Union[AbstractRule, AbstractValue, AbstractPosition, str]) -> str:
         if isinstance(obj, AbstractRule):
             name = f"RULE|{obj.name[0]}"
         elif (

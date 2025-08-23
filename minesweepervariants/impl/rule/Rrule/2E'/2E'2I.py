@@ -75,9 +75,6 @@ class Rule2Ep2I(AbstractClueRule):
                 continue
             board[pos] = None
 
-    def clue_class(self):
-        return Value2Ep2I
-
 
 class Value2Ep2I(AbstractClueValue):
     def __init__(self, pos: 'AbstractPosition', code: bytes = b''):

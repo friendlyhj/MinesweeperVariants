@@ -40,9 +40,6 @@ class Rule3DV(Abstract3DClueRule):
             logger.debug(f"Set {pos} to 3D-V[{value}]")
         return board
 
-    def clue_class(self):
-        return ValueV
-
 
 class ValueV(AbstractClueValue):
     def __init__(self, pos: AbstractPosition, count: int = 0, code: bytes = None):

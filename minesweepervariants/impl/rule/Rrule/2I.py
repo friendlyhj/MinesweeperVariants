@@ -24,9 +24,6 @@ class Rule2I(AbstractClueRule):
         super().__init__(board, data)
         board.generate_board(NAME_2I, (3, 3))
 
-    def clue_class(self):
-        return Value2I
-
     def fill(self, board: 'AbstractBoard') -> 'AbstractBoard':
         def apply_offsets(_pos: AbstractPosition):
             nonlocal offsets

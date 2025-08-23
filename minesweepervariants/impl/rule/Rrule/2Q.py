@@ -15,13 +15,13 @@ from minesweepervariants.impl.summon.solver import Switch
 
 
 def pos_shift(
-    board: AbstractBoard,
-    pos: AbstractPosition,
-    index: int
+        board: AbstractBoard,
+        pos: AbstractPosition,
+        index: int
 ):
     shift = [
-        (1, 1),  (1, 0),  (1, -1),
-        (0, 1),           (0, -1),
+        (1, 1), (1, 0), (1, -1),
+        (0, 1), (0, -1),
         (-1, 1), (-1, 0), (-1, -1)
     ][index]
     positions = []
@@ -68,6 +68,7 @@ class Value2Q(AbstractClueValue):
                 positions.extend(pos_list)
 
         return positions
+
     @classmethod
     def type(cls) -> bytes:
         return Rule2Q.name[0].encode("ascii")

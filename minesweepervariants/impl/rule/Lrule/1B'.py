@@ -56,3 +56,5 @@ class Rule1B(AbstractMinesRule):
 
         def a(model, total_var):
             model.Add(total == total_var)
+
+        info["hard_fns"].append(a)

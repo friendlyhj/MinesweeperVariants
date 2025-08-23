@@ -2,7 +2,7 @@
 """
 [3N] 范数 (Norm)：线索(a_p)表示距离自己lp范数最近的雷的lp范数大小为a。(p=0,1,2,00)
 """
-from typing import  Dict, Literal
+from typing import Dict, Literal
 
 from ....abs.Rrule import AbstractClueValue, AbstractClueRule
 from ....abs.board import AbstractPosition, AbstractBoard
@@ -21,7 +21,7 @@ def simplify_sqrt(n):
             c *= i
             n //= i * i
         i += 1
-    return (c, n)
+    return c, n
 
 
 def norm(dx, dy, p: P) -> Root:
@@ -37,17 +37,17 @@ def norm(dx, dy, p: P) -> Root:
         点(dx, dy)在lp范数下的距离
     """
     if p == 0:
-        return (2 if dx != 0 and dy != 0 else 1, 1)
+        return 2 if dx != 0 and dy != 0 else 1, 1
     elif p == 1:
-        return (abs(dx) + abs(dy), 1)
+        return abs(dx) + abs(dy), 1
     elif p == 2:
         r2 = dx ** 2 + dy ** 2
         if int(r2 ** 0.5) ** 2 == r2:
-            return (int(r2 ** 0.5), 1)
+            return int(r2 ** 0.5), 1
         else:
-            return (r2, 2)
+            return r2, 2
     elif p == '00':
-        return (max(abs(dx), abs(dy)), 1)
+        return max(abs(dx), abs(dy)), 1
     else:
         raise ValueError(f"Unsupported norm type: {p}")
 
@@ -148,26 +148,27 @@ class BaseValue3N(AbstractClueValue):
     def __repr__(self):
         return format(self.n, self.p)
 
-    def compose(self, board, web) -> Dict:
-        if web:
-            if self.n[1] == 1:
-                return get_text(str(self.n[0]))
-            elif self.n[1] == 2:
-                value_a, value_b = simplify_sqrt(self.n[0])
-                if value_b == -1:
-                    return get_text(str(value_a))
-                if value_a == -1:
-                    return get_text(
-                        "$\\sqrt{" + str(value_b) + "}$"
-                    )
-                else:
-                    return get_text(
-                        "$" + str(value_a) +
-                        "\\sqrt{" + str(value_b) +
-                        "}$"
-                    )
+    def web_component(self, board) -> Dict:
+        if self.n[1] == 1:
+            return get_text(str(self.n[0]))
+        elif self.n[1] == 2:
+            value_a, value_b = simplify_sqrt(self.n[0])
+            if value_b == -1:
+                return get_text(str(value_a))
+            if value_a == -1:
+                return get_text(
+                    "$\\sqrt{" + str(value_b) + "}$"
+                )
             else:
-                raise ValueError("Unsupported root type")
+                return get_text(
+                    "$" + str(value_a) +
+                    "\\sqrt{" + str(value_b) +
+                    "}$"
+                )
+        else:
+            raise ValueError("Unsupported root type")
+
+    def compose(self, board) -> Dict:
         if self.n[1] == 1:
             return get_col(
                 get_dummy(height=0.175),

@@ -6,7 +6,6 @@
 # @FileName: Lrule.py
 
 from typing import TYPE_CHECKING
-from abc import abstractmethod
 
 from ..utils.impl_obj import get_total
 from ..utils.tool import get_logger

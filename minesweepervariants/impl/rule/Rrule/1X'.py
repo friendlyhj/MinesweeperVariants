@@ -26,9 +26,6 @@ class Rule1Xp(AbstractClueRule):
             logger.debug(f"Set {pos} to 1X[{value}]")
         return board
 
-    def clue_class(self):
-        return Value1X
-
 
 class Value1X(AbstractClueValue):
     def __init__(self, pos: AbstractPosition, count: int = 0, code: bytes = None):

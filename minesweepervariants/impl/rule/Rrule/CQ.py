@@ -12,6 +12,60 @@ from ....utils.tool import get_logger
 from ....utils.impl_obj import VALUE_QUESS, MINES_TAG
 
 
+def _get_queen_positions(board: 'AbstractBoard', pos: AbstractPosition):
+    """获取与给定位置在王后移动范围内的所有位置（横纵+斜向）"""
+    positions = []
+    # 获取棋盘的边界
+    boundary = board.boundary()
+    max_x, max_y = boundary.x, boundary.y
+
+    # 横向方向（同行，相同x，不同y）
+    for y in range(max_y + 1):
+        other_pos = type(pos)(pos.x, y, pos.board_key)
+        if other_pos != pos and board.in_bounds(other_pos):
+            positions.append(other_pos)
+
+    # 纵向方向（同列，相同y，不同x）
+    for x in range(max_x + 1):
+        other_pos = type(pos)(x, pos.y, pos.board_key)
+        if other_pos != pos and board.in_bounds(other_pos):
+            positions.append(other_pos)
+
+    # 右上斜线方向 (x+1, y+1)
+    for i in range(1, max(max_x, max_y) + 1):
+        other_pos = type(pos)(pos.x + i, pos.y + i, pos.board_key)
+        if board.in_bounds(other_pos):
+            positions.append(other_pos)
+        else:
+            break
+
+    # 左下斜线方向 (x-1, y-1)
+    for i in range(1, max(max_x, max_y) + 1):
+        other_pos = type(pos)(pos.x - i, pos.y - i, pos.board_key)
+        if board.in_bounds(other_pos):
+            positions.append(other_pos)
+        else:
+            break
+
+    # 左上斜线方向 (x-1, y+1)
+    for i in range(1, max(max_x, max_y) + 1):
+        other_pos = type(pos)(pos.x - i, pos.y + i, pos.board_key)
+        if board.in_bounds(other_pos):
+            positions.append(other_pos)
+        else:
+            break
+
+    # 右下斜线方向 (x+1, y-1)
+    for i in range(1, max(max_x, max_y) + 1):
+        other_pos = type(pos)(pos.x + i, pos.y - i, pos.board_key)
+        if board.in_bounds(other_pos):
+            positions.append(other_pos)
+        else:
+            break
+
+    return positions
+
+
 class Rule1XStar(AbstractClueRule):
     name = ["CQ", "王后", "Chess-Queen"]
     doc = "线索表示八方向上雷数总和"
@@ -20,67 +74,11 @@ class Rule1XStar(AbstractClueRule):
         logger = get_logger()
         for pos, _ in board("N"):
             # 计算斜向和横纵所有格子中的雷数
-            queen_positions = self._get_queen_positions(board, pos)
+            queen_positions = _get_queen_positions(board, pos)
             value = len([_pos for _pos in queen_positions if board.get_type(_pos) == "F"])
             board.set_value(pos, Value1XStar(pos, count=value))
             logger.debug(f"Set {pos} to 1X*[{value}]")
         return board
-
-    def _get_queen_positions(self, board: 'AbstractBoard', pos: AbstractPosition):
-        """获取与给定位置在王后移动范围内的所有位置（横纵+斜向）"""
-        positions = []
-        # 获取棋盘的边界
-        boundary = board.boundary()
-        max_x, max_y = boundary.x, boundary.y
-
-        # 横向方向（同行，相同x，不同y）
-        for y in range(max_y + 1):
-            other_pos = type(pos)(pos.x, y, pos.board_key)
-            if other_pos != pos and board.in_bounds(other_pos):
-                positions.append(other_pos)
-
-        # 纵向方向（同列，相同y，不同x）
-        for x in range(max_x + 1):
-            other_pos = type(pos)(x, pos.y, pos.board_key)
-            if other_pos != pos and board.in_bounds(other_pos):
-                positions.append(other_pos)
-
-        # 右上斜线方向 (x+1, y+1)
-        for i in range(1, max(max_x, max_y) + 1):
-            other_pos = type(pos)(pos.x + i, pos.y + i, pos.board_key)
-            if board.in_bounds(other_pos):
-                positions.append(other_pos)
-            else:
-                break
-
-        # 左下斜线方向 (x-1, y-1)
-        for i in range(1, max(max_x, max_y) + 1):
-            other_pos = type(pos)(pos.x - i, pos.y - i, pos.board_key)
-            if board.in_bounds(other_pos):
-                positions.append(other_pos)
-            else:
-                break
-
-        # 左上斜线方向 (x-1, y+1)
-        for i in range(1, max(max_x, max_y) + 1):
-            other_pos = type(pos)(pos.x - i, pos.y + i, pos.board_key)
-            if board.in_bounds(other_pos):
-                positions.append(other_pos)
-            else:
-                break
-
-        # 右下斜线方向 (x+1, y-1)
-        for i in range(1, max(max_x, max_y) + 1):
-            other_pos = type(pos)(pos.x + i, pos.y - i, pos.board_key)
-            if board.in_bounds(other_pos):
-                positions.append(other_pos)
-            else:
-                break
-
-        return positions
-
-    def clue_class(self):
-        return Value1XStar
 
 
 class Value1XStar(AbstractClueValue):

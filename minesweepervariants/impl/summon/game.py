@@ -4,20 +4,23 @@
 # @Time    : 2025/07/03 00:27
 # @Author  : Wu_RH
 # @FileName: game.py
+from ctypes import pointer
+from enum import Enum, Flag
 import queue
+from re import A
 import threading
 import time
-from typing import Union, Callable, List
+from typing import Any, Union, Callable, List
 
 from ...abs.Lrule import Rule0R
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from ...abs.Mrule import AbstractMinesValue
-from ...abs.Rrule import AbstractClueValue
+from ...abs.Rrule import AbstractClueValue, ValueQuess
 from ...abs.board import AbstractBoard
 from ...abs.board import AbstractPosition
 from . import Summon
-from .solver import solver_by_csp, hint_by_csp, Switch, deduced_by_csp, solver_board, solver_model
+from .solver import solver_by_csp, hint_by_csp, Switch, deduced_by_csp, solver_model
 from ...utils.impl_obj import MINES_TAG, VALUE_QUESS, POSITION_TAG
 from ...utils.tool import get_logger, get_random
 
@@ -27,16 +30,29 @@ from minesweepervariants.config.config import DEFAULT_CONFIG
 CONFIG = {}
 CONFIG.update(DEFAULT_CONFIG)
 
-NORMAL = 0  # 普通模式
-EXPERT = 1  # 专家模式
-ULTIMATE = 2  # 终极模式
-PUZZLE = 3  # 纸笔模式(用于调试)
+class Mode(Enum):
+    NORMAL = 0  # 普通模式
+    EXPERT = 1  # 专家模式
+    ULTIMATE = 2  # 终极模式
+    PUZZLE = 3  # 纸笔模式(用于调试)
 
-ULTIMATE_A = 1
-ULTIMATE_F = 2
-ULTIMATE_S = 4
-ULTIMATE_R = 8
-ULTIMATE_P = 16
+class UMode(Flag):
+    ULTIMATE_A = 1
+    ULTIMATE_F = 2
+    ULTIMATE_S = 4
+    ULTIMATE_R = 8
+    ULTIMATE_P = 16
+
+NORMAL = Mode.NORMAL
+EXPERT = Mode.EXPERT
+ULTIMATE = Mode.ULTIMATE
+PUZZLE = Mode.PUZZLE
+
+ULTIMATE_A = UMode.ULTIMATE_A
+ULTIMATE_F = UMode.ULTIMATE_F
+ULTIMATE_S = UMode.ULTIMATE_S
+ULTIMATE_R = UMode.ULTIMATE_R
+ULTIMATE_P = UMode.ULTIMATE_P
 
 
 class ValueAsterisk(AbstractClueValue):
@@ -106,9 +122,13 @@ class Manger:
 
 
 class GameSession:
+
+    flag_tag: Any
+    clue_tag: Any
+
     def __init__(
-        self, summon: Summon = None, mode=NORMAL, drop_r=False,
-        ultimate_mode=ULTIMATE_A | ULTIMATE_F | ULTIMATE_S,
+            self, summon: Summon = None, mode=NORMAL, drop_r=False,
+            ultimate_mode=ULTIMATE_A | ULTIMATE_F | ULTIMATE_S,
     ):
         self.logger = get_logger()
         self.summon = summon
@@ -134,6 +154,28 @@ class GameSession:
 
         self.flag_tag = MinesAsterisk(POSITION_TAG)
         self.clue_tag = ValueAsterisk(POSITION_TAG)
+
+    @property
+    def answer_board(self):
+        result = self.__getattribute__("answer_board")
+        if result is None:
+            raise AttributeError("answer_board未初始化")
+        return result
+
+    @answer_board.setter
+    def answer_board(self, value):
+        self.__setattr__("answer_board", value)
+
+    @property
+    def board(self):
+        result = self.__getattribute__("board")
+        if result is None:
+            raise AttributeError("board未初始化")
+        return result
+
+    @board.setter
+    def board(self, value):
+        self.__setattr__("board", value)
 
     def unbelievable(self, pos, action: int):
         """
@@ -165,10 +207,10 @@ class GameSession:
         else:
             board[pos] = self.clue_tag
         board: AbstractBoard
-        print("="*20)
+        print("=" * 20)
         print(board)
         print(board)
-        print("="*20)
+        print("=" * 20)
         model = board.get_model()
         switch = Switch()
         for rule in all_rules:
@@ -354,8 +396,8 @@ class GameSession:
         else:
             return None
         if (
-            self.mode in [ULTIMATE, PUZZLE] and
-            self.ultimate_mode & ULTIMATE_A
+                self.mode in [ULTIMATE, PUZZLE] and
+                self.ultimate_mode & ULTIMATE_A
         ):
             if self.last_deduced[0] != _board:
                 print("last0 uneq board")
@@ -647,7 +689,7 @@ class GameSession:
                                     int(info[0]),
                                     int(info[1]),
                                     info[2]
-                            ))
+                                ))
                     result = tuple(result)
                     if result not in results:
                         results[result] = []

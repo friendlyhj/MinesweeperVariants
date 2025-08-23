@@ -17,6 +17,7 @@ from ....utils.tool import get_logger
 
 from ....utils.web_template import MultiNumber
 
+
 def decode(code: bytes) -> list[int]:
     if len(code) == 2:
         if code[1] > 0xf:
@@ -56,8 +57,7 @@ def MineStatus_1W(clue: list) -> list:
         将这个二进制数转化为十进制存储到元素当中，如42(10) == 00101010(2)，即这个线索格的右上、右下、左下有雷
     """
     ans = []
-    a = [0 for i in range(8)]  # 决策列表
-    used = [0 for i in range(len(clue))]  # 记录已经被使用的线索值
+    a = [0 for _ in range(8)]  # 决策列表
 
     def dfs(step: int):
         if step >= 8:  # 最终处理
@@ -138,11 +138,12 @@ class Value1W(AbstractClueValue):
     def high_light(self, board: 'AbstractBoard') -> list['AbstractPosition']:
         return self.pos.neighbors(2)
 
-    def compose(self, board, web) -> Dict:
-        if web:
-            if self.values:
-                return MultiNumber(self.values)
+    def web_component(self, board) -> Dict:
+        if not self.values:
             return MultiNumber([0])
+        return MultiNumber(self.values)
+
+    def compose(self, board) -> Dict:
         if len(self.values) <= 1:
             value = 0
             if len(self.values) == 1:

@@ -3,10 +3,8 @@
 # @Time    : 2025/06/03 05:30
 # @Author  : Wu_RH
 # @FileName: summon.py
-import sys
 import threading
 import time
-from pathlib import Path
 from typing import Union
 
 from ortools.sat.python import cp_model
@@ -19,7 +17,7 @@ from .solver import solver_by_csp, solver_model, Switch
 from ...utils.tool import get_random, get_logger
 
 from ...abs.Lrule import MinesRules, AbstractMinesRule
-from ...abs.board import AbstractBoard, AbstractPosition
+from ...abs.board import AbstractBoard
 
 from ..impl_obj import get_rule, get_board
 
