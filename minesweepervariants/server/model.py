@@ -1,257 +1,23 @@
-#!/usr/bin/env python3
-# -*- coding:utf-8 -*-
-#
-# @Time    : 2025/07/30 08:15
-# @Author  : Wu_RH
-# @FileName: app.py.py
 import base64
-import hashlib
-import threading
 import time
-import trace
 import traceback
 
-from flask import jsonify, request, redirect
-from flask_cors import CORS
-import sys
+from flask import jsonify, request
 
-from minesweepervariants.abs.board import AbstractPosition, AbstractBoard
+from minesweepervariants.abs.board import AbstractPosition
 from minesweepervariants.impl.summon.game import GameSession as Game, ValueAsterisk, MinesAsterisk
 from minesweepervariants.impl.summon.summon import Summon
 from minesweepervariants.impl.impl_obj import decode_board
-from flask import Flask
-import os
 from minesweepervariants.impl.summon.game import NORMAL, EXPERT, ULTIMATE, PUZZLE
 from minesweepervariants.impl.summon.game import ULTIMATE_R, ULTIMATE_S, ULTIMATE_F, ULTIMATE_A, ULTIMATE_P
 
 from minesweepervariants.utils.impl_obj import get_seed, VALUE_QUESS, MINES_TAG
-from minesweepervariants.utils.tool import get_logger, hash_str
+from minesweepervariants.utils.tool import hash_str
 
-# 添加项目路径到系统路径
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-# 导入项目核心模块
-
-app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}})
-
-
-@app.after_request
-def add_cors_headers(response):
-    response.headers['Access-Control-Allow-Origin'] = '*'
-    response.headers['Access-Control-Allow-Methods'] = 'GET,POST,OPTIONS'
-    response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization'
-    response.headers['Referrer-Policy'] = 'unsafe-url'
-    if 'Access-Control-Allow-Credentials' in response.headers:
-        try:
-            del response.headers['Access-Control-Allow-Credentials']
-        except Exception:
-            pass
-    return response
-
+__all__ = ["generate_board", "metadata", "click", "hint_post", "get_rule_list", "reset"]
 
 hypothesis_data = dict()
-github_web = "https://koolshow.github.io"
 
-
-def format_cell(_board, pos, label):
-    def init_component(data) -> dict:
-        if data["type"] in ["col", "row"]:
-            style = "display: flex; "
-            if data["type"] == "col":
-                # 垂直布局：主轴垂直方向，交叉轴居中
-                style += "flex-direction: column;"
-                # 子项高度平均分配（使用 flex-grow 实现）
-                for child in data["children"]:
-                    child_style = init_component(child).get("style", "")
-                    if "flex-grow" not in child_style:
-                        child_style += " flex-grow: 1;"
-                    child["style"] = child_style
-            else:
-                # 水平布局：主轴水平方向，交叉轴居中
-                style += "flex-direction: row;"
-                # 子项宽度平均分配（使用 flex-grow 实现）
-                for child in data["children"]:
-                    child_style = init_component(child).get("style", "")
-                    if "flex-grow" not in child_style:
-                        child_style += " flex-grow: 1;"
-                    child["style"] = child_style
-            style += " align-items: center; justify-content: center; gap: 5%;"
-            style += " width: 100%; height: 100%; flex-grow: 1;"
-            return {
-                "type": "container",
-                "value": [init_component(i) for i in data["children"]],
-                "style": style
-            }
-
-        elif data["type"] == "text":
-            # 文本项：使用 flex 布局填充可用空间，添加溢出处理
-            style = (f"color: rgb(from var({primary_color}) r g b / "
-                     f"{50 if invalid else 100}%); text-align: center;")
-            style += " display: flex; justify-content: center; align-items: center;"
-            style += " flex: 1; min-width: 0; max-width: 100%;"  # 关键：允许内容收缩
-            style += " overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"
-
-            return {
-                "type": "text",
-                "value": data.get("text", ""),
-                "style": style
-            }
-
-        elif data["type"] == "image":
-            path = data.get("image")
-            # 图片项：保持比例，居中显示
-            return {
-                "type": "assets",
-                "value": path,
-                "style": f"fill: rgb(from var({primary_color}) r g b / "
-                         f"{50 if invalid else 100}%); flex: 1; min-width: 0;"
-            }
-
-        elif data["type"] == "placeholder":
-            style = "flex-shrink: 0;"  # 防止占位符被压缩
-
-            if "width" in data:
-                # 行内容器中使用固定宽度
-                style += f" width: {int(100 * data['width'])}%;"
-            if "height" in data:
-                # 列内容器中使用固定高度
-                style += f" height: {int(100 * data['height'])}%;"
-
-            return {
-                "type": "container",
-                "value": [],
-                "style": style
-            }
-        elif data["type"] == "template":
-            return data
-
-    obj = _board[pos]
-    dye = _board.get_dyed(pos)
-    primary_color = "--flag-color" if _board.get_type(pos) == "F" else "--foreground-color"
-    invalid = False if obj is None else obj.invalid(_board)
-    # print(obj.compose(_board, True))
-    cell_data = init_component({
-        "type": "row",
-        "children": [obj.compose(_board, True)]
-    })
-    cell_data["style"] += " width: 100%; height: 100%; align-items: center; justify-content: center;"
-    cell_data["style"] += (f"color: rgb(from var({primary_color}) r g b /"
-                           f" {50 if invalid else 100}%);"
-                           f" flex: 1; min-width: 0;")
-    # if dye:
-    #     cell_data["style"] += " background-color: rgb(from var(--foreground-color) r g b / 29%);"
-
-    VALUE = _board.get_config(pos.board_key, "VALUE")
-    MINES = _board.get_config(pos.board_key, "MINES")
-    if obj in [VALUE, MINES, None]:
-        overlayText = ""
-    else:
-        overlayText = obj.type().decode("ascii")
-    # hightlight = [{
-    #             "x": pos.x,
-    #             "y": pos.y,
-    #             "boardname": pos.board_key,
-    #         }]
-    hightlight = {pos.board_key: [[pos.x, pos.y]]}
-    if obj is not None:
-        if obj.high_light(_board) is not None:
-            for h_pos in set(h_pos for h_pos in obj.high_light(_board) if _board.in_bounds(h_pos)):
-                # hightlight.append({
-                #     "x": h_pos.x,
-                #     "y": h_pos.y,
-                #     "boardname": h_pos.board_key,
-                # })
-                if h_pos.board_key not in hightlight:
-                    hightlight[h_pos.board_key] = []
-                hightlight[h_pos.board_key].append([h_pos.x, h_pos.y])
-    cell_data = {
-        "type": "" if obj is None else obj.type().decode("ascii"),
-        "position": {
-            "x": pos.x, "y": pos.y,
-            "boardname": pos.board_key
-        },
-        "component": cell_data,
-        "highlight": hightlight,
-        "clickable": True,
-        "overlayText": overlayText if label else ""
-    }
-    # import json
-    # json_str = json.dumps(cell_data, separators=(",", ":"))
-    # print(json_str)
-    return cell_data
-
-
-def format_board(_board: AbstractBoard):
-    if _board is None:
-        return
-    # board: Board
-    board_data: dict = {
-        "boards": {},
-        "cells": [],
-    }
-    count = 0
-    for key in _board.get_board_keys():
-        dye_list = [
-            [_board.get_dyed(pos) if _board.is_valid(pos) else False
-             for pos in _board.get_row_pos(col_pos)]
-            for col_pos in _board.get_col_pos(
-                _board.boundary(key=key)
-            )
-        ]
-        mask_list = [
-            [not _board.is_valid(pos) for pos in _board.get_row_pos(col_pos)]
-            for col_pos in _board.get_col_pos(
-                _board.boundary(key=key)
-            )
-        ]
-        board_data["boards"][key] = {
-            "size": _board.get_config(key, "size"),
-            "position": [_board.get_board_keys().index(key), 0],
-            "showLabel": _board.get_config(key, "row_col"),
-            "showName": not _board.get_config(key, "row_col"),  # TODO 何时不显示Name?
-            # TODO X=N, poslabel
-        }
-        print(mask_list)
-        if any(any(i) for i in mask_list):
-            board_data["boards"][key].update({
-                "mask": mask_list
-            })
-        if any(any(i) for i in dye_list):
-            board_data["boards"][key].update({
-                "dye": dye_list,
-            })
-        for pos, obj in _board(key=key):
-            if obj is None:
-                continue
-            label = obj not in [
-                VALUE_QUESS, MINES_TAG,
-                _board.get_config(key, "MINES"),
-                _board.get_config(key, "VALUE"),
-            ]
-            label = (
-                _board.get_config(key, "by_mini") and
-                label and
-                not (
-                    isinstance(obj, ValueAsterisk) or
-                    isinstance(obj, MinesAsterisk)
-                )
-            )
-            board_data["cells"].append(
-                format_cell(_board, pos, label))
-            count += 1
-    board_data["count"] = count
-    import json
-    json_str = json.dumps(board_data, separators=(",", ":"))
-    print(json_str)
-    return board_data
-
-@app.route('/')
-def root():
-    return redirect("https://koolshow.github.io/MinesweeperVariants-Vue/")
-
-
-@app.route('/api/new')
 def generate_board():
     global hypothesis_data
     from minesweepervariants.utils.tool import get_random
@@ -412,7 +178,6 @@ def generate_board():
     return jsonify(data), 200
 
 
-@app.route('/api/metadata')
 def metadata():
     print("[metadata] start")
     if "game" not in hypothesis_data \
@@ -471,7 +236,6 @@ def metadata():
     return jsonify(board_data)
 
 
-@app.route('/api/click', methods=['POST', 'GET'])
 def click():
     global hypothesis_data
     data = request.get_json()
@@ -603,7 +367,6 @@ def click():
     return refresh, 200
 
 
-@app.route('/api/hint', methods=['POST', 'GET'])
 def hint_post():
     global hypothesis_data
     game = hypothesis_data["game"]
@@ -705,7 +468,6 @@ def hint_post():
     return jsonify(data), 200
 
 
-@app.route('/api/rules', methods=['POST', 'GET'])
 def get_rule_list():
     from minesweepervariants.impl.rule import get_all_rules
     from minesweepervariants.impl.board.dye import get_all_dye
@@ -726,7 +488,6 @@ def get_rule_list():
     }
 
 
-@app.route('/api/reset', methods=['POST', 'GET'])
 def reset():
     global hypothesis_data
     game: Game = hypothesis_data["game"]
@@ -750,16 +511,3 @@ def reset():
             game.drop_r = True
     print("rest end")
     return '', 200
-
-
-if __name__ == '__main__':
-    get_logger(log_lv="DEBUG")
-    port = int(sys.argv[1] if len(sys.argv) == 2 else "5050")
-    host = "0.0.0.0"
-    # 允许所有来源跨域，或根据需要设置 origins=["*"]
-
-    # threading.Thread(target=lambda: webbrowser.open(f"http://localhost:{port}", new=2)).start()
-    import waitress
-
-    print(f"server start at {host}:{port}")
-    waitress.serve(app, host=host, port=port)

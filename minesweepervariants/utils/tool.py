@@ -5,6 +5,7 @@
 # time:2025.6.3
 # from 10:/D:/tool.py
 
+import hashlib
 import json
 import os
 import time
