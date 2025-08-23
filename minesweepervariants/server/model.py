@@ -183,8 +183,8 @@ class Model():
             count["remains"] = len([_ for pos, _ in a_board("F") if board.get_type(pos) == "N"])
         board_data["rules"] = self.rules
         board_data["count"] = count
-        board_data["noFail"] = self.data["noFail"]
-        board_data["noHint"] = self.data["noHint"]
+        board_data["noFail"] = self.noFail
+        board_data["noHint"] = self.noHint
         board_data["u_mode"] = []
         gamemode = game.mode
         u_gamemode = game.ultimate_mode
@@ -264,7 +264,7 @@ class Model():
                 unbelievable = game.unbelievable(pos, 1)
             if unbelievable is None:
                 return {}, 500
-            self.data["noFail"] = False
+            self.noFail = False
             print("[click] *unbelievable*", unbelievable)
             refresh["mines"] = [
                 {"x": _pos.x, "y": _pos.y,
@@ -339,8 +339,8 @@ class Model():
             count["known"] = len([_ for pos, _ in a_board("F")])
             count["remains"] = len([_ for pos, _ in a_board("F") if _board.get_type(pos) == "N"])
         refresh["count"] = count
-        refresh["noFail"] = self.data["noFail"]
-        refresh["noHint"] = self.data["noHint"]
+        refresh["noFail"] = self.noFail
+        refresh["noHint"] = self.noHint
         print("[click] refresh: " + str(refresh))
         return refresh, 200
 
@@ -352,7 +352,7 @@ class Model():
         t = time.time()
         hint_list = game.hint()
         if [k for k in hint_list.keys()][0]:
-            self.data["noHint"] = False
+            self.noHint = False
         print(f"[hint] hint end: {time.time() - t}s")
         for hint in hint_list.items():
             print("[hint]", hint[0], "->", hint[1])
@@ -439,7 +439,7 @@ class Model():
             )
         data = {
             "hints": results,
-            "noHint": self.data["noHint"],
+            "noHint": self.noHint,
             "cells": cells
         }
         print("[hint] hint back: ", data)
@@ -476,8 +476,8 @@ class Model():
             print("[reset] board is None!")
             return {}, 500
         game.board = mask_board
-        self.data["noFail"] = True
-        self.data["noHint"] = True
+        self.noFail = True
+        self.noHint = True
         game.last_deduced = [None, []]
         game.last_hint = [None, {}]
         game.thread_deduced()
