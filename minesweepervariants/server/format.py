@@ -193,22 +193,25 @@ def format_board(_board: AbstractBoard):
 def format_gamemode(gamemode: Mode, u_gamemode: UMode):
     u_mode: list[str] = []
 
-    if gamemode == Mode.NORMAL:
-        mode = "NORMAL"
-    elif gamemode == Mode.EXPERT:
-        mode = "EXPERT"
-    elif gamemode == Mode.ULTIMATE:
-        mode = "ULTIMATE"
-        if u_gamemode & UMode.ULTIMATE_A:
-            u_mode.append("+A")
-        if u_gamemode & UMode.ULTIMATE_F:
-            u_mode.append("+F")
-        if u_gamemode & UMode.ULTIMATE_S:
-            u_mode.append("+S")
-        if u_gamemode & UMode.ULTIMATE_R:
-            u_mode.append("+R")
-        if u_gamemode & UMode.ULTIMATE_P:
-            u_mode.append("+!")
-    else:
-        mode = "UNKNOWN"
+    match gamemode:
+        case Mode.NORMAL:
+            mode = "NORMAL"
+        case Mode.EXPERT:
+            mode = "EXPERT"
+        case Mode.ULTIMATE:
+            mode = "ULTIMATE"
+            if u_gamemode & UMode.ULTIMATE_A:
+                u_mode.append("+A")
+            if u_gamemode & UMode.ULTIMATE_F:
+                u_mode.append("+F")
+            if u_gamemode & UMode.ULTIMATE_S:
+                u_mode.append("+S")
+            if u_gamemode & UMode.ULTIMATE_R:
+                u_mode.append("+R")
+            if u_gamemode & UMode.ULTIMATE_P:
+                u_mode.append("+!")
+        case Mode.PUZZLE:
+            mode = "PUZZLE"
+        case _:
+            mode = "UNKNOWN"
     return mode, u_mode

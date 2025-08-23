@@ -1,4 +1,6 @@
-from typing import Literal, Never, TypedDict, Optional, List, Tuple, Dict, Union
+from typing import Literal, Never, NotRequired, TypedDict, Optional, List, Tuple, Dict, Union
+
+from flask.config import T
 
 __all__ = ["CellType", "CellState", "Board", "CountInfo", "ComponentTemplate", "ComponentConfig", "CellConfig", "BoardMetadata", "U_Hint", "ClickResponse"]
 
@@ -56,12 +58,12 @@ class BoardMetadata(TypedDict):
     noFail: Optional[bool]
     noHint: Optional[bool]
     mode: Literal["NORMAL", "EXPERT", "ULTIMATE", "PUZZLE", "UNKNOWN"]
-    u_mode: Optional[List[str]]
+    u_mode: NotRequired[List[str]]
 
 class U_Hint(TypedDict):
     emptycount: int
     flagcount: int
-    markcount: Optional[int]
+    markcount: NotRequired[int]
 
 class ClickResponse(TypedDict):
     success: bool
@@ -71,9 +73,9 @@ class ClickResponse(TypedDict):
     count: Optional[CountInfo]
     noFail: Optional[bool]
     noHint: Optional[bool]
-    mines: Optional[List[CellType]]
-    win: Optional[bool]
-    u_hint: Optional[U_Hint]
+    mines: NotRequired[List[CellType]]
+    win: NotRequired[bool]
+    u_hint: NotRequired[U_Hint]
 
 class GenerateBoardResult(TypedDict):
     reason: str
@@ -84,10 +86,16 @@ class CreateGameParams(TypedDict):
     rules: str
     mode: str
     total: str
-    u_mode: Optional[str]
-    dye: Optional[str]
-    mask: Optional[str]
-    seed: Optional[str]
+    u_mode: NotRequired[str]
+    dye: NotRequired[str]
+    mask: NotRequired[str]
+    seed: NotRequired[str]
+
+class ClickData(TypedDict):
+    x: int
+    y: int
+    boardName: str
+    button: Literal["left", "right", "middle"]
 
 type MetadataResult = BoardMetadata
 

@@ -1,10 +1,12 @@
 import base64
 from dataclasses import dataclass
+from re import U
 import time
 import traceback
+from weakref import ref
 
 import click
-from flask import jsonify, request
+from flask import Response, jsonify, request
 
 from minesweepervariants.abs.board import AbstractBoard, AbstractPosition
 from minesweepervariants.impl.summon.game import GameSession as Game, Mode, UMode, ValueAsterisk, MinesAsterisk
@@ -19,7 +21,7 @@ from minesweepervariants.utils.impl_obj import get_seed, VALUE_QUESS, MINES_TAG
 from minesweepervariants.utils.tool import hash_str
 
 from .format import format_board, format_cell, format_gamemode
-from ._typing import CellType, CellState, Board, CountInfo, ComponentTemplate, ComponentConfig, CellConfig, BoardMetadata, CreateGameParams, GenerateBoardResult, ResponseType, U_Hint, ClickResponse
+from ._typing import CellType, CellState, Board, ClickData, CountInfo, ComponentTemplate, ComponentConfig, CellConfig, BoardMetadata, CreateGameParams, GenerateBoardResult, ResponseType, U_Hint, ClickResponse
 __all__ = ["generate_board", "metadata", "click", "hint_post", "get_rule_list", "reset"]
 
 @dataclass(slots=True)
@@ -39,6 +41,23 @@ class Model():
         self.noHint = True
         self.noFail = True
 
+    def get_game(self):
+        if self.game is None or self.game.board is None or self.game.answer_board is None:
+            raise RuntimeError("游戏未初始化")
+        return self.game
+
+    def get_count(self) -> CountInfo:
+        game = self.get_game()
+        board = game.board
+        a_board = game.answer_board
+
+        count: CountInfo = {
+            "total": len([_ for pos, _ in a_board("F")]),
+            "known": None if game.drop_r else len([_ for pos, _ in a_board("F")]),
+            "unknown": len([_ for _ in board("N")]),
+            "remains": None if game.drop_r else len([_ for pos, _ in a_board("F") if board.get_type(pos) == "N"])
+        }
+        return count
 
     def generate_board(self) -> ResponseType[GenerateBoardResult]:
         data: GenerateBoardResult
@@ -49,14 +68,13 @@ class Model():
         answer_board = None
         mask_board = None
 
-        code = None
         used_r = "true"
         rules = (args["rules"] or "V").split(",")
-        ultimate_mode = args["u_mode"] or ""
         total = int(args["total"] or -1)
-        dye = args["dye"] or ""
-        mask = args["mask"] or ""
-        seed = args["seed"] or None
+        ultimate_mode = args.get("u_mode") or ""
+        dye = args.get("dye") or ""
+        mask = args.get("mask") or ""
+        seed = args.get("seed") or None
 
         if seed is not None:
             get_random(new=True, seed=hash_str(seed))
@@ -161,24 +179,15 @@ class Model():
         board_data: BoardMetadata
         print("[metadata] start")
 
-        if self.game is None \
-            or self.game.board is None \
-            or self.game.answer_board is None:
-            print("[metadata] board is None!")
+        try:
+            game = self.get_game()
+        except RuntimeError as e:
+            print("[metadata]", e)
             return {}, 200 # type: ignore
 
-        game = self.game
         board = game.board
-        a_board = game.answer_board
 
         boards, cells, countint = format_board(board)
-
-        count: CountInfo = {
-            "total": len([_ for pos, _ in a_board("F")]),
-            "known": None if self.game.drop_r else len([_ for pos, _ in a_board("F")]),
-            "unknown": len([_ for _ in board("N")]),
-            "remains": None if self.game.drop_r else len([_ for pos, _ in a_board("F") if board.get_type(pos) == "N"])
-        }
 
         mode, u_mode = format_gamemode(game.mode, game.ultimate_mode)
 
@@ -186,7 +195,7 @@ class Model():
             "seed": str(get_seed()),
             "mode": mode,
             "rules": self.rules,
-            "count": count,
+            "count": self.get_count(),
             "noFail": self.noFail,
             "noHint": self.noHint,
             "u_mode": u_mode,
@@ -197,36 +206,33 @@ class Model():
         return board_data
 
 
-    def click(self):
+    def click(self) -> ResponseType[ClickResponse]:
+        refresh: ClickResponse
 
-        data = request.get_json()
-        refresh = {
-            "cells": [],
-            "gameover": False,
-            "success": True,
-            "reason": "",
-            "count": {}
-        }
+        cells: list[CellConfig] = []
+        gameover = False
+        win = False
+
+        data: ClickData = request.get_json()
+
         print("[click] data:", data)
-        # print(hypothesis_data)
-        game: Game = self.game
-        summon = self.summon
+
+        game: Game = self.get_game()
+        u_hint: U_Hint | None = None
         if game.mode == ULTIMATE:
             deduced = game.deduced()
-            refresh["u_hint"] = {
+            u_hint = {
                 "flagcount": len([None for _pos in deduced if game.answer_board.get_type(_pos) == "F"]),
                 "emptycount": len([None for _pos in deduced if game.answer_board.get_type(_pos) == "C"]),
                 "markcount": len([None for _pos in deduced if _pos.board_key not in game.board.get_interactive_keys()])
             }
-        # print(game.board.show_board())
+
         board = game.board.clone()
         pos = board.get_pos(data["x"], data["y"], data["boardName"])
-        # if data["x"] == 0 and data["y"] == 0:
-        #     print(self.game.hint(wait=True))
-        #     print(self.game.deduced(wait=True))
-        #     return {}
+
         print("[click] start click")
         t = time.time()
+
         if data["button"] == "left":
             _board = game.click(pos)
         elif data["button"] == "right":
@@ -234,37 +240,38 @@ class Model():
         else:
             _board = None
         print(f"[click] end click used time:{time.time() - t}s")
-        self.game.thread_hint()
-        self.game.thread_deduced()
+        game.thread_hint()
+        game.thread_deduced()
 
+        reason = ""
         if _board is None:
             unbelievable = None
             if data["button"] == "left":
-                refresh["reason"] = "你踩雷了"
+                reason = "你踩雷了"
                 unbelievable = game.unbelievable(pos, 0)
             elif data["button"] == "right":
-                refresh["reason"] = "你标记了一个错误的雷"
+                reason = "你标记了一个错误的雷"
                 unbelievable = game.unbelievable(pos, 1)
             if unbelievable is None:
-                return {}, 500
+                raise RuntimeError
             self.noFail = False
             print("[click] *unbelievable*", unbelievable)
-            refresh["mines"] = [
+            mines: list[CellType] = [
                 {"x": _pos.x, "y": _pos.y,
                 "boardname": _pos.board_key}
                 for _pos in unbelievable
             ]
-            refresh["gameover"] = True
-            refresh["win"] = False
+            gameover = True
+            win = False
         else:
-            if game.mode == ULTIMATE:
+            if u_hint is not None:
                 if pos.board_key in board.get_interactive_keys():
                     if data["button"] == "left":
-                        refresh["u_hint"]["flagcount"] -= 1
+                        u_hint["flagcount"] -= 1
                     elif data["button"] == "right":
-                        refresh["u_hint"]["emptycount"] -= 1
+                        u_hint["emptycount"] -= 1
                 else:
-                    refresh["u_hint"]["markcount"] -= 1
+                    u_hint["markcount"] -= 1
             for key in _board.get_board_keys():
                 for pos, obj in _board(key=key):
                     if obj is None and board[pos] is None:
@@ -293,37 +300,36 @@ class Model():
                     )
                     data = format_cell(_board, pos, label)
                     print("[click]", pos, obj, data)
-                    refresh["cells"].append(data)
+                    cells.append(data)
             if not any(
                 _board.has("N", key=key) for
                 key in _board.get_interactive_keys()
             ):
-                refresh["gameover"] = True
-                refresh["reason"] = "你过关!!!(震声)"
-                refresh["win"] = True
+                gameover = True
+                reason = "你过关!!!(震声)"
+                win = True
+
         print("[click] game.board:", game.board)
-        # print(game.deduced())
-        # print(game.hint())
-        # print(refresh)
-        # if _board:
-        #     print(_board.show_board())
-        #     print(game.deduced())
-        #     print(game.last_hint[1])
-        # self.game.deduced(wait=False)
-        a_board = self.game.answer_board
+
         _board = board if _board is None else _board
-        count = dict()
-        count["total"] = len([_ for pos, _ in a_board("F")])
-        count["unknown"] = len([_ for _ in _board("N")])
-        if self.game.drop_r:
-            count["known"] = None
-            count["remains"] = None
-        else:
-            count["known"] = len([_ for pos, _ in a_board("F")])
-            count["remains"] = len([_ for pos, _ in a_board("F") if _board.get_type(pos) == "N"])
-        refresh["count"] = count
-        refresh["noFail"] = self.noFail
-        refresh["noHint"] = self.noHint
+        refresh = {
+            "gameover": gameover,
+            "success": True,
+            "reason": reason,
+            "count": self.get_count(),
+            "cells": cells,
+            "noFail": self.noFail,
+            "noHint": self.noHint,
+        }
+
+        if gameover:
+            refresh["win"] = win
+            if not win:
+                refresh["mines"] = mines
+
+        if u_hint is not None:
+            refresh["u_hint"] = u_hint
+
         print("[click] refresh: " + str(refresh))
         return refresh, 200
 
